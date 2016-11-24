@@ -3,10 +3,7 @@ package store
 import (
 	"crypto"
 	"fmt"
-	"log"
-	"os"
 
-	"github.com/cswank/quimby/mocks"
 	"github.com/cswank/twofactor"
 )
 
@@ -20,12 +17,7 @@ type TFA struct {
 }
 
 func NewTFA(issuer string) TFAer {
-	if os.Getenv("STORE_TEST") == "" {
-		return &TFA{issuer}
-	}
-
-	log.Println("warning, STORE_TEST is set so bypassing two factor authentication")
-	return mocks.NewTFA()
+	return &TFA{issuer}
 }
 
 //Get generates a otp for the user, stores it in the db,

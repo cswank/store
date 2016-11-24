@@ -2,6 +2,10 @@ package handlers
 
 import "net/http"
 
+type page struct {
+}
+
 func Home(w http.ResponseWriter, req *http.Request) {
-	w.Write([]byte("hello world"))
+	p := page{}
+	templates["index.html"].template.ExecuteTemplate(w, "base", p)
 }

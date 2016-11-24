@@ -8,15 +8,18 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
+	"github.com/GeertJohan/go.rice"
 	"github.com/caarlos0/env"
 	"github.com/cswank/store/internal/handlers"
+	"github.com/cswank/store/internal/store"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 )
 
 var (
-	cfg   config
+	cfg   store.Config
 	serve = kingpin.Command("serve", "Start the server.")
+	box   *rice.Box
 )
 
 const (
@@ -27,30 +30,32 @@ func init() {
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)
 	}
-}
-
-type config struct {
-	Port      int    `env:"STORE_PORT" envDefault:"8080"`
-	LogOutput string `env:"STORE_LOGOUTPUT" envDefault:"stdout"`
+	store.Init(cfg)
 }
 
 func main() {
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("Craig Swank")
 	switch kingpin.Parse() {
 	case "serve":
-		doServe()
+		box = rice.MustFindBox("static")
+		handlers.Init(box)
+		Serve()
 	}
 }
 
 func getMiddleware(perm handlers.ACL, f http.HandlerFunc) http.Handler {
-	return alice.New(handlers.Perm(perm), handlers.Handle(f)).Then(http.HandlerFunc(handlers.Errors))
+	return alice.New(handlers.Authentication, handlers.Perm(perm), handlers.Handle(f)).Then(http.HandlerFunc(handlers.Errors))
 }
 
-func doServe() {
+func Serve() {
 	r := mux.NewRouter()
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home))
+	r.Handle("/cards", getMiddleware(handlers.Anyone, handlers.Cards))
 
-	chain := alice.New(handlers.Log(cfg.LogOutput), handlers.Authentication).Then(r)
+	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(rice.MustFindBox("static").HTTPBox())))
+
+	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 
 	addr := fmt.Sprintf(":%d", cfg.Port)
 	log.Printf("listening on %s\n", addr)
