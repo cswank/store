@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 
@@ -38,26 +37,6 @@ func getUserFromCookie(req *http.Request) (*store.User, error) {
 	user.HashedPassword = []byte{}
 	user.TFAData = []byte{}
 	return user, err
-}
-
-func ShortCircuit(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.Context().Value("error") == nil {
-			h.ServeHTTP(w, req)
-		} else {
-			e := req.Context().Value("error")
-			if e != nil {
-				log.Printf("error (%v)\n", e)
-				err := e.(error)
-				if err == store.ErrNotFound {
-					w.WriteHeader(http.StatusNotFound)
-				} else {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-				w.Write([]byte(err.Error()))
-			}
-		}
-	})
 }
 
 func Authentication(h http.Handler) http.Handler {

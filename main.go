@@ -43,17 +43,19 @@ func main() {
 }
 
 func getMiddleware(perm handlers.ACL, f http.HandlerFunc) http.Handler {
-	return alice.New(handlers.Perm(perm)).Then(http.HandlerFunc(f))
+	return alice.New(handlers.Perm(perm), handlers.Handle(f)).Then(http.HandlerFunc(handlers.Errors))
 }
 
 func doServe() {
 	r := mux.NewRouter()
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home))
 
-	chain := alice.New(handlers.Log(cfg.LogOutput), handlers.Authentication, handlers.ShortCircuit).Then(r)
+	chain := alice.New(handlers.Log(cfg.LogOutput), handlers.Authentication).Then(r)
 
+	addr := fmt.Sprintf(":%d", cfg.Port)
+	log.Printf("listening on %s\n", addr)
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.Port),
+		Addr:         addr,
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

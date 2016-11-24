@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/cswank/store/internal/store"
 	"github.com/justinas/alice"
 )
 
@@ -34,6 +35,39 @@ func Log(logOutput string) alice.Constructor {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			lg.Println(req.URL.Path)
+			h.ServeHTTP(w, req)
+		})
+	}
+}
+
+func ShortCircuit(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.Context().Value("error") == nil {
+			h.ServeHTTP(w, req)
+		}
+	})
+}
+
+func Errors(w http.ResponseWriter, req *http.Request) {
+	e := req.Context().Value("error")
+	if e != nil {
+		lg.Printf("error (%v)\n", e)
+		err := e.(error)
+		if err == store.ErrNotFound {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+}
+
+func Handle(f http.HandlerFunc) alice.Constructor {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			e := req.Context().Value("error")
+			if e == nil {
+				f(w, req)
+			}
 			h.ServeHTTP(w, req)
 		})
 	}
