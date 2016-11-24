@@ -6,7 +6,7 @@ import:
 - package: github.com/caarlos0/env
   version: ~2.1.0
 - package: github.com/cswank/twofactor
-  version: ~1.1.0
+  version: 9505c7b0fb7a64e216364093e5d9929b4bcf2d29
 - package: github.com/gorilla/mux
   version: ~1.1.0
 - package: github.com/gorilla/securecookie
