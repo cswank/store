@@ -20,7 +20,7 @@ type Item struct {
 	Keywords    []string `json:"keywords"`
 
 	//Price in cents
-	Price int `json:"price"`
+	Price float32 `json:"price"`
 }
 
 func NewItem() (*Item, error) {

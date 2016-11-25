@@ -59,14 +59,14 @@ func getMiddleware(perm handlers.ACL, f http.HandlerFunc) http.Handler {
 }
 
 func Serve() {
-	r := mux.NewRouter()
+	r := mux.NewRouter().StrictSlash(true)
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
 	r.Handle("/cards", getMiddleware(handlers.Anyone, handlers.Cards)).Methods("GET")
-	r.Handle("/admin/cards/{id}", getMiddleware(handlers.Admin, handlers.CardForm)).Methods("GET")
-	r.Handle("/admin/cards/{id}", getMiddleware(handlers.Admin, handlers.CardFormUpdate)).Methods("POST")
+	r.Handle("/admin/cards", getMiddleware(handlers.Admin, handlers.CardFormUpdate)).Methods("POST")
+	r.Handle("/admin/cards/edit", getMiddleware(handlers.Admin, handlers.CardForm)).Methods("GET")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(rice.MustFindBox("static").HTTPBox())))

@@ -1,4 +1,41 @@
 {{define "content"}}
-card form
+<div id="content">
+  <form id="card-form" action="/admin/cards" method="POST">
+    <div class="field-row">
+      <div class="field-container">
+        <input name="Name" type="text" required placeholder="Name"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-container">
+        <textarea name="Description" rows="10" cols="50" placeholder="Description"></textarea>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-container">
+        <input name="Category" type="text" required placeholder="Category"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-container">
+        <input name="SubCategory" type="text" required placeholder="SubCategory"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-container">
+        <input name="Page" type="number" required placeholder="Page"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-container">
+        <input name="Price" type="number" min="1" step="any" placeholder="Price"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-container">
+        <button type="submit" class="">Submit</button>
+      </div>
+    </div>
+  </form>
+</div>
 {{end}}
-
