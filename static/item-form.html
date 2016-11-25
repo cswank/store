@@ -1,9 +1,9 @@
 {{define "content"}}
 <div id="content">
-  <form id="card-form" action="/admin/cards" method="POST">
+  <form id="card-form" action="/admin/items" method="POST">
     <div class="field-row">
       <div class="field-container">
-        <input name="Name" type="text" required placeholder="Name"/>
+        <input name="Name" type="text" required placeholder="Name" value="{{.Item.Name}}"/>
       </div>
     </div>
     <div class="field-row">

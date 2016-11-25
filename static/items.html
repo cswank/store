@@ -1,0 +1,13 @@
+{{define "content"}}
+<ul>
+  {{range $cat, $categories := .Categories}}
+  <li>{{$cat}}</li>
+  <ul>
+    {{range $subCategory := $categories}}
+    <li>{{$subCategory}}</li>
+    {{end}}
+  </ul>
+  {{end}}
+</ul>
+{{end}}
+

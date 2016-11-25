@@ -1,0 +1,10 @@
+{{define "content"}}
+<ul>
+  {{with .Items}}
+  {{range .}}
+  <li>{{.Name}}</li>
+  {{end}}
+  {{end}}
+</ul>
+{{end}}
+

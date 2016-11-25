@@ -34,10 +34,36 @@ func NewItem() (*Item, error) {
 	}, nil
 }
 
+func GetCategories() (map[string][]string, error) {
+	cats := make(map[string][]string)
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("items"))
+		c := b.Cursor()
+		for cat, _ := c.First(); cat != nil; cat, _ = c.Next() {
+			var subCats []string
+			subB := b.Bucket([]byte(cat))
+			c := subB.Cursor()
+			for subCat, _ := c.First(); subCat != nil; subCat, _ = c.Next() {
+				subCats = append(subCats, string(subCat))
+			}
+			cats[string(cat)] = subCats
+		}
+		return nil
+	})
+	return cats, nil
+}
+
 func GetSubCatetory(cat, subCat string, page int) ([]Item, error) {
 	var items []Item
 	err := db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("items")).Bucket([]byte(cat)).Bucket([]byte(subCat)).Bucket([]byte(fmt.Sprintf("%d", page)))
+		b := tx.Bucket([]byte("items"))
+		for _, name := range [][]byte{[]byte(cat), []byte(subCat), []byte(fmt.Sprintf("%d", page))} {
+			b = b.Bucket(name)
+			if b == nil {
+				return ErrNotFound
+			}
+		}
+
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			var i Item
@@ -48,6 +74,7 @@ func GetSubCatetory(cat, subCat string, page int) ([]Item, error) {
 		}
 		return nil
 	})
+	fmt.Println("get sub  cat", items)
 	return items, err
 }
 
