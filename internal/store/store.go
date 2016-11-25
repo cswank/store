@@ -27,14 +27,16 @@ func Init(cfg Config, opts ...func()) {
 	if db == nil {
 		db = getDB(filepath.Join(cfg.DataDir, "db"))
 	}
-
-	initSearch()
 }
 
 func DB(d *bolt.DB) func() {
 	return func() {
 		db = d
 	}
+}
+
+func GetDB() *bolt.DB {
+	return db
 }
 
 func getDB(pth string) *bolt.DB {

@@ -39,15 +39,11 @@ func And(acls ...ACL) ACL {
 }
 
 func Admin(user *store.User) bool {
-	return user != nil && user.Permission == "admin"
-}
-
-func Write(user *store.User) bool {
-	return user != nil && (user.Permission == "admin" || user.Permission == "write")
+	return user != nil && user.Permission == store.Admin
 }
 
 func Read(user *store.User) bool {
-	return user != nil && (user.Permission == "admin" || user.Permission == "write" || user.Permission == "read")
+	return user != nil && (user.Permission == store.Admin || user.Permission == store.Read)
 }
 
 func Anyone(user *store.User) bool {

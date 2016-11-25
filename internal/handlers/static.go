@@ -24,7 +24,7 @@ type tmpl struct {
 
 func Init(box *rice.Box) {
 	data := map[string]string{}
-	for _, pth := range []string{"head.html", "base.html", "navbar.html", "index.html"} {
+	for _, pth := range []string{"head.html", "base.html", "navbar.html", "index.html", "login.html", "card-form.html"} {
 		s, err := box.String(pth)
 		if err != nil {
 			log.Fatal(err)
@@ -33,7 +33,9 @@ func Init(box *rice.Box) {
 	}
 
 	templates = map[string]tmpl{
-		"index.html": {files: []string{"index.html"}},
+		"index.html":     {files: []string{"index.html"}},
+		"login.html":     {files: []string{"login.html"}},
+		"card-form.html": {files: []string{"card-form.html"}},
 	}
 
 	base := []string{"head.html", "base.html", "navbar.html"}

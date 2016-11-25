@@ -12,14 +12,21 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/cswank/store/internal/handlers"
 	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 )
 
 var (
-	cfg   store.Config
-	serve = kingpin.Command("serve", "Start the server.")
-	box   *rice.Box
+	cfg      store.Config
+	serve    = kingpin.Command("serve", "Start the server.")
+	items    = kingpin.Command("items", "save and delete items")
+	itemAdd  = items.Command("add", "add an item")
+	itemEdit = items.Command("edit", "edit items")
+	users    = kingpin.Command("users", "save and delete users")
+	userAdd  = users.Command("add", "add an item")
+	userEdit = users.Command("edit", "edit users")
+	box      *rice.Box
 )
 
 const (
@@ -40,6 +47,10 @@ func main() {
 		box = rice.MustFindBox("static")
 		handlers.Init(box)
 		Serve()
+	case "users add":
+		utils.AddUser(store.GetDB())
+	case "users edit":
+		utils.EditUser(store.GetDB())
 	}
 }
 
@@ -49,8 +60,13 @@ func getMiddleware(perm handlers.ACL, f http.HandlerFunc) http.Handler {
 
 func Serve() {
 	r := mux.NewRouter()
-	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home))
-	r.Handle("/cards", getMiddleware(handlers.Anyone, handlers.Cards))
+	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
+	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
+	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
+	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
+	r.Handle("/cards", getMiddleware(handlers.Anyone, handlers.Cards)).Methods("GET")
+	r.Handle("/admin/cards/{id}", getMiddleware(handlers.Admin, handlers.CardForm)).Methods("GET")
+	r.Handle("/admin/cards/{id}", getMiddleware(handlers.Admin, handlers.CardFormUpdate)).Methods("POST")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(rice.MustFindBox("static").HTTPBox())))

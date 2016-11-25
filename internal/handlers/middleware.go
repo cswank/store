@@ -40,14 +40,6 @@ func Log(logOutput string) alice.Constructor {
 	}
 }
 
-func ShortCircuit(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.Context().Value("error") == nil {
-			h.ServeHTTP(w, req)
-		}
-	})
-}
-
 func Errors(w http.ResponseWriter, req *http.Request) {
 	e := req.Context().Value("error")
 	if e != nil {
