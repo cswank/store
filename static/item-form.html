@@ -1,6 +1,7 @@
 {{define "content"}}
 <div id="content">
   <form id="card-form" action="/admin/items" method="POST">
+    <input name="ID" type="hidden" value="{{.Item.ID}}"/>
     <div class="field-row">
       <div class="field-container">
         <input name="Name" type="text" required placeholder="Name" value="{{.Item.Name}}"/>
@@ -8,27 +9,27 @@
     </div>
     <div class="field-row">
       <div class="field-container">
-        <textarea name="Description" rows="10" cols="50" placeholder="Description"></textarea>
+        <textarea name="Description" rows="10" cols="50" placeholder="Description">{{.Item.Description}}</textarea>
       </div>
     </div>
     <div class="field-row">
       <div class="field-container">
-        <input name="Category" type="text" required placeholder="Category"/>
+        <input name="Category" type="text" required placeholder="Category" value="{{.Item.Category}}"/>
       </div>
     </div>
     <div class="field-row">
       <div class="field-container">
-        <input name="SubCategory" type="text" required placeholder="SubCategory"/>
+        <input name="SubCategory" type="text" required placeholder="SubCategory" value="{{.Item.SubCategory}}"/>
       </div>
     </div>
     <div class="field-row">
       <div class="field-container">
-        <input name="Page" type="number" required placeholder="Page"/>
+        <input name="Page" type="number" required placeholder="Page" value="{{.Item.Page}}"/>
       </div>
     </div>
     <div class="field-row">
       <div class="field-container">
-        <input name="Price" type="number" min="1" step="any" placeholder="Price"/>
+        <input name="Price" type="number" min="1" step="any" placeholder="Price" value="{{.Item.Price}}"/>
       </div>
     </div>
     <div class="field-row">

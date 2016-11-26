@@ -59,15 +59,21 @@ func getMiddleware(perm handlers.ACL, f http.HandlerFunc) http.Handler {
 }
 
 func Serve() {
-	r := mux.NewRouter().StrictSlash(false)
+	r := mux.NewRouter().StrictSlash(true)
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
 	r.Handle("/items", getMiddleware(handlers.Anyone, handlers.Items)).Methods("GET")
 	r.Handle("/items/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
+	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
+	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
+	r.Handle("/admin/{category}", getMiddleware(handlers.Admin, handlers.CategoryAdmin)).Methods("GET")
 	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.ItemFormUpdate)).Methods("POST")
 	r.Handle("/admin/items/edit", getMiddleware(handlers.Admin, handlers.ItemForm)).Methods("GET")
+
+	//api stuff
+	r.Handle("/categories/{id}", getMiddleware(handlers.Admin, handlers.DeleteCategory)).Methods("DELETE")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(rice.MustFindBox("static").HTTPBox())))

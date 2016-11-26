@@ -81,6 +81,12 @@ func GetSubCatetory(cat, subCat string, page int) ([]Item, error) {
 func (i *Item) Fetch() error {
 	return db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("items"))
+		for _, name := range [][]byte{[]byte(i.Category), []byte(i.SubCategory), []byte(fmt.Sprintf("%d", i.Page))} {
+			b = b.Bucket(name)
+			if b == nil {
+				return ErrNotFound
+			}
+		}
 		v := b.Get([]byte(i.ID))
 		if len(v) == 0 {
 			return ErrNotFound

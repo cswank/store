@@ -1,0 +1,10 @@
+{{define "content"}}
+<ul>
+  {{range $cat, $subcat := .Categories}}
+  <li>
+    <a href="/admin/{{$cat}}">{{$cat}}</a>
+  </li>
+  {{end}}
+</ul>
+{{end}}
+

@@ -1,0 +1,9 @@
+{{define "content"}}
+<div>
+  {{.Name}}
+</div>
+<button onClick="confirm()">delete</button>
+<script>
+  {{template "category-admin.js" .}}
+</script>
+{{end}}

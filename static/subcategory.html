@@ -1,9 +1,7 @@
 {{define "content"}}
 <ul>
-  {{with .Items}}
-  {{range .}}
-  <li>{{.Name}}</li>
-  {{end}}
+  {{range $item := .Items}}
+  {{template "thumb" $item}}
   {{end}}
 </ul>
 {{end}}

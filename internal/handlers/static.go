@@ -24,7 +24,7 @@ type tmpl struct {
 
 func Init(box *rice.Box) {
 	data := map[string]string{}
-	for _, pth := range []string{"head.html", "base.html", "navbar.html", "index.html", "login.html", "item-form.html", "items.html", "subcategory.html"} {
+	for _, pth := range []string{"head.html", "base.html", "navbar.html", "index.html", "login.html", "item-form.html", "items.html", "item.html", "thumb.html", "subcategory.html", "admin.html", "category-admin.html", "category-admin.js", "confirm.html", "confirm.js"} {
 		s, err := box.String(pth)
 		if err != nil {
 			log.Fatal(err)
@@ -33,11 +33,15 @@ func Init(box *rice.Box) {
 	}
 
 	templates = map[string]tmpl{
-		"index.html":       {files: []string{"index.html"}},
-		"login.html":       {files: []string{"login.html"}},
-		"item-form.html":   {files: []string{"item-form.html"}},
-		"items.html":       {files: []string{"items.html"}},
-		"subcategory.html": {files: []string{"subcategory.html"}},
+		"index.html":          {files: []string{"index.html"}},
+		"login.html":          {files: []string{"login.html"}},
+		"item-form.html":      {files: []string{"item-form.html"}},
+		"items.html":          {files: []string{"items.html"}},
+		"item.html":           {files: []string{"item.html"}},
+		"subcategory.html":    {files: []string{"subcategory.html", "thumb.html"}},
+		"admin.html":          {files: []string{"admin.html"}},
+		"confirm.html":        {files: []string{"confirm.html", "confirm.js"}},
+		"category-admin.html": {files: []string{"category-admin.html", "category-admin.js"}},
 	}
 
 	base := []string{"head.html", "base.html", "navbar.html"}
