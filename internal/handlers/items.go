@@ -127,7 +127,6 @@ func ItemFormUpdate(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println("done saving item")
 	w.Header().Set("Location", "/admin")
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }

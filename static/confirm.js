@@ -5,13 +5,16 @@ function doDelete() {
         url: {{.Resource}},
         type: 'DELETE',
         success: function(result) {
-            console.log("success");
+            document.location.href = "/admin";
+        },
+        failure: function(result) {
+            console.log("fail", result);
         }
     });
 }
 
 function back() {
-    
+    document.location.href = "/admin";
 }
 
 {{end}}
