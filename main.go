@@ -68,7 +68,8 @@ func Serve() {
 	r.Handle("/items/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
 	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
 	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
-	r.Handle("/admin/{category}", getMiddleware(handlers.Admin, handlers.CategoryAdmin)).Methods("GET")
+	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.CategoryAdmin)).Methods("GET")
+	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.CategoryAdminFormHandler)).Methods("POST")
 	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.ItemFormUpdate)).Methods("POST")
 	r.Handle("/admin/items/edit", getMiddleware(handlers.Admin, handlers.ItemForm)).Methods("GET")
 

@@ -18,7 +18,9 @@ type itemsPage struct {
 
 type itemPage struct {
 	page
-	Item store.Item
+	Item          store.Item
+	Categories    []string
+	SubCategories []string
 }
 
 func Items(w http.ResponseWriter, req *http.Request) {
@@ -83,8 +85,9 @@ func SubCategory(w http.ResponseWriter, req *http.Request) {
 }
 
 func ItemForm(w http.ResponseWriter, req *http.Request) {
+
 	args := req.URL.Query()
-	var p itemPage
+
 	id := args.Get("id")
 	s := args.Get("page")
 	page, err := strconv.ParseInt(s, 10, 64)
@@ -93,14 +96,35 @@ func ItemForm(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var item store.Item
 	if id != "" {
-		item := store.Item{ID: id, Category: args.Get("category"), SubCategory: args.Get("subcategory"), Page: int(page)}
+		item = store.Item{ID: id, Category: args.Get("category"), SubCategory: args.Get("subcategory"), Page: int(page)}
 		if err := item.Fetch(); err != nil {
 			log.Println("err", err)
 			return
 		}
-		p.Item = item
 	}
+
+	categories, err := store.GetCategories()
+	if err != nil {
+		lg.Println(err)
+		return
+	}
+
+	var cats, subcats []string
+	for cat, subs := range categories {
+		cats = append(cats, cat)
+		if item.Category == cat {
+			subcats = subs
+		}
+	}
+
+	p := itemPage{
+		Categories:    cats,
+		SubCategories: subcats,
+		Item:          item,
+	}
+	fmt.Println(p)
 	templates["item-form.html"].template.ExecuteTemplate(w, "base", p)
 }
 
@@ -128,5 +152,5 @@ func ItemFormUpdate(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Location", "/admin")
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	w.WriteHeader(http.StatusFound)
 }

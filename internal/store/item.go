@@ -14,8 +14,8 @@ type Item struct {
 	ID          string   `json:"id"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
-	Category    string   `json:"category"`
-	SubCategory string   `json:"sub_category"`
+	Category    string   `json:"-"`
+	SubCategory string   `json:"-"`
 	Page        int      `json:"page"`
 	Keywords    []string `json:"keywords"`
 

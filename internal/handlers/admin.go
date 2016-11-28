@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/cswank/store/internal/store"
-	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 )
 
 type categoriesAdminPage struct {
@@ -30,12 +31,29 @@ type categoryAdminPage struct {
 }
 
 func CategoryAdmin(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	name := vars["category"]
+	q := req.URL.Query()
 	p := categoryAdminPage{
-		Name: name,
+		Name: q.Get("category"),
 	}
 	templates["category-admin.html"].template.ExecuteTemplate(w, "base", p)
+}
+
+func CategoryAdminFormHandler(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		log.Println("err", err)
+		return
+	}
+
+	var c store.Category
+	if err := schema.NewDecoder().Decode(&c, req.PostForm); err != nil {
+		log.Println("err", err)
+		return
+	}
+
+	c.Save()
+	w.Header().Set("Location", "/admin")
+	w.WriteHeader(http.StatusFound)
 }
 
 type confirmPage struct {

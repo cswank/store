@@ -2,9 +2,10 @@
 <ul>
   {{range $cat, $subcat := .Categories}}
   <li>
-    <a href="/admin/{{$cat}}">{{$cat}}</a>
+    <a href="/admin/categories?category={{$cat}}">{{$cat}}</a>
   </li>
   {{end}}
+  <a href="/admin/categories">new category</a>
 </ul>
 {{end}}
 

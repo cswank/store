@@ -14,12 +14,32 @@
     </div>
     <div class="field-row">
       <div class="field-container">
-        <input name="Category" type="text" required placeholder="Category" value="{{.Item.Category}}"/>
+        <select name="Category" required>
+          <option value="">select a category</option>
+          {{$category := .Item.Category}}
+          {{range $cat := .Categories}}
+          {{if eq $cat $category}}
+          <option value="{{$cat}}" selected>{{$cat}}</option>
+          {{else}}
+          <option value="{{$cat}}">{{$cat}}</option>
+          {{end}}
+          {{end}}
+        </select>
       </div>
     </div>
     <div class="field-row">
       <div class="field-container">
-        <input name="SubCategory" type="text" required placeholder="SubCategory" value="{{.Item.SubCategory}}"/>
+        <select name="SubCategory" required>
+          <option value="">select a sub-category</option>
+          {{$subcategory := .Item.SubCategory}}
+          {{range $cat := .SubCategories}}
+          {{if eq $cat $subcategory}}
+          <option value="{{$cat}}" selected>{{$cat}}</option>
+          {{else}}
+          <option value="{{$cat}}">{{$cat}}</option>
+          {{end}}
+          {{end}}
+        </select>
       </div>
     </div>
     <div class="field-row">

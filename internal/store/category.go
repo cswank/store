@@ -9,7 +9,8 @@ import (
 )
 
 type Category struct {
-	ID string `json:"id"`
+	ID    string `json:"id"`
+	OldID string `json:"-"`
 }
 
 func GetCategories() (map[string][]string, error) {
@@ -56,6 +57,17 @@ func GetSubCatetory(cat, subCat string, page int) ([]Item, error) {
 	return items, err
 }
 
+func (c *Category) Save() error {
+	return db.Update(func(tx *bolt.Tx) error {
+		if c.OldID != "" && c.ID != c.OldID {
+			parent := tx.Bucket([]byte("items"))
+			return moveBucket(parent, parent, []byte(c.OldID), []byte(c.ID))
+		}
+		_, err := tx.CreateBucketIfNotExists([]byte(c.ID))
+		return err
+	})
+}
+
 func (c *Category) Delete() error {
 	if c.ID == "" {
 		return errors.New("can't delete category with no ID")
@@ -65,4 +77,29 @@ func (c *Category) Delete() error {
 		b := tx.Bucket([]byte("items"))
 		return b.DeleteBucket([]byte(c.ID))
 	})
+}
+
+// moveBucket moves the inner bucket with key 'oldkey' to a new bucket with key 'newkey'
+// must be used within an Update-transaction
+func moveBucket(oldParent, newParent *bolt.Bucket, oldkey, newkey []byte) error {
+	oldBuck := oldParent.Bucket(oldkey)
+	newBuck, err := newParent.CreateBucket(newkey)
+	if err != nil {
+		return err
+	}
+
+	err = oldBuck.ForEach(func(k, v []byte) error {
+		if v == nil {
+			// Nested bucket
+			return moveBucket(oldBuck, newBuck, k, k)
+		} else {
+			// Regular value
+			return newBuck.Put(k, v)
+		}
+	})
+	if err != nil {
+		return err
+	}
+
+	return oldParent.DeleteBucket(oldkey)
 }
