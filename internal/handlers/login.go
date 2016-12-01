@@ -34,12 +34,12 @@ func DoLogin(w http.ResponseWriter, req *http.Request) {
 	if !ok || err != nil {
 		lg.Println("bad request")
 		w.Header().Set("Location", "/login.html")
-		w.WriteHeader(http.StatusTemporaryRedirect)
+		w.WriteHeader(http.StatusFound)
 		return
 	}
 	http.SetCookie(w, getCookie(u.Email))
 	w.Header().Set("Location", "/")
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	w.WriteHeader(http.StatusFound)
 }
 
 func Logout(w http.ResponseWriter, req *http.Request) {

@@ -17,9 +17,11 @@ type Config struct {
 var (
 	ErrNotFound = errors.New("not found")
 	db          *bolt.DB
+	cfg         Config
 )
 
-func Init(cfg Config, opts ...func()) {
+func Init(c Config, opts ...func()) {
+	cfg = c
 	for _, opt := range opts {
 		opt()
 	}

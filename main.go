@@ -64,20 +64,15 @@ func Serve() {
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
-	r.Handle("/items", getMiddleware(handlers.Anyone, handlers.Items)).Methods("GET")
-	r.Handle("/items/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
-	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
-	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
-	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.CategoryAdmin)).Methods("GET")
-	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.CategoryAdminFormHandler)).Methods("POST")
-	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.ItemFormUpdate)).Methods("POST")
-	r.Handle("/admin/items/edit", getMiddleware(handlers.Admin, handlers.ItemForm)).Methods("GET")
-
-	//api stuff
-	r.Handle("/categories/{id}", getMiddleware(handlers.Admin, handlers.DeleteCategory)).Methods("DELETE")
+	r.Handle("/store/items", getMiddleware(handlers.Anyone, handlers.Items)).Methods("GET")
+	r.Handle("/store/items/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
+	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
+	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AddItems)).Methods("POST")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
+
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(rice.MustFindBox("static").HTTPBox())))
+	r.PathPrefix("/items/").Handler(http.StripPrefix("/items/", http.FileServer(rice.MustFindBox("items").HTTPBox())))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 

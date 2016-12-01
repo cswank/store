@@ -1,11 +1,15 @@
 {{define "content"}}
-<ul>
-  {{range $cat, $subcat := .Categories}}
-  <li>
-    <a href="/admin/categories?category={{$cat}}">{{$cat}}</a>
-  </li>
-  {{end}}
-  <a href="/admin/categories">new category</a>
-</ul>
+<form enctype="multipart/form-data" id="items-form" action="/admin/items" method="POST">
+  <div class="field-row">
+    <div class="field-container">
+      <input type="file" name="Items" required/>
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field-container">
+      <button type="submit" class="">Submit</button>
+    </div>
+  </div>
+</form>
 {{end}}
 

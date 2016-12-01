@@ -1,59 +1,33 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/cswank/store/internal/store"
-	"github.com/gorilla/schema"
 )
 
-type categoriesAdminPage struct {
-	page
-	Categories map[string][]string
-}
-
 func AdminPage(w http.ResponseWriter, req *http.Request) {
-	cat, err := store.GetCategories()
-	if err != nil {
-		lg.Println(err)
-		return
-	}
-	p := categoriesAdminPage{
-		Categories: cat,
-	}
+	p := page{}
 	templates["admin.html"].template.ExecuteTemplate(w, "base", p)
 }
 
-type categoryAdminPage struct {
-	page
-	Name string
-}
-
-func CategoryAdmin(w http.ResponseWriter, req *http.Request) {
-	q := req.URL.Query()
-	p := categoryAdminPage{
-		Name: q.Get("category"),
+func AddItems(w http.ResponseWriter, req *http.Request) {
+	if err := req.ParseMultipartForm(32 << 20); err != nil {
+		log.Println("err", err)
+		return
 	}
-	templates["category-admin.html"].template.ExecuteTemplate(w, "base", p)
-}
 
-func CategoryAdminFormHandler(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
+	ff, _, err := req.FormFile("Items")
 	if err != nil {
-		log.Println("err", err)
+		fmt.Println(err)
 		return
 	}
+	defer ff.Close()
 
-	var c store.Category
-	if err := schema.NewDecoder().Decode(&c, req.PostForm); err != nil {
-		log.Println("err", err)
+	if err := store.ImportItems(ff); err != nil {
+		fmt.Println(err)
 		return
 	}
-
-	c.Save()
-	w.Header().Set("Location", "/admin")
-	w.WriteHeader(http.StatusFound)
 }
 
 type confirmPage struct {
