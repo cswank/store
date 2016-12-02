@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/cswank/store/internal/store"
 )
 
 func AdminPage(w http.ResponseWriter, req *http.Request) {
@@ -28,6 +30,9 @@ func AddItems(w http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 		return
 	}
+
+	w.Header().Set("Location", "/")
+	w.WriteHeader(http.StatusFound)
 }
 
 type confirmPage struct {

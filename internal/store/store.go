@@ -29,6 +29,12 @@ func Init(c Config, opts ...func()) {
 	if db == nil {
 		db = getDB(filepath.Join(cfg.DataDir, "db"))
 	}
+
+	i := Items{}
+	if err := i.Load(filepath.Join(cfg.DataDir, "items")); err != nil {
+		log.Fatal(err)
+	}
+	SetItems(&i)
 }
 
 func DB(d *bolt.DB) func() {

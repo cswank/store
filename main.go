@@ -66,13 +66,14 @@ func Serve() {
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
 	r.Handle("/store/items", getMiddleware(handlers.Anyone, handlers.Items)).Methods("GET")
 	r.Handle("/store/items/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
+	r.Handle("/store/items/{category}/{subcategory}/{item}", getMiddleware(handlers.Anyone, handlers.Item)).Methods("GET")
 	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
 	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AddItems)).Methods("POST")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(rice.MustFindBox("static").HTTPBox())))
-	r.PathPrefix("/items/").Handler(http.StripPrefix("/items/", http.FileServer(rice.MustFindBox("items").HTTPBox())))
+	r.PathPrefix("/items/").Handler(http.StripPrefix("/items/", http.FileServer(rice.MustFindBox("internal/store/fixtures/items").HTTPBox())))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 

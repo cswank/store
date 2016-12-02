@@ -3,6 +3,7 @@ package handlers
 import "net/http"
 
 type page struct {
+	Admin bool
 }
 
 func Home(w http.ResponseWriter, req *http.Request) {

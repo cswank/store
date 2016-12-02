@@ -131,7 +131,7 @@ func (i *Items) addImage(cat, subcat, item, p string) error {
 	thumb := filepath.Join(dir, "thumb.jpg")
 
 	sizes := map[uint]string{
-		750: full,
+		500: full,
 		200: thumb,
 	}
 

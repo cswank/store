@@ -1,9 +1,7 @@
 {{define "thumb"}}
-<li>{{.Name}}</li>
-{{if .Admin}}
-<div>
-  <a href="{{.Edit}}">edit</a>
-</div>
-{{end}}
+<li>
+  <img src={{.Image}}/><br/>
+  <a href="{{.Link}}">{{.Name}}</a>
+</li>
 {{end}}
 
