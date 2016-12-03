@@ -43,7 +43,8 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+			"Comment": "v1.1-27-g757bef9",
+			"Rev": "757bef944d0f21880861c2dd9c871ca543023cba"
 		},
 		{
 			"ImportPath": "github.com/gorilla/schema",

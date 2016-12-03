@@ -69,6 +69,7 @@ func initServe() {
 		log.Println("tls not enabled because STORE_DOMAIN is not set")
 	} else {
 		domains = strings.Split(domain, ",")
+
 	}
 
 	port = os.Getenv("STORE_PORT")
@@ -96,8 +97,8 @@ func doServe() {
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(rice.MustFindBox("static").HTTPBox())))
-	r.PathPrefix("/items/").Handler(http.StripPrefix("/items/", http.FileServer(rice.MustFindBox("internal/store/fixtures/items").HTTPBox())))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(box.HTTPBox())))
+	r.PathPrefix("/items/").Handler(http.StripPrefix("/items/", http.FileServer(http.Dir("items"))))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	addr := fmt.Sprintf(":%s", port)
@@ -115,7 +116,7 @@ func doServe() {
 
 	var withTLS bool
 
-	if len(domains) > 0 {
+	if os.Getenv("STORE_TLS") == "true" {
 		m := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(domains...),

@@ -134,6 +134,5 @@ func Item(w http.ResponseWriter, req *http.Request) {
 		},
 		Item: getItem(vars["category"], vars["subcategory"], vars["item"]),
 	}
-	fmt.Printf("name: %s, image: %s\n", p.Item.Name, p.Item.Image)
 	templates["item.html"].template.ExecuteTemplate(w, "base", p)
 }

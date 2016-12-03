@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/cswank/store/internal/store"
 	"github.com/gorilla/securecookie"
@@ -19,10 +20,12 @@ var (
 )
 
 func init() {
-	domain = os.Getenv("STORE_DOMAIN")
-	if domain == "" {
-		log.Fatal("you must set STORE_DOMAIN")
+	domains := os.Getenv("STORE_DOMAINS")
+	if domains == "" {
+		log.Fatal("you must set STORE_DOMAINS")
 	}
+
+	domain = strings.Split(domains, ",")[0]
 	authCookieName = fmt.Sprintf("%s-user", domain)
 	hashKey = []byte(os.Getenv("STORE_HASH_KEY"))
 	blockKey = []byte(os.Getenv("STORE_BLOCK_KEY"))

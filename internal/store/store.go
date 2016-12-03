@@ -2,6 +2,7 @@ package store
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"path/filepath"
 
@@ -33,6 +34,7 @@ func Init(c Config, opts ...func()) {
 	if err := i.Load(filepath.Join(cfg.DataDir, "items")); err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(i)
 	SetItems(&i)
 }
 
