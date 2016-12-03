@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -31,7 +32,8 @@ var (
 	userEdit = users.Command("edit", "edit users")
 	box      *rice.Box
 
-	certPath, keyPath, port string
+	port    string
+	domains []string
 )
 
 const (
@@ -49,21 +51,7 @@ func main() {
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("Craig Swank")
 	switch kingpin.Parse() {
 	case "serve":
-		certPath = os.Getenv("STORE_CERTPATH")
-		keyPath = os.Getenv("STORE_KEYPATH")
-		port = os.Getenv("STORE_PORT")
-
-		if certPath == "" || keyPath == "" {
-			log.Fatal("you must set STORE_CERTPATH and STORE_KEYPATH")
-		}
-
-		if port == "" {
-			log.Fatal("you must set STORE_PORT")
-		}
-
-		box = rice.MustFindBox("static")
-		handlers.Init(box)
-		Serve()
+		doServe()
 	case "users add":
 		utils.AddUser(store.GetDB())
 	case "users edit":
@@ -75,7 +63,25 @@ func getMiddleware(perm handlers.ACL, f http.HandlerFunc) http.Handler {
 	return alice.New(handlers.Authentication, handlers.Perm(perm), handlers.Handle(f)).Then(http.HandlerFunc(handlers.Errors))
 }
 
-func Serve() {
+func initServe() {
+	domain := os.Getenv("STORE_DOMAINS")
+	if domain == "" {
+		log.Println("tls not enabled because STORE_DOMAIN is not set")
+	} else {
+		domains = strings.Split(domain, ",")
+	}
+
+	port = os.Getenv("STORE_PORT")
+	if port == "" {
+		log.Fatal("you must set STORE_PORT")
+	}
+
+	box = rice.MustFindBox("static")
+	handlers.Init(box)
+}
+
+func doServe() {
+	initServe()
 	r := mux.NewRouter().StrictSlash(true)
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
@@ -96,18 +102,32 @@ func Serve() {
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	addr := fmt.Sprintf(":%s", port)
 
-	m := autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("bleh.zekjur.net"),
-	}
+	var serve func() error
 
 	srv := &http.Server{
 		Addr:         addr,
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		TLSConfig:    &tls.Config{GetCertificate: m.GetCertificate},
 	}
-	log.Printf("listening on %s\n", addr)
-	log.Println(srv.ListenAndServeTLS("", ""))
+
+	serve = srv.ListenAndServe
+
+	var withTLS bool
+
+	if len(domains) > 0 {
+		m := autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(domains...),
+		}
+		srv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
+
+		serve = func() error {
+			return srv.ListenAndServeTLS("", "")
+		}
+		withTLS = true
+	}
+
+	log.Printf("listening on %s (tls: %v)\n", addr, withTLS)
+	log.Println(serve())
 }

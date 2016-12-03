@@ -79,6 +79,5 @@ func getUserFromCookie(req *http.Request) (*store.User, error) {
 	user.Email = m["email"]
 	err = user.Fetch()
 	user.HashedPassword = []byte{}
-	user.TFAData = []byte{}
 	return user, err
 }
