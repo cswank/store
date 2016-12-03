@@ -53,12 +53,6 @@ type remainderArg interface {
 	IsCumulative() bool
 }
 
-// Optional interface for flags that can be repeated.
-type repeatableFlag interface {
-	Value
-	IsCumulative() bool
-}
-
 type accumulator struct {
 	element func(value interface{}) Value
 	typ     reflect.Type
@@ -102,10 +96,6 @@ func (a *accumulator) Set(value string) error {
 	return nil
 }
 
-func (a *accumulator) Get() interface{} {
-	return a.slice.Interface()
-}
-
 func (a *accumulator) IsCumulative() bool {
 	return true
 }
@@ -146,11 +136,6 @@ func (s *stringMapValue) Set(value string) error {
 	(*s)[parts[0]] = parts[1]
 	return nil
 }
-
-func (s *stringMapValue) Get() interface{} {
-	return (map[string]string)(*s)
-}
-
 func (s *stringMapValue) String() string {
 	return fmt.Sprintf("%s", map[string]string(*s))
 }
@@ -175,10 +160,6 @@ func (i *ipValue) Set(value string) error {
 	}
 }
 
-func (i *ipValue) Get() interface{} {
-	return (net.IP)(*i)
-}
-
 func (i *ipValue) String() string {
 	return (*net.IP)(i).String()
 }
@@ -199,10 +180,6 @@ func (i *tcpAddrValue) Set(value string) error {
 		*i.addr = addr
 		return nil
 	}
-}
-
-func (t *tcpAddrValue) Get() interface{} {
-	return (*net.TCPAddr)(*t.addr)
 }
 
 func (i *tcpAddrValue) String() string {
@@ -235,10 +212,6 @@ func (e *fileStatValue) Set(value string) error {
 	return nil
 }
 
-func (f *fileStatValue) Get() interface{} {
-	return (string)(*f.path)
-}
-
 func (e *fileStatValue) String() string {
 	return *e.path
 }
@@ -262,10 +235,6 @@ func (f *fileValue) Set(value string) error {
 		*f.f = fd
 		return nil
 	}
-}
-
-func (f *fileValue) Get() interface{} {
-	return (*os.File)(*f.f)
 }
 
 func (f *fileValue) String() string {
@@ -293,10 +262,6 @@ func (u *urlValue) Set(value string) error {
 	}
 }
 
-func (u *urlValue) Get() interface{} {
-	return (*url.URL)(*u.u)
-}
-
 func (u *urlValue) String() string {
 	if *u.u == nil {
 		return "<nil>"
@@ -318,10 +283,6 @@ func (u *urlListValue) Set(value string) error {
 		*u = append(*u, url)
 		return nil
 	}
-}
-
-func (u *urlListValue) Get() interface{} {
-	return ([]*url.URL)(*u)
 }
 
 func (u *urlListValue) String() string {
@@ -359,10 +320,6 @@ func (a *enumValue) Set(value string) error {
 	return fmt.Errorf("enum value must be one of %s, got '%s'", strings.Join(a.options, ","), value)
 }
 
-func (e *enumValue) Get() interface{} {
-	return (string)(*e.value)
-}
-
 // -- []string Enum Value
 type enumsValue struct {
 	value   *[]string
@@ -384,10 +341,6 @@ func (s *enumsValue) Set(value string) error {
 		}
 	}
 	return fmt.Errorf("enum value must be one of %s, got '%s'", strings.Join(s.options, ","), value)
-}
-
-func (e *enumsValue) Get() interface{} {
-	return ([]string)(*e.value)
 }
 
 func (s *enumsValue) String() string {
@@ -435,32 +388,4 @@ func newExistingDirValue(target *string) *fileStatValue {
 
 func newExistingFileOrDirValue(target *string) *fileStatValue {
 	return newFileStatValue(target, func(s os.FileInfo) error { return nil })
-}
-
-type counterValue int
-
-func newCounterValue(n *int) *counterValue {
-	return (*counterValue)(n)
-}
-
-func (c *counterValue) Set(s string) error {
-	*c++
-	return nil
-}
-
-func (c *counterValue) Get() interface{}   { return (int)(*c) }
-func (c *counterValue) IsBoolFlag() bool   { return true }
-func (c *counterValue) String() string     { return fmt.Sprintf("%d", *c) }
-func (c *counterValue) IsCumulative() bool { return true }
-
-func resolveHost(value string) (net.IP, error) {
-	if ip := net.ParseIP(value); ip != nil {
-		return ip, nil
-	} else {
-		if addr, err := net.ResolveIPAddr("ip", value); err != nil {
-			return nil, err
-		} else {
-			return addr.IP, nil
-		}
-	}
 }

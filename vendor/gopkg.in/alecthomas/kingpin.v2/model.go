@@ -37,7 +37,7 @@ type FlagModel struct {
 	Name        string
 	Help        string
 	Short       rune
-	Default     []string
+	Default     string
 	Envar       string
 	PlaceHolder string
 	Required    bool
@@ -60,15 +60,11 @@ func (f *FlagModel) FormatPlaceHolder() string {
 	if f.PlaceHolder != "" {
 		return f.PlaceHolder
 	}
-	if len(f.Default) > 0 {
-		ellipsis := ""
-		if len(f.Default) > 1 {
-			ellipsis = "..."
-		}
+	if f.Default != "" {
 		if _, ok := f.Value.(*stringValue); ok {
-			return strconv.Quote(f.Default[0]) + ellipsis
+			return strconv.Quote(f.Default)
 		}
-		return f.Default[0] + ellipsis
+		return f.Default
 	}
 	return strings.ToUpper(f.Name)
 }
@@ -95,8 +91,7 @@ func (a *ArgGroupModel) ArgSummary() string {
 type ArgModel struct {
 	Name     string
 	Help     string
-	Default  []string
-	Envar    string
+	Default  string
 	Required bool
 	Value    Value
 }
@@ -121,7 +116,6 @@ func (c *CmdGroupModel) FlattenedCommands() (out []*CmdModel) {
 
 type CmdModel struct {
 	Name        string
-	Aliases     []string
 	Help        string
 	FullCommand string
 	Depth       int
@@ -170,8 +164,7 @@ func (a *ArgClause) Model() *ArgModel {
 	return &ArgModel{
 		Name:     a.name,
 		Help:     a.help,
-		Default:  a.defaultValues,
-		Envar:    a.envar,
+		Default:  a.defaultValue,
 		Required: a.required,
 		Value:    a.value,
 	}
@@ -190,7 +183,7 @@ func (f *FlagClause) Model() *FlagModel {
 		Name:        f.name,
 		Help:        f.help,
 		Short:       rune(f.shorthand),
-		Default:     f.defaultValues,
+		Default:     f.defaultValue,
 		Envar:       f.envar,
 		PlaceHolder: f.placeholder,
 		Required:    f.required,
@@ -214,7 +207,6 @@ func (c *CmdClause) Model() *CmdModel {
 	}
 	return &CmdModel{
 		Name:           c.name,
-		Aliases:        c.aliases,
 		Help:           c.help,
 		Depth:          depth,
 		Hidden:         c.hidden,

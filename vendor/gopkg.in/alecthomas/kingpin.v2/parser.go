@@ -87,12 +87,10 @@ type ParseElement struct {
 // any).
 type ParseContext struct {
 	SelectedCommand *CmdClause
-	ignoreDefault   bool
 	argsOnly        bool
 	peek            []*Token
 	argi            int // Index of current command-line arg we're processing.
 	args            []string
-	rawArgs         []string
 	flags           *flagGroup
 	arguments       *argGroup
 	argumenti       int // Cursor into arguments
@@ -122,13 +120,11 @@ func (p *ParseContext) HasTrailingArgs() bool {
 	return len(p.args) > 0
 }
 
-func tokenize(args []string, ignoreDefault bool) *ParseContext {
+func tokenize(args []string) *ParseContext {
 	return &ParseContext{
-		ignoreDefault: ignoreDefault,
-		args:          args,
-		rawArgs:       args,
-		flags:         newFlagGroup(),
-		arguments:     newArgGroup(),
+		args:      args,
+		flags:     newFlagGroup(),
+		arguments: newArgGroup(),
 	}
 }
 
@@ -286,7 +282,7 @@ func parse(context *ParseContext, app *Application) (err error) {
 	context.mergeArgs(app.argGroup)
 
 	cmds := app.cmdGroup
-	ignoreDefault := context.ignoreDefault
+	help := false
 
 loop:
 	for !context.EOL() {
@@ -295,9 +291,8 @@ loop:
 		switch token.Type {
 		case TokenLong, TokenShort:
 			if flag, err := context.flags.parse(context); err != nil {
-				if !ignoreDefault {
+				if !help {
 					if cmd := cmds.defaultSubcommand(); cmd != nil {
-						cmd.completionAlts = cmds.cmdNames()
 						context.matchedCmd(cmd)
 						cmds = cmd.cmdGroup
 						break
@@ -305,7 +300,7 @@ loop:
 				}
 				return err
 			} else if flag == HelpFlag {
-				ignoreDefault = true
+				help = true
 			}
 
 		case TokenArg:
@@ -313,9 +308,8 @@ loop:
 				selectedDefault := false
 				cmd, ok := cmds.commands[token.String()]
 				if !ok {
-					if !ignoreDefault {
+					if !help {
 						if cmd = cmds.defaultSubcommand(); cmd != nil {
-							cmd.completionAlts = cmds.cmdNames()
 							selectedDefault = true
 						}
 					}
@@ -324,9 +318,8 @@ loop:
 					}
 				}
 				if cmd == HelpCommand {
-					ignoreDefault = true
+					help = true
 				}
-				cmd.completionAlts = nil
 				context.matchedCmd(cmd)
 				cmds = cmd.cmdGroup
 				if !selectedDefault {
@@ -353,9 +346,8 @@ loop:
 	}
 
 	// Move to innermost default command.
-	for !ignoreDefault {
+	for !help {
 		if cmd := cmds.defaultSubcommand(); cmd != nil {
-			cmd.completionAlts = cmds.cmdNames()
 			context.matchedCmd(cmd)
 			cmds = cmd.cmdGroup
 		} else {
@@ -369,9 +361,9 @@ loop:
 
 	// Set defaults for all remaining args.
 	for arg := context.nextArg(); arg != nil && !arg.consumesRemainder(); arg = context.nextArg() {
-		for _, defaultValue := range arg.defaultValues {
-			if err := arg.value.Set(defaultValue); err != nil {
-				return fmt.Errorf("invalid default value '%s' for argument '%s'", defaultValue, arg.name)
+		if arg.defaultValue != "" {
+			if err := arg.value.Set(arg.defaultValue); err != nil {
+				return fmt.Errorf("invalid default value '%s' for argument '%s'", arg.defaultValue, arg.name)
 			}
 		}
 	}

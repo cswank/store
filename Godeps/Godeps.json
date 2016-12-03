@@ -1,0 +1,148 @@
+{
+	"ImportPath": "github.com/cswank/store",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v75",
+	"Deps": [
+		{
+			"ImportPath": "github.com/GeertJohan/go.rice",
+			"Rev": "0f3f5fde32fd1f755632a3d31ba2ec6d449e387b"
+		},
+		{
+			"ImportPath": "github.com/GeertJohan/go.rice/embedded",
+			"Rev": "0f3f5fde32fd1f755632a3d31ba2ec6d449e387b"
+		},
+		{
+			"ImportPath": "github.com/alecthomas/template",
+			"Rev": "b867cc6ab45cece8143cfcc6fc9c77cf3f2c23c0"
+		},
+		{
+			"ImportPath": "github.com/alecthomas/template/parse",
+			"Rev": "b867cc6ab45cece8143cfcc6fc9c77cf3f2c23c0"
+		},
+		{
+			"ImportPath": "github.com/alecthomas/units",
+			"Rev": "6b4e7dc5e3143b85ea77909c72caf89416fc2915"
+		},
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.3.0-34-g0d9f544",
+			"Rev": "0d9f544bb94aac29c185968483459ef74d6deb5d"
+		},
+		{
+			"ImportPath": "github.com/caarlos0/env",
+			"Comment": "v2.1",
+			"Rev": "d0de832ed2fbc4e7bfaa30ab5cf0b3417d15f529"
+		},
+		{
+			"ImportPath": "github.com/cswank/twofactor",
+			"Comment": "1.1.0",
+			"Rev": "9505c7b0fb7a64e216364093e5d9929b4bcf2d29"
+		},
+		{
+			"ImportPath": "github.com/daaku/go.zipexe",
+			"Rev": "a5fe2436ffcb3236e175e5149162b41cd28bd27d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.1-27-g757bef9",
+			"Rev": "757bef944d0f21880861c2dd9c871ca543023cba"
+		},
+		{
+			"ImportPath": "github.com/gorilla/schema",
+			"Rev": "0164a00ab4cd01d814d8cd5bf63fd9fcea30e23b"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Rev": "ba5126409e0340d53e989ad07501a14949889a0d"
+		},
+		{
+			"ImportPath": "github.com/howeyc/gopass",
+			"Rev": "f5387c492211eb133053880d23dfae62aa14123d"
+		},
+		{
+			"ImportPath": "github.com/justinas/alice",
+			"Rev": "2ac31ddd090e634eeabd598d1066a9a3e4a58a9f"
+		},
+		{
+			"ImportPath": "github.com/kardianos/osext",
+			"Rev": "29ae4ffbc9a6fe9fb2bc5029050ce6996ea1d3bc"
+		},
+		{
+			"ImportPath": "github.com/nfnt/resize",
+			"Rev": "891127d8d1b52734debe1b3c3d7e747502b6c366"
+		},
+		{
+			"ImportPath": "github.com/sec51/convert",
+			"Rev": "8ed1f399b5e0a9a9620c74cfd5aec3682d8328ab"
+		},
+		{
+			"ImportPath": "github.com/sec51/convert/bigendian",
+			"Rev": "8ed1f399b5e0a9a9620c74cfd5aec3682d8328ab"
+		},
+		{
+			"ImportPath": "github.com/sec51/convert/smallendian",
+			"Rev": "8ed1f399b5e0a9a9620c74cfd5aec3682d8328ab"
+		},
+		{
+			"ImportPath": "github.com/sec51/cryptoengine",
+			"Rev": "11617a465c082a1e82359b3c059f018f8dcbfc93"
+		},
+		{
+			"ImportPath": "github.com/sec51/gf256",
+			"Rev": "2454accbeb9e6b0e2e53b01e1d641c7157251ed4"
+		},
+		{
+			"ImportPath": "github.com/sec51/qrcode",
+			"Rev": "b7779abbcaf1ec4de65f586a85fe24db31d45e7c"
+		},
+		{
+			"ImportPath": "github.com/sec51/qrcode/coding",
+			"Rev": "b7779abbcaf1ec4de65f586a85fe24db31d45e7c"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/curve25519",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/hkdf",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/nacl/box",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/nacl/secretbox",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/poly1305",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/salsa20/salsa",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "8a549a1948fc5271eb24f36dcb0d3b47dec75a16"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "ca83bd2cb9abb47839b50eb4da612f00158f5870"
+		},
+		{
+			"ImportPath": "gopkg.in/alecthomas/kingpin.v2",
+			"Comment": "v2.1.0",
+			"Rev": "72bf19f454c6822cfb2cf128c77ef8d70667df35"
+		}
+	]
+}
