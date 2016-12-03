@@ -9,7 +9,6 @@ import (
 )
 
 type Config struct {
-	Port      int    `env:"STORE_PORT" envDefault:"8080"`
 	LogOutput string `env:"STORE_LOGOUTPUT" envDefault:"stdout"`
 	DataDir   string `env:"STORE_DATADIR" envDefault:"/var/log/store"`
 }

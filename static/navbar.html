@@ -1,6 +1,13 @@
 {{define "navbar"}}
 <header>
   Store
+  <ul>
+    {{range $link := .Links}}
+    <li>
+      <a href="{{$link.Link}}">{{$link.Name}}</a>
+    </li>
+    {{end}}
+  </ul>
 </header>
 {{end}}
 

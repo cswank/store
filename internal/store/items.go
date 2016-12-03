@@ -41,6 +41,20 @@ func GetCategory(name string) map[string][]string {
 	return items.items[name]
 }
 
+func GetCategoryList(name string) []string {
+	lock.Lock()
+	defer lock.Unlock()
+	m := items.items[name]
+	l := make([]string, len(m))
+
+	var i int
+	for k, _ := range m {
+		l[i] = k
+		i++
+	}
+	return l
+}
+
 func SetItems(i *Items) {
 	lock.Lock()
 	items = i

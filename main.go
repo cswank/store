@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -15,6 +17,7 @@ import (
 	"github.com/cswank/store/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 var (
@@ -27,6 +30,8 @@ var (
 	userAdd  = users.Command("add", "add an item")
 	userEdit = users.Command("edit", "edit users")
 	box      *rice.Box
+
+	certPath, keyPath, port string
 )
 
 const (
@@ -44,6 +49,18 @@ func main() {
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("Craig Swank")
 	switch kingpin.Parse() {
 	case "serve":
+		certPath = os.Getenv("STORE_CERTPATH")
+		keyPath = os.Getenv("STORE_KEYPATH")
+		port = os.Getenv("STORE_PORT")
+
+		if certPath == "" || keyPath == "" {
+			log.Fatal("you must set STORE_CERTPATH and STORE_KEYPATH")
+		}
+
+		if port == "" {
+			log.Fatal("you must set STORE_PORT")
+		}
+
 		box = rice.MustFindBox("static")
 		handlers.Init(box)
 		Serve()
@@ -64,9 +81,10 @@ func Serve() {
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
-	r.Handle("/store/items", getMiddleware(handlers.Anyone, handlers.Items)).Methods("GET")
-	r.Handle("/store/items/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
-	r.Handle("/store/items/{category}/{subcategory}/{item}", getMiddleware(handlers.Anyone, handlers.Item)).Methods("GET")
+	r.Handle("/shop", getMiddleware(handlers.Anyone, handlers.Shop)).Methods("GET")
+	r.Handle("/shop/{category}", getMiddleware(handlers.Anyone, handlers.Category)).Methods("GET")
+	r.Handle("/shop/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
+	r.Handle("/shop/{category}/{subcategory}/{item}", getMiddleware(handlers.Anyone, handlers.Item)).Methods("GET")
 	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
 	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AddItems)).Methods("POST")
 
@@ -76,18 +94,20 @@ func Serve() {
 	r.PathPrefix("/items/").Handler(http.StripPrefix("/items/", http.FileServer(rice.MustFindBox("internal/store/fixtures/items").HTTPBox())))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
+	addr := fmt.Sprintf(":%s", port)
 
-	addr := fmt.Sprintf(":%d", cfg.Port)
-	log.Printf("listening on %s\n", addr)
+	m := autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("bleh.zekjur.net"),
+	}
+
 	srv := &http.Server{
 		Addr:         addr,
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
+		TLSConfig:    &tls.Config{GetCertificate: m.GetCertificate},
 	}
-
-	err := srv.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Printf("listening on %s\n", addr)
+	log.Println(srv.ListenAndServeTLS("", ""))
 }

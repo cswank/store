@@ -20,9 +20,6 @@ type User struct {
 	Permission     Permission `json:"permission"`
 	Password       string     `json:"password,omitempty"`
 	HashedPassword []byte     `json:"hashed_password,omitempty"`
-	TFA            string     `json:"tfa,omitempty"`
-	TFAData        []byte     `json:"tfa_data,omitempty"`
-	tfa            TFAer
 }
 
 func GetUsers() ([]User, error) {
@@ -37,8 +34,6 @@ func GetUsers() ([]User, error) {
 				return err
 			}
 			u.HashedPassword = []byte{}
-			u.TFAData = []byte{}
-			u.TFA = ""
 			users = append(users, u)
 		}
 		return nil

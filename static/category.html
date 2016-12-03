@@ -1,0 +1,9 @@
+{{define "content"}}
+<ul>
+  {{range $subcat := .SubCategories}}
+  <li>
+    <a href="{{$subcat.Link}}">{{$subcat.Name}}</a>
+  </li>
+  {{end}}
+</ul>
+{{end}}
