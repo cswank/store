@@ -1,9 +1,37 @@
 package store
 
-import "github.com/boltdb/bolt"
+import (
+	"log"
+
+	"github.com/boltdb/bolt"
+)
 
 type Bolt struct {
 	db *bolt.DB
+}
+
+func getBolt(pth string) *bolt.DB {
+	db, err := bolt.Open(pth, 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("users"))
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte("images"))
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte("products"))
+		return err
+	})
+
+	return db
 }
 
 func (b *Bolt) Put(key, val, bucket []byte) error {
