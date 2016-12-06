@@ -14,6 +14,7 @@ import (
 	"github.com/GeertJohan/go.rice"
 	"github.com/caarlos0/env"
 	"github.com/cswank/store/internal/handlers"
+	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/utils"
 	"github.com/gorilla/mux"
@@ -22,15 +23,17 @@ import (
 )
 
 var (
-	cfg      store.Config
-	serve    = kingpin.Command("serve", "Start the server.")
-	items    = kingpin.Command("items", "save and delete items")
-	itemAdd  = items.Command("add", "add an item")
-	itemEdit = items.Command("edit", "edit items")
-	users    = kingpin.Command("users", "save and delete users")
-	userAdd  = users.Command("add", "add an item")
-	userEdit = users.Command("edit", "edit users")
-	box      *rice.Box
+	cfg               store.Config
+	serve             = kingpin.Command("serve", "Start the server.")
+	items             = kingpin.Command("items", "save and delete items")
+	itemAdd           = items.Command("add", "add an item")
+	itemEdit          = items.Command("edit", "edit items")
+	users             = kingpin.Command("users", "save and delete users")
+	userAdd           = users.Command("add", "add an item")
+	userEdit          = users.Command("edit", "edit users")
+	products          = kingpin.Command("products", "save and delete products")
+	deleteAllProducts = products.Command("delete-all", "edit users")
+	box               *rice.Box
 
 	port    string
 	domains []string
@@ -44,6 +47,7 @@ func init() {
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)
 	}
+	shopify.Init()
 	store.Init(cfg)
 }
 
@@ -53,9 +57,13 @@ func main() {
 	case "serve":
 		doServe()
 	case "users add":
-		utils.AddUser(store.GetDB())
+		utils.AddUser()
 	case "users edit":
-		utils.EditUser(store.GetDB())
+		utils.EditUser()
+	case "products delete-all":
+		if err := store.DeleteAllProducts(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -69,7 +77,6 @@ func initServe() {
 		log.Println("tls not enabled because STORE_DOMAIN is not set")
 	} else {
 		domains = strings.Split(domain, ",")
-
 	}
 
 	port = os.Getenv("STORE_PORT")
@@ -79,6 +86,7 @@ func initServe() {
 
 	box = rice.MustFindBox("static")
 	handlers.Init(box)
+	store.Load()
 }
 
 func doServe() {
@@ -88,7 +96,10 @@ func doServe() {
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
+	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
+	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
 	r.Handle("/shop", getMiddleware(handlers.Anyone, handlers.Shop)).Methods("GET")
+
 	r.Handle("/shop/{category}", getMiddleware(handlers.Anyone, handlers.Category)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}/{item}", getMiddleware(handlers.Anyone, handlers.Item)).Methods("GET")
@@ -117,9 +128,14 @@ func doServe() {
 	var withTLS bool
 
 	if os.Getenv("STORE_TLS") == "true" {
+		certs := os.Getenv("STORE_CERTS")
+		if certs == "" {
+			log.Fatal("you must set STORE_CERTS path when using tls")
+		}
 		m := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(domains...),
+			Cache:      autocert.DirCache(certs),
 		}
 		srv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
 
@@ -127,6 +143,10 @@ func doServe() {
 			return srv.ListenAndServeTLS("", "")
 		}
 		withTLS = true
+	}
+
+	if withTLS {
+		go http.ListenAndServe(":80", http.HandlerFunc(handlers.Redirect))
 	}
 
 	log.Printf("listening on %s (tls: %v)\n", addr, withTLS)

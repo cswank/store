@@ -2,7 +2,6 @@ package store
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"path/filepath"
 
@@ -14,9 +13,17 @@ type Config struct {
 	DataDir   string `env:"STORE_DATADIR" envDefault:"/var/log/store"`
 }
 
+type Storer interface {
+	Put([]byte, []byte, []byte) error
+	Get([]byte, []byte, func(v []byte) error) error
+	GetAll([]byte, func(v []byte) error) error
+	Delete([]byte, []byte) error
+	DeleteAll([]byte) error
+}
+
 var (
 	ErrNotFound = errors.New("not found")
-	db          *bolt.DB
+	db          Storer
 	cfg         Config
 )
 
@@ -27,25 +34,23 @@ func Init(c Config, opts ...func()) {
 	}
 
 	if db == nil {
-		db = getDB(filepath.Join(cfg.DataDir, "db"))
+		d := getDB(filepath.Join(cfg.DataDir, "db"))
+		db = &Bolt{db: d}
 	}
+}
 
+func Load() {
 	i := Items{}
 	if err := i.Load(filepath.Join(cfg.DataDir, "items")); err != nil {
-		log.Fatal(err)
+		log.Fatal("store init failed: ", err)
 	}
-	fmt.Println(i)
 	SetItems(&i)
 }
 
-func DB(d *bolt.DB) func() {
+func SetDB(d Storer) func() {
 	return func() {
 		db = d
 	}
-}
-
-func GetDB() *bolt.DB {
-	return db
 }
 
 func getDB(pth string) *bolt.DB {
@@ -59,6 +64,12 @@ func getDB(pth string) *bolt.DB {
 		if err != nil {
 			return err
 		}
+
+		_, err = tx.CreateBucketIfNotExists([]byte("products"))
+		if err != nil {
+			return err
+		}
+
 		_, err = tx.CreateBucketIfNotExists([]byte("items"))
 		return err
 	})

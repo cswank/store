@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -18,6 +17,8 @@ var (
 		"navbar.html",
 		"index.html",
 		"login.html",
+		"contact.html",
+		"wholesale.html",
 		"shop.html",
 		"category.html",
 		"subcategory.html",
@@ -26,6 +27,7 @@ var (
 		"admin.html",
 		"confirm.html",
 		"confirm.js",
+		"shopify.html",
 	}
 
 	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
@@ -51,10 +53,12 @@ func Init(box *rice.Box) {
 	templates = map[string]tmpl{
 		"index.html":       {files: []string{"index.html"}},
 		"login.html":       {files: []string{"login.html"}},
+		"contact.html":     {files: []string{"contact.html"}},
+		"wholesale.html":   {files: []string{"wholesale.html"}},
 		"shop.html":        {files: []string{"shop.html", "thumb.html"}},
 		"category.html":    {files: []string{"category.html", "thumb.html"}},
 		"subcategory.html": {files: []string{"subcategory.html", "thumb.html"}},
-		"item.html":        {files: []string{"item.html"}},
+		"item.html":        {files: []string{"item.html", "shopify.html"}},
 		"admin.html":       {files: []string{"admin.html"}},
 		"confirm.html":     {files: []string{"confirm.html", "confirm.js"}},
 	}
@@ -84,6 +88,5 @@ func Init(box *rice.Box) {
 }
 
 func Favicon(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("ico")
-	w.Write(ico)
+
 }

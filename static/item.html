@@ -1,4 +1,6 @@
 {{define "content"}}
-<img src="{{.Item.Image}}"/><br/>
-<a href="{{.Item.Link}}">{{.Item.Name}}</a>
+<div class="center">
+  <img class="item" src="{{.Item.Image}}"/><br/>
+  {{template "shopify.html" .}}
+</div>
 {{end}}

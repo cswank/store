@@ -8,9 +8,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/cswank/store/internal/shopify"
 	"github.com/nfnt/resize"
 )
 
@@ -18,6 +20,10 @@ var (
 	lock  sync.Mutex
 	items *Items
 )
+
+func DeleteAllProducts() error {
+	return db.DeleteAll([]byte("products"))
+}
 
 type Items struct {
 	home       string
@@ -61,6 +67,16 @@ func SetItems(i *Items) {
 	lock.Unlock()
 }
 
+func GetProductID(key string) (int, error) {
+	var id int64
+	return int(id), db.Get([]byte(key), []byte("products"), func(val []byte) error {
+		s := string(val)
+		var err error
+		id, err = strconv.ParseInt(s, 10, 64)
+		return err
+	})
+}
+
 func (i *Items) Load(src string) error {
 	i.items = map[string]map[string][]string{}
 	i.categories = []string{}
@@ -89,8 +105,14 @@ func (i *Items) Load(src string) error {
 				i.addSubcategory(cat, part)
 			case 2:
 				item = part
-				i.addItem(cat, subcat, part)
+				if err := i.addItem(cat, subcat, part); err != nil {
+					return err
+				}
 			case 3:
+				if strings.Contains(pth, "image.jpg") || strings.Contains(pth, "thumb.jpg") {
+					return nil
+				}
+
 				if err := i.addImage(cat, subcat, item, pth); err != nil {
 					return err
 				}
@@ -98,6 +120,30 @@ func (i *Items) Load(src string) error {
 		}
 		return nil
 	})
+
+}
+
+//use shopify api to add product
+func (i *Items) addProduct(cat, item string) error {
+	err := db.Get([]byte(item), []byte("products"), func(val []byte) error {
+		return nil
+	})
+
+	if err != nil && err != ErrNotFound {
+		return err
+	}
+
+	if err == nil { //already exists
+		return nil
+	}
+
+	id, err := shopify.CreateProduct(item, cat)
+	if err != nil {
+		return err
+	}
+
+	val := []byte(strconv.FormatInt(int64(id), 10))
+	return db.Put([]byte(item), val, []byte("products"))
 }
 
 func (i *Items) addCategory(p string) {
@@ -118,17 +164,20 @@ func (i *Items) addSubcategory(cat, p string) {
 	i.items[cat][p] = []string{}
 }
 
-func (i *Items) addItem(cat, subcat, p string) {
+func (i *Items) addItem(cat, subcat, p string) error {
 	idx := i.getIndex(cat, subcat, p)
+
+	var err error
 	if idx == -1 {
-		i.items[cat][subcat] = []string{p}
+		s := i.items[cat][subcat]
+		s = append(s, p)
+		i.items[cat][subcat] = s
+		err = i.addProduct(cat, p)
 	}
+	return err
 }
 
 func (i *Items) addImage(cat, subcat, item, p string) error {
-	if fileExists(p) {
-		return nil
-	}
 	f, err := os.Open(p)
 	if err != nil {
 		return err
@@ -145,11 +194,14 @@ func (i *Items) addImage(cat, subcat, item, p string) error {
 	thumb := filepath.Join(dir, "thumb.jpg")
 
 	sizes := map[uint]string{
-		500: full,
+		340: full,
 		200: thumb,
 	}
 
 	for k, v := range sizes {
+		if fileExists(v) {
+			continue
+		}
 		m := resize.Resize(k, 0, img, resize.Lanczos3)
 		out, err := os.Create(v)
 		if err != nil {

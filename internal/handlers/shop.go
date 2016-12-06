@@ -2,27 +2,20 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"path"
 
+	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
 	"github.com/gorilla/mux"
 )
 
 type shopPage struct {
 	page
-	Categories []string
-}
-
-type itemPage struct {
-	page
-	Item item
-}
-
-type item struct {
-	Name  string
-	Image string
-	Link  string
+	ShopifyDomain string
+	ShopifyJSKey  string
+	Categories    []string
 }
 
 func getItems(m map[string][]string) map[string][]item {
@@ -41,20 +34,27 @@ func getItems(m map[string][]string) map[string][]item {
 	return out
 }
 
-func getItem(cat, subcat, name string) item {
+func getItem(cat, subcat, name string) (item, error) {
 	m := store.GetCategory(cat)
 	var out item
 	v := m[subcat]
+
 	for _, n := range v {
 		if n == name {
-			out = item{
-				Name:  n,
-				Image: fmt.Sprintf("/items/Cards/%s/%s/image.jpg", subcat, name),
+			id, err := store.GetProductID(name)
+			if err != nil {
+				return out, err
 			}
+
+			out = item{
+				Name:      n,
+				Image:     fmt.Sprintf("/items/Cards/%s/%s/image.jpg", subcat, name),
+				ProductID: id,
+			}
+			break
 		}
-		break
 	}
-	return out
+	return out, nil
 }
 
 func getSubcategory(cat, subcat string) []item {
@@ -77,7 +77,9 @@ func getSubcategory(cat, subcat string) []item {
 
 func Shop(w http.ResponseWriter, req *http.Request) {
 	p := shopPage{
-		Categories: store.GetCategories(),
+		ShopifyDomain: shopify.ShopifyDomain,
+		ShopifyJSKey:  shopify.ShopifyJSKey,
+		Categories:    store.GetCategories(),
 		page: page{
 			Links: getNavbarLinks(),
 		},
@@ -125,14 +127,37 @@ func SubCategory(w http.ResponseWriter, req *http.Request) {
 	templates["subcategory.html"].template.ExecuteTemplate(w, "base", p)
 }
 
+type itemPage struct {
+	page
+	Item          item
+	ShopifyDomain string
+	ShopifyJSKey  string
+}
+
+type item struct {
+	Name      string
+	Image     string
+	Link      string
+	ProductID int
+}
+
 func Item(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
+
+	i, err := getItem(vars["category"], vars["subcategory"], vars["item"])
+	if err != nil {
+		log.Println("err", err)
+		return
+	}
+
 	p := itemPage{
 		page: page{
 			Links: getNavbarLinks(),
 			Admin: Admin(getUser(req)),
 		},
-		Item: getItem(vars["category"], vars["subcategory"], vars["item"]),
+		ShopifyDomain: shopify.ShopifyDomain,
+		ShopifyJSKey:  shopify.ShopifyJSKey,
+		Item:          i,
 	}
 	templates["item.html"].template.ExecuteTemplate(w, "base", p)
 }

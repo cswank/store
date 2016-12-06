@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/boltdb/bolt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,30 +23,20 @@ type User struct {
 
 func GetUsers() ([]User, error) {
 	var users []User
-	return users, db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("users"))
-		c := b.Cursor()
-
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			var u User
-			if err := json.Unmarshal(v, &u); err != nil {
-				return err
-			}
-			u.HashedPassword = []byte{}
-			users = append(users, u)
+	return users, db.GetAll([]byte("users"), func(val []byte) error {
+		var u User
+		if err := json.Unmarshal(val, &u); err != nil {
+			return err
 		}
+		u.HashedPassword = []byte{}
+		users = append(users, u)
 		return nil
 	})
 }
 
 func (u *User) Fetch() error {
-	return db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("users"))
-		v := b.Get([]byte(u.Email))
-		if len(v) == 0 {
-			return ErrNotFound
-		}
-		return json.Unmarshal(v, u)
+	return db.Get([]byte(u.Email), []byte("users"), func(val []byte) error {
+		return json.Unmarshal(val, &u)
 	})
 }
 
@@ -56,11 +45,8 @@ func (u *User) Save() error {
 		return err
 	}
 
-	return db.Update(func(tx *bolt.Tx) error {
-		d, _ := json.Marshal(u)
-		b := tx.Bucket([]byte("users"))
-		return b.Put([]byte(u.Email), d)
-	})
+	d, _ := json.Marshal(u)
+	return db.Put([]byte(u.Email), d, []byte("users"))
 }
 
 func (u *User) savePassword() error {
@@ -73,10 +59,7 @@ func (u *User) savePassword() error {
 }
 
 func (u *User) Delete() error {
-	return db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("users"))
-		return b.Delete([]byte(u.Email))
-	})
+	return db.Delete([]byte("users"), []byte(u.Email))
 }
 
 func (u *User) CheckPassword() (bool, error) {

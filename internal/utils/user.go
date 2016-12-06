@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/boltdb/bolt"
 	"github.com/cswank/store/internal/store"
 	"github.com/howeyc/gopass"
 )
 
 //AddUser adds a user from the command line
-func AddUser(db *bolt.DB) {
+func AddUser() {
 	var u store.User
 	fmt.Print("email: ")
 	fmt.Scanf("%s\n", &u.Email)
@@ -43,7 +42,7 @@ func getPasswd(u *store.User) {
 	u.Password = p1
 }
 
-func EditUser(db *bolt.DB) {
+func EditUser() {
 	users, err := store.GetUsers()
 	if err != nil {
 		log.Fatal(err)
