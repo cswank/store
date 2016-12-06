@@ -4,7 +4,12 @@
   {{template "head" .}}
   <body>
     {{template "navbar" .}}
-    {{template "content" .}}
+    <div id="content">
+      {{template "content" .}}
+    </div>
+    <script>
+      {{template "base.js" .}}
+    </script>
   </body>
 </html>
 {{end}}

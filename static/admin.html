@@ -1,15 +1,32 @@
 {{define "content"}}
-<form enctype="multipart/form-data" id="items-form" action="/admin/items" method="POST">
-  <div class="field-row">
-    <div class="field-container">
-      <input type="file" name="Items" required/>
-    </div>
-  </div>
-  <div class="field-row">
-    <div class="field-container">
-      <button type="submit" class="">Submit</button>
-    </div>
-  </div>
-</form>
-{{end}}
 
+{{template "admin-links.html" .}}
+
+{{$uri := .URI}}
+{{range .Items}}
+<li>
+  <a href="{{$uri}}/{{.}}">{{.}}</a>
+</li>
+{{end}}
+</ul>
+
+<form action="{{.URI}}?from={{.From}}" method="POST" enctype="multipart/form-data">
+  <fieldset>
+    <input type="text" name="Name" placeholder="{{.Placeholder}}" required/><br/>
+    {{if .IsProduct}}
+    <label for="Description">
+      <textarea name="Description" rows="8" cols="50"></textarea>
+    </label></br>
+    <label for="Image">Image
+      <input type="file" name="Image" placeholder="Image"/><br/>
+    </label>
+    {{end}}
+    <button type="submit" class="pure-button pure-button-primary">Save</button>
+  </fieldset>
+</form>
+
+<script>
+  {{ template "admin.js" .}}
+</script>
+
+{{end}}

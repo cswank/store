@@ -2,10 +2,12 @@
 
 function doDelete() {
     $.ajax({
-        url: {{.Resource}},
-        type: 'DELETE',
+        url: "{{.Resource}}",
+        type: "DELETE",
         success: function(result) {
-            document.location.href = "/admin";
+            document.getElementById("success").style.visibility = "visible";
+            document.getElementById("confirm").style.visibility = "hidden";
+            return false;
         },
         failure: function(result) {
             console.log("fail", result);
@@ -14,8 +16,11 @@ function doDelete() {
 }
 
 function back() {
-    document.location.href = "/admin";
+    window.location = "/admin";
+    return false;
 }
+
+document.getElementById("success").style.visibility = "hidden";
 
 {{end}}
 

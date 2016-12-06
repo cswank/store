@@ -1,0 +1,17 @@
+{{define "background-images.html"}}
+
+<div class="pure-g">
+  {{$click := .AddClick}}
+  {{range .BackgroundImages}}
+  <div class="pure-u-1-8" id="background-{{.}}">
+    {{if $click}}
+    <img onClick="setBackground({{.}})" src="/images/background/{{.}}/thumb.png"/>
+    {{else}}
+    <img src="/images/background/{{.}}/thumb.png"/>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+
+{{end}}
+

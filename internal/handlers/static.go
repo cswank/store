@@ -6,28 +6,39 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/GeertJohan/go.rice"
 )
 
 var (
 	html = []string{
-		"head.html",
-		"base.html",
-		"navbar.html",
-		"index.html",
-		"login.html",
-		"contact.html",
-		"wholesale.html",
-		"shop.html",
-		"category.html",
-		"subcategory.html",
-		"item.html",
-		"thumb.html",
+		"admin-links.html",
+		"admin-product.js",
+		"admin-product.html",
 		"admin.html",
+		"admin.js",
+		"background-images.html",
+		"base.html",
+		"base.js",
+		"cart.html",
+		"cart.js",
+		"category.html",
 		"confirm.html",
 		"confirm.js",
-		"shopify.html",
+		"contact.html",
+		"index.html",
+		"lineitem.html",
+		"login.html",
+		"logout.html",
+		"navbar.html",
+		"product.html",
+		"shop.html",
+		"shop.js",
+		"subcategory.html",
+		"thumb.html",
+		"wholesale.html",
+		"head.html",
 	}
 
 	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
@@ -38,6 +49,7 @@ var (
 type tmpl struct {
 	template *template.Template
 	files    []string
+	bare     bool
 }
 
 func Init(box *rice.Box) {
@@ -51,24 +63,35 @@ func Init(box *rice.Box) {
 	}
 
 	templates = map[string]tmpl{
-		"index.html":       {files: []string{"index.html"}},
-		"login.html":       {files: []string{"login.html"}},
-		"contact.html":     {files: []string{"contact.html"}},
-		"wholesale.html":   {files: []string{"wholesale.html"}},
-		"shop.html":        {files: []string{"shop.html", "thumb.html"}},
-		"category.html":    {files: []string{"category.html", "thumb.html"}},
-		"subcategory.html": {files: []string{"subcategory.html", "thumb.html"}},
-		"item.html":        {files: []string{"item.html", "shopify.html"}},
-		"admin.html":       {files: []string{"admin.html"}},
-		"confirm.html":     {files: []string{"confirm.html", "confirm.js"}},
+		"admin-product.html": {files: []string{"admin-product.html", "admin-links.html", "admin-product.js", "background-images.html"}},
+		"admin.html":         {files: []string{"admin.html", "admin-links.html", "background-images.html", "admin.js"}},
+		"cart.html":          {files: []string{"cart.html", "cart.js"}},
+		"category.html":      {files: []string{"category.html", "thumb.html"}},
+		"confirm.html":       {files: []string{"confirm.html", "confirm.js"}},
+		"contact.html":       {files: []string{"contact.html"}},
+		"index.html":         {files: []string{"index.html"}},
+		"lineitem.html":      {files: []string{"lineitem.html"}, bare: true},
+		"login.html":         {files: []string{"login.html"}},
+		"logout.html":        {files: []string{"logout.html", "confirm.js"}},
+		"product.html":       {files: []string{"product.html", "shop.js"}},
+		"shop.html":          {files: []string{"shop.html", "thumb.html"}},
+		"subcategory.html":   {files: []string{"subcategory.html", "thumb.html"}},
+		"wholesale.html":     {files: []string{"wholesale.html"}},
 	}
 
-	base := []string{"head.html", "base.html", "navbar.html"}
+	base := []string{"head.html", "base.html", "navbar.html", "base.js"}
 
 	for key, val := range templates {
 		t := template.New(key)
 		var err error
-		for _, f := range append(val.files, base...) {
+		var items []string
+		if val.bare {
+			items = val.files
+		} else {
+			items = append(val.files, base...)
+		}
+
+		for _, f := range items {
 			t, err = t.Parse(data[f])
 			if err != nil {
 				log.Fatal(err)
@@ -85,8 +108,31 @@ func Init(box *rice.Box) {
 		f.Close()
 	}
 
+	shopify = shopifyAPI{
+		APIKey: os.Getenv("SHOPIFY_JS_KEY"),
+		Domain: os.Getenv("SHOPIFY_DOMAIN"),
+	}
+
+	captchaSiteKey = os.Getenv("RECAPTCHA_SITE_KEY")
+	captchaSecretKey = os.Getenv("RECAPTCHA_SECRET_KEY")
+	captchaURL = os.Getenv("RECAPTCHA_URL")
+	if captchaSiteKey != "" && captchaSecretKey != "" && captchaURL != "" {
+		captcha = true
+	}
+
+	if shopify.APIKey == "" || shopify.Domain == "" {
+		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")
+	}
+
+	storeEmail = os.Getenv("STORE_EMAIL")
+	storeEmailPassword = os.Getenv("STORE_EMAIL_PASSWORD")
+	if storeEmail == "" || storeEmailPassword == "" {
+		log.Fatal("you must set STORE_EMAIL and STORE_EMAIL_PASSWORD")
+	}
+
+	makeNavbarLinks()
 }
 
-func Favicon(w http.ResponseWriter, req *http.Request) {
-
+func Favicon(w http.ResponseWriter, req *http.Request) error {
+	return nil
 }

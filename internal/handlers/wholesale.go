@@ -2,9 +2,11 @@ package handlers
 
 import "net/http"
 
-func Wholesale(w http.ResponseWriter, req *http.Request) {
+func Wholesale(w http.ResponseWriter, req *http.Request) error {
 	p := page{
-		Links: getNavbarLinks(),
+		Links: getNavbarLinks(req),
+		Admin: Admin(getUser(req)),
+		Name:  name,
 	}
-	templates["wholesale.html"].template.ExecuteTemplate(w, "base", p)
+	return templates["wholesale.html"].template.ExecuteTemplate(w, "base", p)
 }

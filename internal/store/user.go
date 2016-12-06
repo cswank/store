@@ -23,7 +23,7 @@ type User struct {
 
 func GetUsers() ([]User, error) {
 	var users []User
-	return users, db.GetAll([]byte("users"), func(val []byte) error {
+	return users, db.GetAll(Row{Buckets: [][]byte{[]byte("users")}}, func(key, val []byte) error {
 		var u User
 		if err := json.Unmarshal(val, &u); err != nil {
 			return err
@@ -35,7 +35,7 @@ func GetUsers() ([]User, error) {
 }
 
 func (u *User) Fetch() error {
-	return db.Get([]byte(u.Email), []byte("users"), func(val []byte) error {
+	return db.Get([]Row{{Key: []byte(u.Email), Buckets: [][]byte{[]byte("users")}}}, func(key, val []byte) error {
 		return json.Unmarshal(val, &u)
 	})
 }
@@ -46,7 +46,7 @@ func (u *User) Save() error {
 	}
 
 	d, _ := json.Marshal(u)
-	return db.Put([]byte(u.Email), d, []byte("users"))
+	return db.Put([]Row{{Key: []byte(u.Email), Val: d, Buckets: [][]byte{[]byte("users")}}})
 }
 
 func (u *User) savePassword() error {
@@ -59,7 +59,7 @@ func (u *User) savePassword() error {
 }
 
 func (u *User) Delete() error {
-	return db.Delete([]byte("users"), []byte(u.Email))
+	return db.Delete([]Row{{Buckets: [][]byte{[]byte("users")}, Key: []byte(u.Email)}})
 }
 
 func (u *User) CheckPassword() (bool, error) {

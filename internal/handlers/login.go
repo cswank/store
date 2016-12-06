@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/cswank/store/internal/store"
@@ -10,46 +9,50 @@ import (
 
 type loginPage struct {
 	page
+	Resource string
 }
 
-func Login(w http.ResponseWriter, req *http.Request) {
+func Login(w http.ResponseWriter, req *http.Request) error {
 	var p loginPage
-	templates["login.html"].template.ExecuteTemplate(w, "base", p)
+	return templates["login.html"].template.ExecuteTemplate(w, "base", p)
 }
 
-func DoLogin(w http.ResponseWriter, req *http.Request) {
+func DoLogin(w http.ResponseWriter, req *http.Request) error {
 	err := req.ParseForm()
 	if err != nil {
-		log.Println("err", err)
-		return
+		return err
 	}
 
 	var u store.User
 	if err := schema.NewDecoder().Decode(&u, req.PostForm); err != nil {
-		log.Println("err", err)
-		return
+		return err
 	}
 
 	ok, err := u.CheckPassword()
 	if !ok || err != nil {
-		lg.Println("bad request")
-		w.Header().Set("Location", "/login.html")
-		w.WriteHeader(http.StatusFound)
-		return
+		return errInvalidLogin
 	}
+
 	http.SetCookie(w, getCookie(u.Email))
 	w.Header().Set("Location", "/")
 	w.WriteHeader(http.StatusFound)
+	return nil
 }
 
-func Logout(w http.ResponseWriter, req *http.Request) {
+func Logout(w http.ResponseWriter, req *http.Request) error {
+	var p loginPage
+	return templates["logout.html"].template.ExecuteTemplate(w, "base", p)
+}
+
+func DoLogout(w http.ResponseWriter, req *http.Request) error {
 	cookie := &http.Cookie{
-		Name:   "quimby",
+		Name:   authCookieName,
 		Value:  "",
 		Path:   "/",
 		MaxAge: -1,
 	}
 	http.SetCookie(w, cookie)
-	w.Header().Set("Location", "/login.html")
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	w.Header().Set("Location", "/")
+	w.WriteHeader(http.StatusFound)
+	return nil
 }

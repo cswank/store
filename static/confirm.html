@@ -1,11 +1,14 @@
 {{define "content"}}
-<div>
-  Really delete {{.Name}}?
+<div  id="confirm">
+  <div>
+    Really delete {{.Name}}?
+  </div>
+  <button onClick="doDelete()">delete</button>
+  <button onClick="back()">cancel</button>
 </div>
-<button onClick="doDelete()">delete</button>
-<button onClick="back()">cancel</button>
-
-<script src="/static/js/jquery-min.js"></script>
+<div  id="success">
+  <button onClick="back()">Done!</button>
+</div>
 <script>
   {{template "confirm.js" .}}
 </script>

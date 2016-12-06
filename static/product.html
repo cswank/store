@@ -1,0 +1,23 @@
+{{define "content"}}
+<div id="product">
+  
+  <div id="product-img">
+    <span class="helper">
+    </span>
+    <img src="/images/products/{{.Product.Title}}/image.png"/>
+  </div>
+  <br/>
+  <a>{{.Product.Title}}</a>
+  <a>${{.Product.Price}}</a>
+  <div>
+    <i class="incrementer fa fa-minus" aria-hidden="true" onClick="updateQuantity(-1)"></i>
+    <input type="nmber" class="quantity" id="quantity" value="{{.Product.Quantity}}"/>
+    <i class="incrementer fa fa-plus" aria-hidden="true" onClick="updateQuantity(1)"></i>
+  </div>
+  <button onClick="addToCart({{.Product.Title}})" class="pure-button pure-button-primary">Add To Cart</button>
+</div>
+
+<script>
+  {{template "shop.js" .}}
+</script>
+{{end}}

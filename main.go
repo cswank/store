@@ -2,9 +2,11 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"time"
@@ -25,6 +27,7 @@ import (
 var (
 	cfg               store.Config
 	serve             = kingpin.Command("serve", "Start the server.")
+	fake              = serve.Flag("fake-shopify", "start a fake shopify").Short('f').Bool()
 	items             = kingpin.Command("items", "save and delete items")
 	itemAdd           = items.Command("add", "add an item")
 	itemEdit          = items.Command("edit", "edit items")
@@ -37,6 +40,7 @@ var (
 
 	port    string
 	domains []string
+	ts      *httptest.Server
 )
 
 const (
@@ -47,7 +51,6 @@ func init() {
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)
 	}
-	shopify.Init()
 	store.Init(cfg)
 }
 
@@ -60,18 +63,30 @@ func main() {
 		utils.AddUser()
 	case "users edit":
 		utils.EditUser()
-	case "products delete-all":
-		if err := store.DeleteAllProducts(); err != nil {
-			log.Fatal(err)
-		}
 	}
 }
 
-func getMiddleware(perm handlers.ACL, f http.HandlerFunc) http.Handler {
-	return alice.New(handlers.Authentication, handlers.Perm(perm), handlers.Handle(f)).Then(http.HandlerFunc(handlers.Errors))
-}
-
 func initServe() {
+	if *fake {
+		id := 1
+		ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == "POST" {
+				var m map[string]shopify.Product
+				json.NewDecoder(r.Body).Decode(&m)
+				p := m["product"]
+				p.ID = id
+				p.Variants = []shopify.Variant{
+					{ID: id},
+				}
+				m["product"] = p
+				id++
+				json.NewEncoder(w).Encode(m)
+			}
+		}))
+		fmt.Println("ts", ts.URL)
+		os.Setenv("SHOPIFY_DOMAIN", ts.URL)
+		os.Setenv("SHOPIFY_API", ts.URL)
+	}
 	domain := os.Getenv("STORE_DOMAINS")
 	if domain == "" {
 		log.Println("tls not enabled because STORE_DOMAIN is not set")
@@ -85,8 +100,12 @@ func initServe() {
 	}
 
 	box = rice.MustFindBox("static")
+	shopify.Init()
 	handlers.Init(box)
-	store.Load()
+}
+
+func getMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
+	return alice.New(handlers.Authentication, handlers.Perm(perm)).Then(handlers.HandleErr(f))
 }
 
 func doServe() {
@@ -95,24 +114,39 @@ func doServe() {
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
-	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("POST")
+	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
+	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
+	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
-	r.Handle("/shop", getMiddleware(handlers.Anyone, handlers.Shop)).Methods("GET")
+	r.Handle("/images/{type}/{title}/{size}", getMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
 
+	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
+	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
+	r.Handle("/shop", getMiddleware(handlers.Anyone, handlers.Shop)).Methods("GET")
 	r.Handle("/shop/{category}", getMiddleware(handlers.Anyone, handlers.Category)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
-	r.Handle("/shop/{category}/{subcategory}/{item}", getMiddleware(handlers.Anyone, handlers.Item)).Methods("GET")
-	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
-	r.Handle("/admin/items", getMiddleware(handlers.Admin, handlers.AddItems)).Methods("POST")
+	r.Handle("/shop/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.Product)).Methods("GET")
+
+	r.Handle("/api/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.GetProduct)).Methods("GET")
+
+	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
+	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
+	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
+	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.AdminCategoryPage)).Methods("GET")
+	r.Handle("/admin/categories/{category}/subcategories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
+	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.AdminAddProductPage)).Methods("GET")
+	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products", getMiddleware(handlers.Admin, handlers.AddProduct)).Methods("POST")
+	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.AdminProductPage)).Methods("GET")
+	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.UpdateProduct)).Methods("POST")
+	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(box.HTTPBox())))
-	r.PathPrefix("/items/").Handler(http.StripPrefix("/items/", http.FileServer(http.Dir("items"))))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
-	addr := fmt.Sprintf(":%s", port)
+	iface := os.Getenv("STORE_IFACE")
+	addr := fmt.Sprintf("%s:%s", iface, port)
 
 	var serve func() error
 
@@ -121,6 +155,7 @@ func doServe() {
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
+		//IdleTimeout:  120 * time.Second,  TODO uncomment when 1.8 is out
 	}
 
 	serve = srv.ListenAndServe

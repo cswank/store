@@ -1,7 +1,9 @@
 {{define "thumb"}}
-<li>
-  <img src={{.Image}}/><br/>
-  <a href="{{.Link}}">{{.Name}}</a>
-</li>
+<div class="pure-u-1-4">
+  <p class="thumb">
+    <a href="{{.Link}}"><img src="{{.Image}}"/></a><br/>
+    <a href="{{.Link}}" class="title">{{.Title}}</a><br/>
+    <a>${{.Price}}</a>
+  </p>
+</div>
 {{end}}
-

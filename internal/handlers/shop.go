@@ -1,90 +1,97 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"path"
+	"strconv"
 
-	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
 	"github.com/gorilla/mux"
 )
 
+type shopifyAPI struct {
+	APIKey string
+	Domain string
+}
+
+var (
+	shopify shopifyAPI
+)
+
 type shopPage struct {
 	page
-	ShopifyDomain string
-	ShopifyJSKey  string
-	Categories    []string
+	Shopify    shopifyAPI
+	Categories []string
 }
 
-func getItems(m map[string][]string) map[string][]item {
-	out := map[string][]item{}
-	for k, v := range m {
-		items := make([]item, len(v))
-		for i, n := range v {
-			items[i] = item{
-				Name:  n,
-				Image: fmt.Sprintf("/items/Cards/%s/%s/thumb.jpg", k, n),
-				Link:  fmt.Sprintf("/store/items/Cards/%s/%s", k, n),
-			}
-		}
-		out[k] = items
+func Shop(w http.ResponseWriter, req *http.Request) error {
+
+	cats, err := store.GetCategories()
+	if err != nil {
+		return err
 	}
-	return out
-}
 
-func getItem(cat, subcat, name string) (item, error) {
-	m := store.GetCategory(cat)
-	var out item
-	v := m[subcat]
-
-	for _, n := range v {
-		if n == name {
-			id, err := store.GetProductID(name)
-			if err != nil {
-				return out, err
-			}
-
-			out = item{
-				Name:      n,
-				Image:     fmt.Sprintf("/items/Cards/%s/%s/image.jpg", subcat, name),
-				ProductID: id,
-			}
-			break
-		}
-	}
-	return out, nil
-}
-
-func getSubcategory(cat, subcat string) []item {
-	m := store.GetCategory(cat)
-	var out []item
-	v, ok := m[subcat]
-	if !ok {
-		return out
-	}
-	out = make([]item, len(v))
-	for i, n := range v {
-		out[i] = item{
-			Name:  n,
-			Image: fmt.Sprintf("/items/%s/%s/%s/thumb.jpg", cat, subcat, n),
-			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, n),
-		}
-	}
-	return out
-}
-
-func Shop(w http.ResponseWriter, req *http.Request) {
 	p := shopPage{
-		ShopifyDomain: shopify.ShopifyDomain,
-		ShopifyJSKey:  shopify.ShopifyJSKey,
-		Categories:    store.GetCategories(),
+		Shopify:    shopify,
+		Categories: cats,
 		page: page{
-			Links: getNavbarLinks(),
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(getUser(req)),
+			Shopify: shopify,
 		},
 	}
-	templates["shop.html"].template.ExecuteTemplate(w, "base", p)
+	return templates["shop.html"].template.ExecuteTemplate(w, "base", p)
+}
+
+type cartPage struct {
+	page
+	Price string
+}
+
+func Cart(w http.ResponseWriter, req *http.Request) error {
+
+	p := cartPage{
+		page: page{
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(getUser(req)),
+			Shopify: shopify,
+			Name:    name,
+		},
+		Price: store.DefaultPrice,
+	}
+	return templates["cart.html"].template.ExecuteTemplate(w, "base", p)
+}
+
+func LineItem(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
+	if err := p.Fetch(); err != nil {
+		return err
+	}
+
+	vals := req.URL.Query()
+
+	qs := vals.Get("quantity")
+	if qs == "" {
+		return fmt.Errorf("you must supply a quantity")
+	}
+
+	q, err := strconv.ParseInt(qs, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	p.Quantity = int(q)
+	price, err := strconv.ParseFloat(store.DefaultPrice, 10)
+	if err != nil {
+		return err
+	}
+
+	t := float64(q) * price
+	p.Total = fmt.Sprintf("%.02f", t)
+	return templates["lineitem.html"].template.ExecuteTemplate(w, "lineitem.html", p)
 }
 
 type categoryPage struct {
@@ -92,15 +99,23 @@ type categoryPage struct {
 	SubCategories []link
 }
 
-func Category(w http.ResponseWriter, req *http.Request) {
+func Category(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
+	subs, err := store.GetSubCategories(vars["category"])
+	if err != nil {
+		return err
+	}
+
 	p := categoryPage{
-		SubCategories: getLinks(fmt.Sprintf("/shop/%s", vars["category"]), store.GetCategoryList(vars["category"])),
+		SubCategories: getLinks(fmt.Sprintf("/shop/%s", vars["category"]), subs),
 		page: page{
-			Links: getNavbarLinks(),
+			Admin:   Admin(getUser(req)),
+			Links:   getNavbarLinks(req),
+			Shopify: shopify,
+			Name:    name,
 		},
 	}
-	templates["category.html"].template.ExecuteTemplate(w, "base", p)
+	return templates["category.html"].template.ExecuteTemplate(w, "base", p)
 }
 
 func getLinks(href string, names []string) []link {
@@ -113,51 +128,83 @@ func getLinks(href string, names []string) []link {
 
 type subCategoryPage struct {
 	page
-	Items []item
+	Products []product
 }
 
-func SubCategory(w http.ResponseWriter, req *http.Request) {
+func getProducts(cat, subcat string, prods []string) []product {
+	out := make([]product, len(prods))
+	for i, t := range prods {
+		out[i] = product{
+			Title: t,
+			Image: fmt.Sprintf("/images/products/%s/thumb.png", t),
+			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, t),
+			Price: store.DefaultPrice,
+		}
+	}
+	return out
+}
+
+func SubCategory(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
+	prods, err := store.GetProducts(vars["category"], vars["subcategory"])
+	if err != nil {
+		return err
+	}
+
 	p := subCategoryPage{
 		page: page{
-			Links: getNavbarLinks(),
+			Admin:   Admin(getUser(req)),
+			Links:   getNavbarLinks(req),
+			Shopify: shopify,
+			Name:    name,
 		},
-		Items: getSubcategory(vars["category"], vars["subcategory"]),
+		Products: getProducts(vars["category"], vars["subcategory"], prods),
 	}
-	templates["subcategory.html"].template.ExecuteTemplate(w, "base", p)
+	return templates["subcategory.html"].template.ExecuteTemplate(w, "base", p)
 }
 
-type itemPage struct {
+type productPage struct {
 	page
-	Item          item
-	ShopifyDomain string
-	ShopifyJSKey  string
+	Product store.Product
 }
 
-type item struct {
-	Name      string
+type product struct {
+	Title     string
 	Image     string
 	Link      string
-	ProductID int
+	ProductID string
+	Price     string
 }
 
-func Item(w http.ResponseWriter, req *http.Request) {
+func GetProduct(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
+	if err := p.Fetch(); err != nil {
+		return err
+	}
+
+	return json.NewEncoder(w).Encode(p)
+}
+
+func Product(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
 
-	i, err := getItem(vars["category"], vars["subcategory"], vars["item"])
-	if err != nil {
-		log.Println("err", err)
-		return
+	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
+
+	if err := p.Fetch(); err != nil {
+		return err
 	}
 
-	p := itemPage{
+	p.Quantity = 1
+
+	page := productPage{
 		page: page{
-			Links: getNavbarLinks(),
-			Admin: Admin(getUser(req)),
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(getUser(req)),
+			Shopify: shopify,
+			Name:    name,
 		},
-		ShopifyDomain: shopify.ShopifyDomain,
-		ShopifyJSKey:  shopify.ShopifyJSKey,
-		Item:          i,
+		Product: *p,
 	}
-	templates["item.html"].template.ExecuteTemplate(w, "base", p)
+	return templates["product.html"].template.ExecuteTemplate(w, "base", page)
 }

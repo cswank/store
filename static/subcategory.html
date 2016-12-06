@@ -1,8 +1,7 @@
 {{define "content"}}
-<h1>subcat</h1>
-<ul>
-  {{range $item := .Items}}
-  {{template "thumb" $item}}
+<div class="pure-g">
+  {{range $product := .Products}}
+  {{template "thumb" $product}}
   {{end}}
-</ul>
+</div>
 {{end}}
