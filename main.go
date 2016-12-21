@@ -25,12 +25,15 @@ import (
 )
 
 var (
-	cfg               store.Config
-	serve             = kingpin.Command("serve", "Start the server.")
-	fake              = serve.Flag("fake-shopify", "start a fake shopify").Short('f').Bool()
-	items             = kingpin.Command("items", "save and delete items")
-	itemAdd           = items.Command("add", "add an item")
-	itemEdit          = items.Command("edit", "edit items")
+	cfg      store.Config
+	serve    = kingpin.Command("serve", "Start the server.")
+	fake     = serve.Flag("fake-shopify", "start a fake shopify").Short('f').Bool()
+	items    = kingpin.Command("items", "save and delete items")
+	itemAdd  = items.Command("add", "add an item")
+	itemEdit = items.Command("edit", "edit items")
+
+	categories = kingpin.Command("categories", "save, edit and delete categories")
+
 	users             = kingpin.Command("users", "save and delete users")
 	userAdd           = users.Command("add", "add an item")
 	userEdit          = users.Command("edit", "edit users")
@@ -59,6 +62,8 @@ func main() {
 	switch kingpin.Parse() {
 	case "serve":
 		doServe()
+	case "categories":
+		utils.EditCategory()
 	case "users add":
 		utils.AddUser()
 	case "users edit":

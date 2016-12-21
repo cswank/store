@@ -65,12 +65,3 @@ func GetImage(bucket, title, size string) ([]byte, error) {
 		return nil
 	})
 }
-
-func GetSiteImage(title string) ([]byte, error) {
-	q := []Row{{Key: []byte(title), Buckets: [][]byte{[]byte("images"), []byte("site")}}}
-	var img []byte
-	return img, db.Get(q, func(k, v []byte) error {
-		img = v
-		return nil
-	})
-}

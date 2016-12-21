@@ -8,6 +8,9 @@ var quantity = {{.Product.Quantity}};
 
 function updateQuantity(n) {
     quantity += n;
+    if (quantity < 1) {
+        quantity = 1;
+    }
     $("#quantity").val(quantity);
 }
 

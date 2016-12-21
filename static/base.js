@@ -3,6 +3,7 @@
 function updateCartLink(n) {
     if (n > 0) {
         $('#Cart').text("Cart (" + n + ")");
+        $("#Cart").animate({"color": "white"}, 500).animate({"color": "black"}, 500);
     } else {
         $('#Cart').text("Cart");
     }

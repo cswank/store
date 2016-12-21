@@ -49,6 +49,11 @@ func RenameSubcategory(cat, old, name string) error {
 	return db.RenameBucket(src, dst)
 }
 
+func DeleteSubcategory(cat, subcat string) error {
+	rows := []Row{{Buckets: [][]byte{[]byte("products"), []byte(cat), []byte(subcat)}}}
+	return db.Delete(rows)
+}
+
 func GetCategories() ([]string, error) {
 	var cats []string
 	q := Row{Buckets: [][]byte{[]byte("products")}}
