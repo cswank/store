@@ -93,6 +93,12 @@ function removeItem(title) {
     $("#" + item.id).remove();
     updateTotal(items);
     doInitCart(items);
+
+    var i = 0;
+    for (var title in items) {
+        i++;
+    }
+    showCart(i);
 }
 
 function checkout() {
@@ -113,15 +119,15 @@ function checkout() {
 }
 
 function clearCart() {
-    localStorage.removeItem("shopping-cart");
-    updateCartLink(0);
-    items = {};
-    doInitCart(items);
-
     var div = document.getElementById("items");
     while (div.firstChild) {
         div.removeChild(div.firstChild);
     }
+    
+    localStorage.removeItem("shopping-cart");
+    updateCartLink(0);
+    items = {};
+    doInitCart(items);
 
     showCart(0);
 }
