@@ -1,6 +1,11 @@
 
 body {
     font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
+}
+
+#body {
+    width: 1000px;
+    margin: auto;
     
 }
 
@@ -56,6 +61,15 @@ icon {
     text-align: center;
 }
 
+.home {
+    margin: 0;
+    padding: 0;
+}
+
+.home img {
+    margin: 0;
+}
+
 .center p {
     text-align: center;
 }
@@ -79,7 +93,7 @@ header .active {
 }
 
 #content {
-    padding: 10px 20px 0px 20px;
+    
 }
 
 .thumb {
@@ -226,7 +240,7 @@ div#nav div.pure-menu li.pure-menu-item a:hover {
 }
 
 
-#checkout {
+#checkout, #clear {
     text-align: center;
     padding: 20px 0px 20px 0px;
     
@@ -239,6 +253,16 @@ button.pure-button-primary {
 }
 
 #contact-page {
+    margin: auto;
+    width: 400px;
+}
+
+#admin-page {
+    margin: auto;
+    width: 400px;
+}
+
+#admin-page form {
     margin: auto;
     width: 400px;
 }

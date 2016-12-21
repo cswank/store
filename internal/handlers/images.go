@@ -17,3 +17,14 @@ func Image(w http.ResponseWriter, req *http.Request) error {
 	w.Write(img)
 	return nil
 }
+
+func SiteImage(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	img, err := store.GetSiteImage(vars["title"])
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "image/png")
+	w.Write(img)
+	return nil
+}

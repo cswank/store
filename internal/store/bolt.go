@@ -27,7 +27,7 @@ func getBolt(pth string) *bolt.DB {
 			return err
 		}
 
-		if _, err = b.CreateBucketIfNotExists([]byte("background")); err != nil {
+		if _, err = b.CreateBucketIfNotExists([]byte("site")); err != nil {
 			return err
 		}
 
@@ -40,6 +40,43 @@ func getBolt(pth string) *bolt.DB {
 	})
 
 	return db
+}
+
+//Rename bucket takes 2 rows, the first should point to
+func (b *Bolt) RenameBucket(src, dst Row) error {
+	return b.db.Update(func(tx *bolt.Tx) error {
+		oldParent, err := b.getOrCreateBucket(tx, src.Buckets)
+		if err != nil {
+			return err
+		}
+		newParent, err := b.getOrCreateBucket(tx, dst.Buckets)
+		if err != nil {
+			return err
+		}
+		return moveBucket(oldParent, newParent, src.Key, dst.Key)
+	})
+}
+
+func moveBucket(oldParent, newParent *bolt.Bucket, oldkey, newkey []byte) error {
+	oldBuck := oldParent.Bucket(oldkey)
+	newBuck, err := newParent.CreateBucket(newkey)
+	if err != nil {
+		return err
+	}
+
+	err = oldBuck.ForEach(func(k, v []byte) error {
+		if v == nil {
+			// Nested bucket
+			return moveBucket(oldBuck, newBuck, k, k)
+		}
+		// Regular value
+		return newBuck.Put(k, v)
+	})
+	if err != nil {
+		return err
+	}
+
+	return oldParent.DeleteBucket(oldkey)
 }
 
 func (b *Bolt) AddBucket(row Row) error {

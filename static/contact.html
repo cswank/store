@@ -12,16 +12,16 @@
       <legend>Contact Us</legend>
 
       <label for="name">Name</label>
-      <input id="name" type="text" placeholder="Name" name="name" required>
+      <input type="text" placeholder="Name" name="name" required>
       
       <label for="email">Email</label>
-      <input id="email" type="email" placeholder="Email" name="email" required>
+      <input type="email" placeholder="Email" name="email" required>
       
       <label for="subject">Subject</label>
-      <input id="subject" type="text" placeholder="Subject" name="subject">
+      <input type="text" placeholder="Subject" name="subject">
       
       <label for="body">Message</label>
-      <textarea id="body" rows="10" cols="40" name="body" ></textarea>
+      <textarea rows="10" cols="40" name="body" ></textarea>
 
       {{if .Captcha}}
       <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>

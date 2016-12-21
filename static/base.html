@@ -3,9 +3,12 @@
 <html>
   {{template "head" .}}
   <body>
-    {{template "navbar" .}}
-    <div id="content">
-      {{template "content" .}}
+    <div id="body">
+      {{template "navbar" .}}
+      <div id="content">
+        {{template "content" .}}
+      </div>
+      
     </div>
     <script>
       {{template "base.js" .}}

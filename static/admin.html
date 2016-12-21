@@ -1,13 +1,14 @@
 {{define "content"}}
 
-{{template "admin-links.html" .}}
+<div id="admin-page">
+  {{template "admin-links.html" .}}
 
-{{$uri := .URI}}
-{{range .Items}}
-<li>
-  <a href="{{$uri}}/{{.}}">{{.}}</a>
-</li>
-{{end}}
+  {{$uri := .URI}}
+  {{range .Items}}
+  <li>
+    <a href="{{$uri}}/{{.}}">{{.}}</a>
+  </li>
+  {{end}}
 </ul>
 
 <form action="{{.URI}}?from={{.From}}" method="POST" enctype="multipart/form-data">
@@ -25,6 +26,29 @@
   </fieldset>
 </form>
 
+{{if ne .Resource ""}}
+<form action="{{.Resource}}" method="POST" >
+  <fieldset>
+    <legend>Rename {{.ResourceName}}</legend>
+    <input type="text" name="Name" placeholder="New Name" required/><br/>
+    <button type="submit" class="pure-button pure-button-primary">Save</button>
+  </fieldset>
+</form>
+{{else}}
+
+<form action="/admin/site/images/home" method="POST" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Home Page Image</legend>
+    <input type="file" name="Image" placeholder="Home Image" required/><br/>
+    <button type="submit" class="pure-button pure-button-primary">Save</button>
+  </fieldset>
+</form>
+
+{{end}}
+
+
+
+</div>
 <script>
   {{ template "admin.js" .}}
 </script>

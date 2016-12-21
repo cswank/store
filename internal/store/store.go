@@ -28,6 +28,7 @@ type storer interface {
 	Delete([]Row) error
 	DeleteAll([]byte) error
 	AddBucket(Row) error
+	RenameBucket(Row, Row) error
 }
 
 var (
@@ -58,6 +59,15 @@ func SetDB(d storer) func() {
 
 func GetImage(bucket, title, size string) ([]byte, error) {
 	q := []Row{{Key: []byte(size), Buckets: [][]byte{[]byte("images"), []byte(bucket), []byte(title)}}}
+	var img []byte
+	return img, db.Get(q, func(k, v []byte) error {
+		img = v
+		return nil
+	})
+}
+
+func GetSiteImage(title string) ([]byte, error) {
+	q := []Row{{Key: []byte(title), Buckets: [][]byte{[]byte("images"), []byte("site")}}}
 	var img []byte
 	return img, db.Get(q, func(k, v []byte) error {
 		img = v

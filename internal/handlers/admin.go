@@ -14,6 +14,8 @@ type adminPage struct {
 	page
 	Title            string
 	URI              string
+	Resource         string
+	ResourceName     string
 	Placeholder      string
 	From             string
 	IsProduct        bool
@@ -61,7 +63,7 @@ func AddCategory(w http.ResponseWriter, req *http.Request) error {
 			return err
 		}
 	} else {
-		if err := store.AddSubCategory(cat, name); err != nil {
+		if err := store.AddSubcategory(cat, name); err != nil {
 			return err
 		}
 		makeNavbarLinks()
@@ -92,16 +94,61 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 			Shopify: shopify,
 			Name:    name,
 		},
-		Items:       subcats,
-		From:        from,
-		URI:         fmt.Sprintf("/admin/categories/%s/subcategories", vars["category"]),
-		Placeholder: "new sub-category",
+		Items:        subcats,
+		From:         from,
+		URI:          fmt.Sprintf("/admin/categories/%s/subcategories", vars["category"]),
+		Resource:     fmt.Sprintf("/admin/categories/%s", vars["category"]),
+		ResourceName: vars["category"],
+		Placeholder:  "new sub-category",
 		AdminLinks: []link{
 			{Name: "Categories", Link: "/admin"},
 			{Name: vars["category"], Link: from},
 		},
 	}
 	return templates["admin.html"].template.ExecuteTemplate(w, "base", p)
+}
+
+func RenameCategory(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	cat := vars["category"]
+
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	newName := req.FormValue("Name")
+	err := store.RenameCategory(cat, newName)
+	if err != nil {
+		return err
+	}
+
+	makeNavbarLinks()
+	l := fmt.Sprintf("/admin/categories/%s", newName)
+	w.Header().Set("Location", l)
+	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
+func RenameSubcategory(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	cat := vars["category"]
+	subcat := vars["subcategory"]
+
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	newName := req.FormValue("Name")
+	err := store.RenameSubcategory(cat, subcat, newName)
+	if err != nil {
+		return err
+	}
+
+	makeNavbarLinks()
+	l := fmt.Sprintf("/admin/categories/%s/subcategories/%s", cat, newName)
+	w.Header().Set("Location", l)
+	w.WriteHeader(http.StatusFound)
+	return nil
 }
 
 func AddProduct(w http.ResponseWriter, req *http.Request) error {
@@ -148,10 +195,12 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 			Shopify: shopify,
 			Name:    name,
 		},
-		Items:       products,
-		From:        from,
-		URI:         fmt.Sprintf("/admin/categories/%s/subcategories/%s/products", vars["category"], vars["subcategory"]),
-		Placeholder: "new product",
+		Items:        products,
+		From:         from,
+		URI:          fmt.Sprintf("/admin/categories/%s/subcategories/%s/products", vars["category"], vars["subcategory"]),
+		Resource:     fmt.Sprintf("/admin/categories/%s/subcategories/%s", vars["category"], vars["subcategory"]),
+		ResourceName: vars["subcategory"],
+		Placeholder:  "new product",
 		AdminLinks: []link{
 			{Name: "Categories", Link: "/admin"},
 			{Name: vars["category"], Link: fmt.Sprintf("/admin/categories/%s", vars["category"])},
@@ -257,4 +306,24 @@ func Confirm(w http.ResponseWriter, req *http.Request) error {
 		Resource: resource,
 	}
 	return templates["confirm.html"].template.ExecuteTemplate(w, "base", p)
+}
+
+func AddHomeImage(w http.ResponseWriter, req *http.Request) error {
+	if err := req.ParseMultipartForm(32 << 20); err != nil {
+		return err
+	}
+
+	ff, _, err := req.FormFile("Image")
+	if err != nil {
+		return err
+	}
+	defer ff.Close()
+
+	if err := store.AddHomeImage(ff); err != nil {
+		return err
+	}
+
+	w.Header().Set("Location", "/")
+	w.WriteHeader(http.StatusFound)
+	return nil
 }

@@ -120,6 +120,7 @@ func doServe() {
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
 	r.Handle("/images/{type}/{title}/{size}", getMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
+	r.Handle("/images/site/{title}", getMiddleware(handlers.Anyone, handlers.SiteImage)).Methods("GET")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
@@ -132,10 +133,13 @@ func doServe() {
 
 	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
 	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
+	r.Handle("/admin/site/images/home", getMiddleware(handlers.Admin, handlers.AddHomeImage)).Methods("POST")
 	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.AdminCategoryPage)).Methods("GET")
+	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.RenameCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.AdminAddProductPage)).Methods("GET")
+	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.RenameSubcategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products", getMiddleware(handlers.Admin, handlers.AddProduct)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.AdminProductPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.UpdateProduct)).Methods("POST")

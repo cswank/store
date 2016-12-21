@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"image"
 	"image/png"
 	"io"
 
@@ -31,9 +32,21 @@ func AddCategory(name string) error {
 	return db.AddBucket(row)
 }
 
-func AddSubCategory(cat, name string) error {
+func RenameCategory(old, name string) error {
+	src := Row{Buckets: [][]byte{[]byte("products")}, Key: []byte(old)}
+	dst := Row{Buckets: [][]byte{[]byte("products")}, Key: []byte(name)}
+	return db.RenameBucket(src, dst)
+}
+
+func AddSubcategory(cat, name string) error {
 	row := Row{Buckets: [][]byte{[]byte("products"), []byte(cat)}, Key: []byte(name)}
 	return db.AddBucket(row)
+}
+
+func RenameSubcategory(cat, old, name string) error {
+	src := Row{Buckets: [][]byte{[]byte("products"), []byte(cat)}, Key: []byte(old)}
+	dst := Row{Buckets: [][]byte{[]byte("products"), []byte(cat)}, Key: []byte(name)}
+	return db.RenameBucket(src, dst)
 }
 
 func GetCategories() ([]string, error) {
@@ -207,19 +220,28 @@ func addImage(r io.Reader, name, bucket string) ([]byte, []Row, error) {
 	var imgData []byte
 	rows := make([]Row, 2)
 	for i, s := range []int{full, thumb} {
-		m := resize.Resize(uint(s), 0, img, resize.Lanczos3)
-		var buf bytes.Buffer
-		if err := png.Encode(&buf, m); err != nil {
+		d, err := resizeImage(img, uint(s))
+		if err != nil {
 			return nil, nil, err
 		}
-		d := buf.Bytes()
+
 		if i == 0 {
 			imgData = d
 		}
+
 		r := Row{Key: []byte(sizeNames[s]), Val: d, Buckets: [][]byte{[]byte("images"), []byte(bucket), []byte(name)}}
 		rows[i] = r
 	}
 	return imgData, rows, nil
+}
+
+func resizeImage(img image.Image, size uint) ([]byte, error) {
+	m := resize.Resize(size, 0, img, resize.Lanczos3)
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, m); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 /*
