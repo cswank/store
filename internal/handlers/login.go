@@ -13,7 +13,12 @@ type loginPage struct {
 }
 
 func Login(w http.ResponseWriter, req *http.Request) error {
-	var p loginPage
+	p := loginPage{
+		page: page{
+			Links: getNavbarLinks(req),
+			Admin: Admin(getUser(req)),
+		},
+	}
 	return templates["login.html"].template.ExecuteTemplate(w, "base", p)
 }
 
@@ -40,7 +45,12 @@ func DoLogin(w http.ResponseWriter, req *http.Request) error {
 }
 
 func Logout(w http.ResponseWriter, req *http.Request) error {
-	var p loginPage
+	p := loginPage{
+		page: page{
+			Links: getNavbarLinks(req),
+			Admin: Admin(getUser(req)),
+		},
+	}
 	return templates["logout.html"].template.ExecuteTemplate(w, "base", p)
 }
 

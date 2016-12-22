@@ -7,8 +7,12 @@
     <img src="/images/products/{{.Product.Title}}/image.png"/>
   </div>
   <br/>
-  <a>{{.Product.Title}}</a>
-  <a>${{.Product.Price}}</a>
+  <div>
+    <a>{{.Product.Title}}</a>
+  </div>
+  <div>
+    <a>${{.Product.Price}}</a>
+  </div>
   <div>
     <i class="incrementer fa fa-minus" aria-hidden="true" onClick="updateQuantity(-1)"></i>
     <input type="nmber" class="quantity" id="quantity" value="{{.Product.Quantity}}"/>

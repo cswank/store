@@ -15,8 +15,9 @@ function doDelete() {
     });
 }
 
-function back() {
-    window.location = "/admin";
+function back(e) {
+    window.location = "/";
+    e.preventDefault();
     return false;
 }
 
