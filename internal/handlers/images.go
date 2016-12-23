@@ -43,10 +43,10 @@ func SiteImage(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func setEtag(w http.ResponseWriter, title string, img []byte) {
+func setEtag(w http.ResponseWriter, pth string, img []byte) {
 	t := fmt.Sprintf("%x", md5.Sum(img))
 	eLock.Lock()
-	etags[title] = t
+	etags[pth] = t
 	eLock.Unlock()
 	w.Header().Set("Etag", t)
 }

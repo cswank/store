@@ -86,6 +86,7 @@ func (b *Bolt) GetBackup(w http.ResponseWriter) error {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Header().Set("Content-Disposition", `attachment; filename="store.db"`)
 		w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
+
 		_, err := tx.WriteTo(w)
 		return err
 	})

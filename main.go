@@ -117,6 +117,10 @@ func getImageMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler 
 	return alice.New(handlers.ETag, handlers.Authentication, handlers.Perm(perm), handlers.GZ).Then(handlers.HandleErr(f))
 }
 
+func getStaticMiddleware(f handlers.HandlerFunc) http.Handler {
+	return alice.New(handlers.GZ).Then(handlers.HandleErr(f))
+}
+
 func doServe() {
 	initServe()
 	r := mux.NewRouter().StrictSlash(true)
@@ -156,7 +160,7 @@ func doServe() {
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(box.HTTPBox())))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", getStaticMiddleware(handlers.ServeBox)))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	iface := os.Getenv("STORE_IFACE")

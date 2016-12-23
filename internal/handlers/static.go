@@ -3,10 +3,12 @@ package handlers
 import (
 	"errors"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/GeertJohan/go.rice"
 )
@@ -44,6 +46,7 @@ var (
 	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
 	templates              map[string]tmpl
 	ico                    []byte
+	box                    *rice.Box
 )
 
 type tmpl struct {
@@ -52,7 +55,8 @@ type tmpl struct {
 	bare     bool
 }
 
-func Init(box *rice.Box) {
+func Init(b *rice.Box) {
+	box = b
 	data := map[string]string{}
 	for _, pth := range html {
 		s, err := box.String(pth)
@@ -135,5 +139,23 @@ func Init(box *rice.Box) {
 }
 
 func Favicon(w http.ResponseWriter, req *http.Request) error {
+	return nil
+}
+
+func ServeBox(w http.ResponseWriter, req *http.Request) error {
+
+	f, err := box.Open(req.URL.Path)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(req.URL.Path, ".css") {
+		w.Header().Set("Content-Type", "text/css")
+	}
+
+	w.Header().Set("Cache-Control", "max-age=86400")
+	io.Copy(w, f)
+	f.Close()
+
 	return nil
 }
