@@ -3,10 +3,14 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/cswank/store/internal/store"
+
+	"github.com/NYTimes/gziphandler"
 )
 
 var (
@@ -96,18 +100,39 @@ func getSubcatLinks(cat string) []link {
 	return l
 }
 
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func GZ(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+			gz := gziphandler.GzipHandler(h)
+			gz.ServeHTTP(w, req)
+		} else {
+			h.ServeHTTP(w, req)
+		}
+	})
+}
+
 func HandleErr(f HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := f(w, r); err != nil {
-			if err == errInvalidLogin {
-				handleInvalidLogin(w)
-			} else if err == store.ErrNotFound {
-				handleNotFound(w)
-			} else {
-				lg.Println("internal server err", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("internal server error"))
-			}
+		err := f(w, r)
+		if err == nil {
+			return
+		}
+		if err == errInvalidLogin {
+			handleInvalidLogin(w)
+		} else if err == store.ErrNotFound {
+			handleNotFound(w)
+		} else {
+			lg.Println("internal server err", r.URL.RawPath, err)
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
 }

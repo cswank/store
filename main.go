@@ -110,7 +110,11 @@ func initServe() {
 }
 
 func getMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
-	return alice.New(handlers.Authentication, handlers.Perm(perm)).Then(handlers.HandleErr(f))
+	return alice.New(handlers.Authentication, handlers.Perm(perm), handlers.GZ).Then(handlers.HandleErr(f))
+}
+
+func getImageMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
+	return alice.New(handlers.ETag, handlers.Authentication, handlers.Perm(perm), handlers.GZ).Then(handlers.HandleErr(f))
 }
 
 func doServe() {
@@ -125,7 +129,7 @@ func doServe() {
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
 	r.Handle("/images/{type}/{title}/{size}", getMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
-	r.Handle("/images/site/{title}", getMiddleware(handlers.Anyone, handlers.SiteImage)).Methods("GET")
+	r.Handle("/images/site/{title}", getImageMiddleware(handlers.Anyone, handlers.SiteImage)).Methods("GET")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")

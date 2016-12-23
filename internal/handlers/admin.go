@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto/md5"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -323,9 +324,15 @@ func AddHomeImage(w http.ResponseWriter, req *http.Request) error {
 	}
 	defer ff.Close()
 
-	if err := store.AddHomeImage(ff); err != nil {
+	img, err := store.AddHomeImage(ff)
+	if err != nil {
 		return err
 	}
+
+	t := fmt.Sprintf("%x", md5.Sum(img))
+	eLock.Lock()
+	etags["home.png"] = t
+	eLock.Unlock()
 
 	w.Header().Set("Location", "/")
 	w.WriteHeader(http.StatusFound)

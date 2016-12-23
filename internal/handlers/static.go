@@ -131,6 +131,7 @@ func Init(box *rice.Box) {
 	}
 
 	makeNavbarLinks()
+	etags = make(map[string]string)
 }
 
 func Favicon(w http.ResponseWriter, req *http.Request) error {
