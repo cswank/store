@@ -265,7 +265,17 @@ func DeleteProduct(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
+	clearEtag(vars["title"])
 	return nil
+}
+
+func clearEtag(title string) {
+	eLock.Lock()
+	for _, s := range []string{"image.png", "thumb.png"} {
+		u := fmt.Sprintf("/images/products/%s/%s", title, s)
+		delete(etags, u)
+	}
+	eLock.Unlock()
 }
 
 func UpdateProduct(w http.ResponseWriter, req *http.Request) error {

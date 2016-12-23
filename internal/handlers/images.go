@@ -54,7 +54,7 @@ func setEtag(w http.ResponseWriter, title string, img []byte) {
 //ETag short-circuts the request if the client already has this resource.
 func ETag(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if getMatch(req) {
+		if matches(req) {
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
@@ -62,7 +62,7 @@ func ETag(h http.Handler) http.Handler {
 	})
 }
 
-func getMatch(req *http.Request) bool {
+func matches(req *http.Request) bool {
 	eLock.Lock()
 	t, ok := etags[req.URL.Path]
 	eLock.Unlock()
