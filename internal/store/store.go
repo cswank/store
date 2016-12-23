@@ -2,6 +2,7 @@ package store
 
 import (
 	"errors"
+	"net/http"
 	"path/filepath"
 )
 
@@ -29,6 +30,7 @@ type storer interface {
 	DeleteAll([]byte) error
 	AddBucket(Row) error
 	RenameBucket(Row, Row) error
+	GetBackup(w http.ResponseWriter) error
 }
 
 var (

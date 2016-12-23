@@ -199,10 +199,11 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 
 	page := productPage{
 		page: page{
-			Links:   getNavbarLinks(req),
-			Admin:   Admin(getUser(req)),
-			Shopify: shopify,
-			Name:    name,
+			Links:       getNavbarLinks(req),
+			Admin:       Admin(getUser(req)),
+			Shopify:     shopify,
+			Name:        name,
+			Stylesheets: []string{"/static/css/product.css"},
 		},
 		Product: *p,
 	}

@@ -28,6 +28,10 @@ type adminPage struct {
 	Subcategories    []string
 }
 
+func BackupDB(w http.ResponseWriter, req *http.Request) error {
+	return store.GetBackup(w)
+}
+
 func AdminPage(w http.ResponseWriter, req *http.Request) error {
 	categories, err := store.GetCategories()
 	if err != nil {

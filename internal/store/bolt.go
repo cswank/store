@@ -2,6 +2,8 @@ package store
 
 import (
 	"log"
+	"net/http"
+	"strconv"
 
 	"github.com/boltdb/bolt"
 )
@@ -77,6 +79,16 @@ func moveBucket(oldParent, newParent *bolt.Bucket, oldkey, newkey []byte) error 
 	}
 
 	return oldParent.DeleteBucket(oldkey)
+}
+
+func (b *Bolt) GetBackup(w http.ResponseWriter) error {
+	return b.db.View(func(tx *bolt.Tx) error {
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Content-Disposition", `attachment; filename="store.db"`)
+		w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
+		_, err := tx.WriteTo(w)
+		return err
+	})
 }
 
 func (b *Bolt) AddBucket(row Row) error {

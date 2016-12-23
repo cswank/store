@@ -10,6 +10,9 @@
   {{range .Scripts}}
   <script src="{{.}}"></script>
   {{end}}
+  {{range .Stylesheets}}
+  <link rel="stylesheet" href="{{.}}">
+  {{end}}
 </head>
 {{end}}
 {{template "base.html"}}

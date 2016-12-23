@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/png"
 	"io"
+	"net/http"
 
 	"github.com/cswank/store/internal/shopify"
 	"github.com/nfnt/resize"
@@ -79,6 +80,10 @@ func GetProducts(cat, subcat string) ([]string, error) {
 		products = append(products, string(key))
 		return nil
 	})
+}
+
+func GetBackup(w http.ResponseWriter) error {
+	return db.GetBackup(w)
 }
 
 type Product struct {

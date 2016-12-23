@@ -7,11 +7,12 @@ import (
 )
 
 type page struct {
-	Shopify shopifyAPI
-	Admin   bool
-	Links   []link
-	Scripts []string
-	Name    string
+	Shopify     shopifyAPI
+	Admin       bool
+	Links       []link
+	Scripts     []string
+	Stylesheets []string
+	Name        string
 }
 
 var (
