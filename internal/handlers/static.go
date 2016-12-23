@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/GeertJohan/go.rice"
+	"github.com/cswank/store/internal/store"
 )
 
 var (
@@ -143,13 +144,17 @@ func Favicon(w http.ResponseWriter, req *http.Request) error {
 }
 
 func ServeBox(w http.ResponseWriter, req *http.Request) error {
+	pth := req.URL.Path
+	if strings.HasPrefix(pth, ".") || strings.HasPrefix(pth, "/") {
+		return store.ErrNotFound
+	}
 
-	f, err := box.Open(req.URL.Path)
+	f, err := box.Open(pth)
 	if err != nil {
 		return err
 	}
 
-	if strings.Contains(req.URL.Path, ".css") {
+	if strings.Contains(pth, ".css") {
 		w.Header().Set("Content-Type", "text/css")
 	}
 
