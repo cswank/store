@@ -106,7 +106,7 @@ func Init(b *rice.Box) {
 		templates[key] = val
 	}
 
-	f, err := box.Open("favicon.ico")
+	f, err := box.Open("images/favicon.ico")
 
 	if err == nil {
 		ico, _ = ioutil.ReadAll(f)
@@ -140,6 +140,8 @@ func Init(b *rice.Box) {
 }
 
 func Favicon(w http.ResponseWriter, req *http.Request) error {
+	w.Header().Set("Cache-Control", "max-age=86400")
+	w.Write(ico)
 	return nil
 }
 

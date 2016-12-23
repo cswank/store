@@ -54,6 +54,7 @@ func setEtag(w http.ResponseWriter, pth string, img []byte) {
 //ETag short-circuts the request if the client already has this resource.
 func ETag(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=86400")
 		if matches(req) {
 			w.WriteHeader(http.StatusNotModified)
 			return
