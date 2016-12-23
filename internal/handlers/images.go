@@ -22,6 +22,8 @@ func Image(w http.ResponseWriter, req *http.Request) error {
 	if err != nil {
 		return err
 	}
+
+	setEtag(w, req.URL.Path, img)
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(img)
 	return nil
@@ -34,7 +36,7 @@ func SiteImage(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	setEtag(w, vars["title"], img)
+	setEtag(w, req.URL.Path, img)
 
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(img)
@@ -61,10 +63,8 @@ func ETag(h http.Handler) http.Handler {
 }
 
 func getMatch(req *http.Request) bool {
-	vars := mux.Vars(req)
-
 	eLock.Lock()
-	t, ok := etags[vars["title"]]
+	t, ok := etags[req.URL.Path]
 	eLock.Unlock()
 	if !ok {
 		return false
