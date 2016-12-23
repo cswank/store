@@ -49,27 +49,27 @@ func setEtag(w http.ResponseWriter, title string, img []byte) {
 	w.Header().Set("Etag", t)
 }
 
-//ETag short-circuts the request if they already have this resource.
+//ETag short-circuts the request if the client already has this resource.
 func ETag(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-		eLock.Lock()
-		t, ok := etags[vars["title"]]
-		eLock.Unlock()
-
-		if !ok {
-			h.ServeHTTP(w, req)
-		} else {
-			if match := req.Header.Get("If-None-Match"); match != "" {
-				if strings.Contains(match, t) {
-					lg.Println("cache hit, sending 304", vars["title"], t)
-					w.WriteHeader(http.StatusNotModified)
-					return
-				}
-			} else {
-				h.ServeHTTP(w, req)
-			}
+		if getMatch(req) {
+			w.WriteHeader(http.StatusNotModified)
+			return
 		}
-
+		h.ServeHTTP(w, req)
 	})
+}
+
+func getMatch(req *http.Request) bool {
+	vars := mux.Vars(req)
+
+	eLock.Lock()
+	t, ok := etags[vars["title"]]
+	eLock.Unlock()
+	if !ok {
+		return false
+	}
+
+	match := req.Header.Get("If-None-Match")
+	return match != "" && strings.Contains(match, t)
 }
