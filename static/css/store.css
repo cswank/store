@@ -3,33 +3,44 @@ body {
     font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
 }
 
-#body {
-    width: 1000px;
-    margin: auto;
-    
-}
-
 ul {
     list-style-type: none;
 }
 
 #logo {
-    /*height: 250px; */
+    height: 50px;
+    background-color: #FD69E4;
 }
 
-header img {
-    display: block;
-    margin: 0 auto;
-    height: 250px;
+#logo img {
+    height: 50px;
+}
+
+#logo-center {
+    font-family: 'Amatic SC';
+    text-align: center;
+    font-size: xx-large;
+    font-weight: bold;
+    vertical-align: middle;
+    letter-spacing: 5px;
+}
+
+#logo-center span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#logo-left {
+    text-align: left;
+}
+
+#logo-right {
+    text-align: right;
 }
 
 #nav {
-    top:20%;
     width:100%;
-    border-top: 2px solid #e2e3e4;
-    border-bottom: 2px solid #e2e3e4;
 }
-
 
 .pure-menu-children {
     border: 1px solid #e2e3e4;
@@ -62,12 +73,11 @@ icon {
 }
 
 .home {
-    margin: 0;
-    padding: 0;
+    width: 100%;
 }
 
 .home img {
-    margin: 0;
+    width: 100%;
 }
 
 .center p {
@@ -93,7 +103,7 @@ header .active {
 }
 
 #content {
-    padding-top: 10px;
+    
 }
 
 .thumb {
