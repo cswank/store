@@ -2,6 +2,7 @@ package mock
 
 import (
 	"bytes"
+	"net/http"
 
 	"github.com/cswank/store/internal/store"
 )
@@ -38,6 +39,14 @@ func (d *DB) AddBucket(row store.Row) error {
 	d.i++
 	d.Rows = append(d.Rows, row)
 	return err
+}
+
+func (d *DB) GetBackup(w http.ResponseWriter) error {
+	return nil
+}
+
+func (d *DB) RenameBucket(dst, src store.Row) error {
+	return nil
 }
 
 func (d *DB) Get(rows []store.Row, f func([]byte, []byte) error) error {

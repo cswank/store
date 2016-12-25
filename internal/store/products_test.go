@@ -30,7 +30,7 @@ var _ = Describe("products", func() {
 		buckets = map[string][]mock.Result{}
 		errs = []error{}
 		var err error
-		f, err = os.Open("testdata/product.jpg")
+		f, err = os.Open("testdata/product.png")
 		Expect(err).To(BeNil())
 
 		id = 1
@@ -150,9 +150,10 @@ var _ = Describe("products", func() {
 					Expect(string(r.Key)).To(Equal("you-are-fucked"))
 
 					r = db.Rows[1]
-					Expect(r.Buckets).To(HaveLen(2))
+					Expect(r.Buckets).To(HaveLen(3))
 					Expect(string(r.Buckets[0])).To(Equal("images"))
-					Expect(string(r.Buckets[1])).To(Equal("you-are-fucked"))
+					Expect(string(r.Buckets[1])).To(Equal("products"))
+					Expect(string(r.Buckets[2])).To(Equal("you-are-fucked"))
 				})
 			})
 		})
@@ -232,16 +233,18 @@ var _ = Describe("products", func() {
 
 					//insert image
 					r = db.Rows[1]
-					Expect(string(r.Key)).To(Equal("image.jpg"))
-					Expect(r.Buckets).To(HaveLen(2))
+					Expect(string(r.Key)).To(Equal("image.png"))
+					Expect(r.Buckets).To(HaveLen(3))
 					Expect(string(r.Buckets[0])).To(Equal("images"))
-					Expect(string(r.Buckets[1])).To(Equal("you-are-fucked"))
+					Expect(string(r.Buckets[1])).To(Equal("products"))
+					Expect(string(r.Buckets[2])).To(Equal("you-are-fucked"))
 
 					r = db.Rows[2]
-					Expect(string(r.Key)).To(Equal("thumb.jpg"))
-					Expect(r.Buckets).To(HaveLen(2))
+					Expect(string(r.Key)).To(Equal("thumb.png"))
+					Expect(r.Buckets).To(HaveLen(3))
 					Expect(string(r.Buckets[0])).To(Equal("images"))
-					Expect(string(r.Buckets[1])).To(Equal("you-are-fucked"))
+					Expect(string(r.Buckets[1])).To(Equal("products"))
+					Expect(string(r.Buckets[2])).To(Equal("you-are-fucked"))
 
 					r = db.Rows[3]
 					Expect(string(r.Key)).To(Equal("you-are-fucked"))

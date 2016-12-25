@@ -111,7 +111,7 @@ func (w gzipResponseWriter) Write(b []byte) (int, error) {
 
 func GZ(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+		if req.Method == "GET" && strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
 			gz := gziphandler.GzipHandler(h)
 			gz.ServeHTTP(w, req)
 		} else {

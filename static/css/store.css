@@ -1,5 +1,4 @@
-
-body {
+body, body * {
     font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
 }
 
@@ -17,17 +16,7 @@ ul {
 }
 
 #logo-center {
-    font-family: 'Amatic SC';
     text-align: center;
-    font-size: xx-large;
-    font-weight: bold;
-    vertical-align: middle;
-    letter-spacing: 5px;
-}
-
-#logo-center span {
-    display: inline-block;
-    vertical-align: middle;
 }
 
 #logo-left {
