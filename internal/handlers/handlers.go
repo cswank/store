@@ -3,14 +3,10 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 	"sync"
 
 	"github.com/cswank/store/internal/store"
-
-	"github.com/NYTimes/gziphandler"
 )
 
 var (
@@ -30,7 +26,6 @@ type link struct {
 
 func getNavbarLinks(req *http.Request) []link {
 
-	u := getUser(req)
 	l := []link{
 		{Name: "Home", Link: "/"},
 		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
@@ -39,11 +34,11 @@ func getNavbarLinks(req *http.Request) []link {
 		{Name: "Cart", Link: "/cart"},
 	}
 
-	if Admin(u) {
+	if Admin(req) {
 		l = append(l, link{Name: "Admin", Link: "/admin"})
 	}
 
-	if Read(u) {
+	if Read(req) {
 		l = append(l, link{Name: "Logout", Link: "/logout", Style: "float:right"})
 	}
 
@@ -98,26 +93,6 @@ func getSubcatLinks(cat string) []link {
 	}
 
 	return l
-}
-
-type gzipResponseWriter struct {
-	io.Writer
-	http.ResponseWriter
-}
-
-func (w gzipResponseWriter) Write(b []byte) (int, error) {
-	return w.Writer.Write(b)
-}
-
-func GZ(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.Method == "GET" && strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
-			gz := gziphandler.GzipHandler(h)
-			gz.ServeHTTP(w, req)
-		} else {
-			h.ServeHTTP(w, req)
-		}
-	})
 }
 
 func HandleErr(f HandlerFunc) http.HandlerFunc {

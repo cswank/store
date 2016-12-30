@@ -252,8 +252,9 @@ button.pure-button-primary {
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
-#contact-page {
-    margin: auto;
+.form-holder {
+    
+    margin: 40px auto 0px auto;
     width: 400px;
 }
 

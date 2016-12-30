@@ -1,12 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/smtp"
-	"net/url"
-	"strings"
 
 	"github.com/gorilla/schema"
 )
@@ -38,7 +35,7 @@ func Contact(w http.ResponseWriter, req *http.Request) error {
 	p := contactPage{
 		page: page{
 			Links: getNavbarLinks(req),
-			Admin: Admin(getUser(req)),
+			Admin: Admin(req),
 			Name:  name,
 		},
 	}
@@ -57,11 +54,10 @@ func Contact(w http.ResponseWriter, req *http.Request) error {
 }
 
 type msg struct {
-	Name            string `schema:"name"`
-	Email           string `schema:"email"`
-	Subject         string `schema:"subject"`
-	Body            string `schema:"body"`
-	CaptchaResponse string `schema:"g-recaptcha-response"`
+	Name    string `schema:"name"`
+	Email   string `schema:"email"`
+	Subject string `schema:"subject"`
+	Body    string `schema:"body"`
 }
 
 type captchaResp struct {
@@ -73,29 +69,12 @@ func DoContact(w http.ResponseWriter, req *http.Request) error {
 	if err := req.ParseForm(); err != nil {
 		return err
 	}
+
 	var m msg
-	if err := schema.NewDecoder().Decode(&m, req.PostForm); err != nil {
+	dec := schema.NewDecoder()
+	dec.IgnoreUnknownKeys(true)
+	if err := dec.Decode(&m, req.PostForm); err != nil {
 		return err
-	}
-
-	form := url.Values{}
-	form.Add("secret", captchaSecretKey)
-	form.Add("response", m.CaptchaResponse)
-	resp, err := http.Post(captchaURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	var c captchaResp
-	if err := json.NewDecoder(resp.Body).Decode(&c); err != nil {
-		return err
-	}
-
-	if c.Success {
-	} else {
-		lg.Println("invalid captcha", c.Errors)
-		return nil
 	}
 
 	if err := sendEmail(m); err != nil {

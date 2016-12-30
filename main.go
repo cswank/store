@@ -110,15 +110,11 @@ func initServe() {
 }
 
 func getMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
-	return alice.New(handlers.Authentication, handlers.Perm(perm), handlers.GZ).Then(handlers.HandleErr(f))
+	return alice.New(handlers.Authentication, handlers.Perm(perm)).Then(handlers.HandleErr(f))
 }
 
 func getImageMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
-	return alice.New(handlers.ETag, handlers.Authentication, handlers.Perm(perm), handlers.GZ).Then(handlers.HandleErr(f))
-}
-
-func getStaticMiddleware(f handlers.HandlerFunc) http.Handler {
-	return alice.New(handlers.GZ).Then(handlers.HandleErr(f))
+	return alice.New(handlers.ETag, handlers.Authentication, handlers.Perm(perm)).Then(handlers.HandleErr(f))
 }
 
 func doServe() {
@@ -126,11 +122,11 @@ func doServe() {
 	r := mux.NewRouter().StrictSlash(true)
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
-	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.DoLogin)).Methods("POST")
+	r.Handle("/login", getMiddleware(handlers.Human, handlers.DoLogin)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
-	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.DoContact)).Methods("POST")
+	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
 	r.Handle("/images/{type}/{title}/{size}", getImageMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
 	r.Handle("/images/site/{title}", getImageMiddleware(handlers.Anyone, handlers.SiteImage)).Methods("GET")
@@ -160,7 +156,7 @@ func doServe() {
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", getStaticMiddleware(handlers.ServeBox)))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr((handlers.ServeBox))))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	iface := os.Getenv("STORE_IFACE")

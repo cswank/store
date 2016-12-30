@@ -41,7 +41,7 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 
 	p := adminPage{
 		page: page{
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
 			Shopify: shopify,
 			Name:    name,
@@ -94,7 +94,7 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 	from := fmt.Sprintf("/admin/categories/%s", vars["category"])
 	p := adminPage{
 		page: page{
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
 			Shopify: shopify,
 			Name:    name,
@@ -195,7 +195,7 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 	from := fmt.Sprintf("/admin/categories/%s/subcategories/%s", vars["category"], vars["subcategory"])
 	p := adminPage{
 		page: page{
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
 			Shopify: shopify,
 			Name:    name,
@@ -233,7 +233,7 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 	from := url.QueryEscape(fmt.Sprintf("/admin/categories/%s/subcategories/%s/products/%s", p.Cat, p.Subcat, p.Title))
 	page := adminPage{
 		page: page{
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
 			Shopify: shopify,
 			Name:    name,

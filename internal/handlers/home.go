@@ -22,7 +22,7 @@ var (
 func Home(w http.ResponseWriter, req *http.Request) error {
 	p := page{
 		Links:   getNavbarLinks(req),
-		Admin:   Admin(getUser(req)),
+		Admin:   Admin(req),
 		Shopify: shopify,
 		Name:    name,
 	}

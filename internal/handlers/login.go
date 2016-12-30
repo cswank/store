@@ -9,16 +9,22 @@ import (
 
 type loginPage struct {
 	page
-	Resource string
+	Resource       string
+	Captcha        bool
+	CaptchaSiteKey string
 }
 
 func Login(w http.ResponseWriter, req *http.Request) error {
 	p := loginPage{
 		page: page{
-			Links: getNavbarLinks(req),
-			Admin: Admin(getUser(req)),
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(req),
+			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
 		},
+		Captcha:        true,
+		CaptchaSiteKey: captchaSiteKey,
 	}
+
 	return templates["login.html"].template.ExecuteTemplate(w, "base", p)
 }
 
@@ -29,7 +35,9 @@ func DoLogin(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	var u store.User
-	if err := schema.NewDecoder().Decode(&u, req.PostForm); err != nil {
+	dec := schema.NewDecoder()
+	dec.IgnoreUnknownKeys(true)
+	if err := dec.Decode(&u, req.PostForm); err != nil {
 		return err
 	}
 
@@ -48,7 +56,7 @@ func Logout(w http.ResponseWriter, req *http.Request) error {
 	p := loginPage{
 		page: page{
 			Links: getNavbarLinks(req),
-			Admin: Admin(getUser(req)),
+			Admin: Admin(req),
 		},
 	}
 	return templates["logout.html"].template.ExecuteTemplate(w, "base", p)

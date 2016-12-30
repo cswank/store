@@ -1,12 +1,13 @@
 {{define "content"}}
 
-<div id="contact-page">
+<div class="form-holder">
   {{if .ShowMessage}}
   <div class="center">
     <p>Thanks for the message.  We appreciate the feedback</p>
   </div>
   
   {{else}}
+  
   <form class="pure-form pure-form-stacked" action="/contact" method="POST">
     <fieldset>
       <legend>Contact Us</legend>

@@ -38,7 +38,7 @@ func Shop(w http.ResponseWriter, req *http.Request) error {
 		Categories: cats,
 		page: page{
 			Links:   getNavbarLinks(req),
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Shopify: shopify,
 		},
 	}
@@ -55,7 +55,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 	p := cartPage{
 		page: page{
 			Links:   getNavbarLinks(req),
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Shopify: shopify,
 			Name:    name,
 		},
@@ -109,7 +109,7 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 	p := categoryPage{
 		SubCategories: getLinks(fmt.Sprintf("/shop/%s", vars["category"]), subs),
 		page: page{
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
 			Shopify: shopify,
 			Name:    name,
@@ -153,7 +153,7 @@ func SubCategory(w http.ResponseWriter, req *http.Request) error {
 
 	p := subCategoryPage{
 		page: page{
-			Admin:   Admin(getUser(req)),
+			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
 			Shopify: shopify,
 			Name:    name,
@@ -200,7 +200,7 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 	page := productPage{
 		page: page{
 			Links:       getNavbarLinks(req),
-			Admin:       Admin(getUser(req)),
+			Admin:       Admin(req),
 			Shopify:     shopify,
 			Name:        name,
 			Stylesheets: []string{"/static/css/product.css"},
