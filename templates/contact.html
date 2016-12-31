@@ -1,0 +1,35 @@
+{{define "content"}}
+
+<div class="form-holder">
+  {{if .ShowMessage}}
+  <div class="center">
+    <p>Thanks for the message.  We appreciate the feedback</p>
+  </div>
+  
+  {{else}}
+  
+  <form class="pure-form pure-form-stacked" action="/contact" method="POST">
+    <fieldset>
+      <legend>Contact Us</legend>
+
+      <label for="name">Name</label>
+      <input type="text" placeholder="Name" name="name" required>
+      
+      <label for="email">Email</label>
+      <input type="email" placeholder="Email" name="email" required>
+      
+      <label for="subject">Subject</label>
+      <input type="text" placeholder="Subject" name="subject">
+      
+      <label for="body">Message</label>
+      <textarea rows="10" cols="40" name="body" ></textarea>
+
+      {{if .Captcha}}
+      <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+      {{end}}
+      <button type="submit" class="pure-button pure-button-primary">Submit</button>
+    </fieldset>
+  </form>
+</div>
+{{end}}
+{{end}}

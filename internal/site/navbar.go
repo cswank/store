@@ -35,7 +35,7 @@ func getSubcatLinks(cat string, subcats map[string][]string) []link {
 	var i int
 	for subcat := range subcats {
 		l[i] = link{
-			Link: fmt.Sprintf("/%s/%s", cat, subcat),
+			Link: fmt.Sprintf("/products/%s/%s", cat, subcat),
 			Name: subcat,
 		}
 		i++

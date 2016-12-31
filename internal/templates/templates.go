@@ -1,4 +1,4 @@
-package site
+package templates
 
 import (
 	"html/template"
@@ -11,10 +11,17 @@ var (
 	html = []string{
 		"base.html",
 		"base.js",
+		"cart.html",
+		"cart.js",
+		"contact.html",
+		"head.html",
+		"index.html",
+		"lineitem.html",
 		"navbar.html",
 		"product.html",
 		"shop.js",
-		"head.html",
+		"subcategory.html",
+		"thumb.html",
 	}
 
 	templates map[string]tmpl
@@ -26,8 +33,11 @@ type tmpl struct {
 	bare     bool
 }
 
-func Init(c Config, box *rice.Box) {
-	cfg = c
+func Get(name string) *template.Template {
+	return templates[name].template
+}
+
+func Init(box *rice.Box) {
 
 	data := map[string]string{}
 	for _, pth := range html {
@@ -39,7 +49,12 @@ func Init(c Config, box *rice.Box) {
 	}
 
 	templates = map[string]tmpl{
-		"product.html": {files: []string{"product.html", "shop.js"}},
+		"cart.html":        {files: []string{"cart.html", "cart.js"}},
+		"contact.html":     {files: []string{"contact.html"}},
+		"index.html":       {files: []string{"index.html"}},
+		"lineitem.html":    {files: []string{"lineitem.html"}, bare: true},
+		"product.html":     {files: []string{"product.html", "shop.js"}},
+		"subcategory.html": {files: []string{"subcategory.html", "thumb.html"}},
 	}
 
 	base := []string{"head.html", "base.html", "navbar.html", "base.js"}

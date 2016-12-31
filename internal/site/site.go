@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cswank/store/internal/config"
+	"github.com/cswank/store/internal/templates"
 	"github.com/nfnt/resize"
 )
 
@@ -16,7 +18,21 @@ var (
 		"product.png": 360,
 		"thumb.png":   200,
 	}
+
+	pages = []func([]link, categories) error{
+		generateProducts,
+		generateHome,
+		generateContact,
+		generateCart,
+		generateSubcategories,
+	}
+
+	cfg config.Config
 )
+
+func Init(c config.Config) {
+	cfg = c
+}
 
 type categories map[string]map[string][]string
 
@@ -28,6 +44,109 @@ func Generate() error {
 
 	links := getNavbarLinks(cats)
 
+	for _, f := range pages {
+		if err := f(links, cats); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func generateHome(links []link, cats categories) error {
+	p := page{
+		Links: links,
+		//Shopify: shopify,
+		Name: cfg.StoreName,
+	}
+
+	f, err := os.Create("index.html")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return templates.Get("index.html").ExecuteTemplate(f, "base", p)
+}
+
+func generateContact(links []link, cats categories) error {
+	return nil
+}
+
+type cartPage struct {
+	page
+	Price string
+}
+
+func generateCart(links []link, cats categories) error {
+	p := cartPage{
+		page: page{
+			Links: links,
+			//Shopify: shopify,
+			Name: cfg.StoreName,
+		},
+		Price: cfg.DefaultPrice,
+	}
+
+	if !exists("cart") {
+		if err := os.Mkdir("cart", 0700); err != nil {
+			return err
+		}
+	}
+
+	f, err := os.Create("cart/index.html")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return templates.Get("cart.html").ExecuteTemplate(f, "base", p)
+}
+
+func generateSubcategories(links []link, cats categories) error {
+	for cat, subcats := range cats {
+		for subcat, prods := range subcats {
+			if err := generateSubcategory(links, cat, subcat, prods); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func generateSubcategory(links []link, cat, subcat string, names []string) error {
+
+	p := subCategoryPage{
+		page: page{
+			Links: links,
+			//Shopify: shopify,
+			Name: cfg.StoreName,
+		},
+		Products: getProducts(cat, subcat, names),
+	}
+
+	f, err := os.Create(filepath.Join("products", cat, subcat, "index.html"))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return templates.Get("subcategory.html").ExecuteTemplate(f, "base", p)
+}
+
+func getProducts(cat, subcat string, prods []string) []Product {
+	out := make([]Product, len(prods))
+	for i, name := range prods {
+		out[i] = Product{
+			Title: name,
+			Image: fmt.Sprintf("/products/%s/%s/%s/thumb.png", cat, subcat, name),
+			Link:  fmt.Sprintf("/products/%s/%s/%s/index.html", cat, subcat, name),
+			Price: cfg.DefaultPrice,
+		}
+	}
+	return out
+}
+
+func generateProducts(links []link, cats categories) error {
 	for cat, m := range cats {
 		for subcat, names := range m {
 			for _, name := range names {
@@ -42,7 +161,7 @@ func Generate() error {
 
 func generateProduct(links []link, cat, subcat, name string) error {
 
-	p := newProduct(name, cat, subcat)
+	p := NewProduct(name, cat, subcat)
 
 	page := productPage{
 		page: page{
@@ -63,7 +182,7 @@ func generateProduct(links []link, cat, subcat, name string) error {
 	}
 	defer f.Close()
 
-	return templates["product.html"].template.ExecuteTemplate(f, "base", page)
+	return templates.Get("product.html").ExecuteTemplate(f, "base", page)
 }
 
 func addImages(dir string) error {
@@ -117,18 +236,21 @@ type page struct {
 	Name        string
 }
 
-type product struct {
+type Product struct {
 	Title       string
 	Cat         string
 	Subcat      string
 	Price       string
+	Total       string
 	Quantity    int
 	Description string
 	ID          string
+	Image       string
+	Link        string
 }
 
-func newProduct(title, cat, subcat string) product {
-	return product{
+func NewProduct(title, cat, subcat string) Product {
+	return Product{
 		Title:    title,
 		Cat:      cat,
 		Subcat:   subcat,
@@ -137,9 +259,14 @@ func newProduct(title, cat, subcat string) product {
 	}
 }
 
+type subCategoryPage struct {
+	page
+	Products []Product
+}
+
 type productPage struct {
 	page
-	Product product
+	Product Product
 }
 
 func getCategories() (categories, error) {
@@ -171,4 +298,13 @@ func getCategories() (categories, error) {
 		return nil
 	})
 	return c, err
+}
+
+func exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
