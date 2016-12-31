@@ -68,8 +68,37 @@ func generateHome(links []link, cats categories) error {
 	return templates.Get("index.html").ExecuteTemplate(f, "base", p)
 }
 
+type contactPage struct {
+	page
+	Captcha        bool
+	CaptchaSiteKey string
+	ShowMessage    bool
+}
+
 func generateContact(links []link, cats categories) error {
-	return nil
+	p := contactPage{
+		page: page{
+			Links:   links,
+			Name:    cfg.StoreName,
+			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+		},
+		CaptchaSiteKey: cfg.CaptchaSiteKey,
+		Captcha:        true,
+	}
+
+	if !exists("contact") {
+		if err := os.Mkdir("contact", 0700); err != nil {
+			return err
+		}
+	}
+
+	f, err := os.Create("contact/index.html")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return templates.Get("contact.html").ExecuteTemplate(f, "base", p)
 }
 
 type cartPage struct {

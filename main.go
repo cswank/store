@@ -40,7 +40,7 @@ var (
 	ts *httptest.Server
 )
 
-func init() {
+func doInit() {
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)
 	}
@@ -53,6 +53,7 @@ func init() {
 }
 
 func main() {
+	doInit()
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("Craig Swank")
 	switch kingpin.Parse() {
 	case "serve":

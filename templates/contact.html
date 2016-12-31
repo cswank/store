@@ -24,9 +24,7 @@
       <label for="body">Message</label>
       <textarea rows="10" cols="40" name="body" ></textarea>
 
-      {{if .Captcha}}
       <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
-      {{end}}
       <button type="submit" class="pure-button pure-button-primary">Submit</button>
     </fieldset>
   </form>
