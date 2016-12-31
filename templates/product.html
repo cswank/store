@@ -1,0 +1,33 @@
+{{define "content"}}
+<div id="product">
+  
+  <div id="product-img">
+    <span class="helper">
+    </span>
+    <img id="img" src="/products/{{.Product.Cat}}/{{.Product.Subcat}}/{{.Product.Title}}/product.png"/>
+
+    <br/>
+    <div>
+      <a>{{.Product.Title}}</a>
+    </div>
+    <div>
+      <a>${{.Product.Price}}</a>
+    </div>
+    <div>
+      <i class="incrementer fa fa-minus" aria-hidden="true" onClick="updateQuantity(-1)"></i>
+      <input type="nmber" class="quantity" id="quantity" value="{{.Product.Quantity}}"/>
+      <i class="incrementer fa fa-plus" aria-hidden="true" onClick="updateQuantity(1)"></i>
+    </div>
+    <button onClick="addToCart({{.Product.Title}})" class="pure-button pure-button-primary">Add To Cart</button>
+  </div>
+</div>
+
+<div id="product-modal" class="modal">
+  <span class="close" onclick="document.getElementById('myModal').style.display='none'">&times;</span>
+  <img class="modal-content" id="img01">
+</div>
+
+<script>
+  {{template "shop.js" .}}
+</script>
+{{end}}
