@@ -3,96 +3,73 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
-	"sync"
+	"strconv"
 
-	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/config"
+	"github.com/cswank/store/internal/site"
+	"github.com/cswank/store/internal/storage"
+	"github.com/cswank/store/internal/templates"
+	"github.com/gorilla/mux"
+	"github.com/gorilla/securecookie"
 )
 
 var (
-	errInvalidLogin = errors.New("invalid login")
-	lock            sync.Mutex
-	shoppingLinks   []link
+	cfg                    config.Config
+	sc                     *securecookie.SecureCookie
+	domain, authCookieName string
+	errInvalidLogin        = errors.New("invalid login")
 )
+
+func Init(c config.Config) {
+	cfg = c
+
+	domain = cfg.Domains[0]
+	authCookieName = fmt.Sprintf("%s-user", domain)
+	sc = securecookie.New([]byte(cfg.CookieHashKey), []byte(cfg.CookieBlockKey))
+}
+
+func SetConfig(c config.Config) {
+	cfg = c
+}
 
 type HandlerFunc func(http.ResponseWriter, *http.Request) error
 
-type link struct {
-	Name     string
-	Link     string
-	Style    string
-	Children []link
-}
+func LineItem(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	p := site.NewProduct(vars["title"], vars["category"], vars["subcategory"])
+	vals := req.URL.Query()
+	p.ID = vals.Get("id")
 
-func getNavbarLinks(req *http.Request) []link {
-
-	l := []link{
-		{Name: "Home", Link: "/"},
-		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
-		// {Name: "Wholesale", Link: "/wholesale"},
-		{Name: "Contact", Link: "/contact"},
-		{Name: "Cart", Link: "/cart"},
+	qs := vals.Get("quantity")
+	if qs == "" {
+		return fmt.Errorf("you must supply a quantity")
 	}
 
-	if Admin(req) {
-		l = append(l, link{Name: "Admin", Link: "/admin"})
-	}
-
-	if Read(req) {
-		l = append(l, link{Name: "Logout", Link: "/logout", Style: "float:right"})
-	}
-
-	return l
-}
-
-func makeNavbarLinks() {
-	lock.Lock()
-	shoppingLinks = nil
-	lock.Unlock()
-	getShoppingLinks()
-}
-
-func getShoppingLinks() []link {
-	lock.Lock()
-	defer lock.Unlock()
-
-	if shoppingLinks != nil {
-		return shoppingLinks
-	}
-
-	cats, err := store.GetCategories()
+	q, err := strconv.ParseInt(qs, 10, 64)
 	if err != nil {
-		lg.Println("error getting cats")
-		return nil
+		return err
 	}
 
-	var l []link
-
-	for _, cat := range cats {
-		l = append(l, getSubcatLinks(cat)...)
+	p.Quantity = int(q)
+	price, err := strconv.ParseFloat(cfg.DefaultPrice, 10)
+	if err != nil {
+		return err
 	}
 
-	shoppingLinks = l
-	return shoppingLinks
+	t := float64(q) * price
+	p.Total = fmt.Sprintf("%.02f", t)
+	return templates.Get("lineitem.html").ExecuteTemplate(w, "lineitem.html", p)
 }
 
-func getSubcatLinks(cat string) []link {
-	subcats, err := store.GetSubCategories(cat)
-	if err != nil {
-		lg.Println("error getting subcats")
-		return nil
-	}
-
-	l := make([]link, len(subcats))
-
-	for i, subcat := range subcats {
-		l[i] = link{
-			Link: fmt.Sprintf("/shop/%s/%s", cat, subcat),
-			Name: subcat,
-		}
-	}
-
-	return l
+func Redirect(w http.ResponseWriter, req *http.Request) {
+	http.Redirect(
+		w,
+		req,
+		fmt.Sprintf("https://%s%s", req.Host, req.URL.String()),
+		http.StatusMovedPermanently,
+	)
 }
 
 func HandleErr(f HandlerFunc) http.HandlerFunc {
@@ -103,10 +80,10 @@ func HandleErr(f HandlerFunc) http.HandlerFunc {
 		}
 		if err == errInvalidLogin {
 			handleInvalidLogin(w)
-		} else if err == store.ErrNotFound {
+		} else if err == storage.ErrNotFound {
 			handleNotFound(w)
 		} else {
-			lg.Println("internal server err", r.URL.RawPath, err)
+			log.Println("internal server err", r.URL.RawPath, err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}

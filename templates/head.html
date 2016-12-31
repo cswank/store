@@ -1,0 +1,19 @@
+{{define "head"}}
+<head>
+  <meta charset="UTF-8">
+  <title>{{.Name}}</title>
+  <link rel="icon" href="/favicon.ico?v=4"/>
+  <link href="/css/store.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/purecss@0.6.1/build/pure-min.css">
+  <script src="/js/jquery-min.js"></script>
+  <script src="https://use.fontawesome.com/373ad8c874.js"></script>
+  <script src="https://sdks.shopifycdn.com/js-buy-sdk/v0/latest/shopify-buy.umd.polyfilled.min.js"></script>
+  {{range .Scripts}}
+  <script src="{{.}}"></script>
+  {{end}}
+  {{range .Stylesheets}}
+  <link rel="stylesheet" href="{{.}}">
+  {{end}}
+</head>
+{{end}}
+{{template "base.html"}}
