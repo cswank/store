@@ -49,7 +49,6 @@ func doInit() {
 	site.Init(cfg)
 	templates.Init(box)
 	handlers.Init(cfg)
-	storage.Init(cfg)
 }
 
 func main() {
@@ -117,6 +116,7 @@ func doServe() {
 }
 
 func initServe() {
+	storage.Init(cfg)
 	if *fake {
 		id := 1
 		ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
