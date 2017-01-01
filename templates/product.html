@@ -1,11 +1,11 @@
 {{define "content"}}
-<div id="product">
+<div id="{{.Product.ID}}" class="product">
   
   <div id="product-img">
     <span class="helper">
     </span>
     <img id="img" src="/products/{{.Product.Cat}}/{{.Product.Subcat}}/{{.Product.Title}}/product.png"/>
-
+    
     <br/>
     <div>
       <a>{{.Product.Title}}</a>
@@ -18,7 +18,7 @@
       <input type="nmber" class="quantity" id="quantity" value="{{.Product.Quantity}}"/>
       <i class="incrementer fa fa-plus" aria-hidden="true" onClick="updateQuantity(1)"></i>
     </div>
-    <button onClick="addToCart({{.Product.Title}})" class="pure-button pure-button-primary">Add To Cart</button>
+    <button onClick="addToCart({{.Product.Title}}, {{.Product.ID}})" class="pure-button pure-button-primary">Add To Cart</button>
   </div>
 </div>
 

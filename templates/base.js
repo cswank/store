@@ -25,7 +25,7 @@ function doInitCart(cart) {
     updateCartLink(n);
 }
 
-function addToCart(title) {
+function addToCart(title, id) {
     var cart = JSON.parse(localStorage.getItem("shopping-cart"));
     if (cart == undefined) {
         cart = {};

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"time"
 
 	"github.com/cswank/store/internal/config"
@@ -35,6 +36,8 @@ var (
 	deleteURL   string
 
 	cfg config.Config
+
+	ts *httptest.Server
 )
 
 func Init(c config.Config) {
@@ -167,4 +170,26 @@ func updatePrice(id int, price string) error {
 		return err
 	}
 	return resp.Body.Close()
+}
+
+func FakeShopify() config.Config {
+	id := 1
+	ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			var m map[string]Product
+			json.NewDecoder(r.Body).Decode(&m)
+			p := m["product"]
+			p.ID = id
+			p.Variants = []Variant{
+				{ID: id},
+			}
+			m["product"] = p
+			id++
+			json.NewEncoder(w).Encode(m)
+		}
+	}))
+	fmt.Println("ts", ts.URL)
+	cfg.ShopifyDomain = ts.URL
+	cfg.ShopifyAPI = ts.URL
+	return cfg
 }

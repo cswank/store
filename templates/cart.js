@@ -31,7 +31,7 @@ function loadCart() {
     for (var title in items) {
         var item = items[title];
         var url = "/cart/lineitem/" + item.cat + "/" + item.subcat + "/" + title;
-        $.get(url, {quantity: item.count}, function(html) {
+        $.get(url, {quantity: item.count, id: item.id}, function(html) {
             $("#items").append($(html));
         });
         i++;

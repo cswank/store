@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/cswank/store/internal/config"
+	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/templates"
 	"github.com/nfnt/resize"
 )
@@ -20,11 +21,11 @@ var (
 	}
 
 	pages = []func([]link, categories) error{
-		generateProducts,
 		generateHome,
 		generateContact,
 		generateCart,
 		generateSubcategories,
+		generateProducts,
 	}
 
 	cfg config.Config
@@ -192,6 +193,12 @@ func generateProduct(links []link, cat, subcat, name string) error {
 
 	p := NewProduct(name, cat, subcat)
 
+	var err error
+	p.ID, err = shopify.Create(p.Title, p.Cat, cfg.DefaultPrice)
+	if err != nil {
+		return err
+	}
+
 	page := productPage{
 		page: page{
 			Links: links,
@@ -298,10 +305,19 @@ type productPage struct {
 	Product Product
 }
 
+func existingProduct(pth string) bool {
+	item := filepath.Base(pth)
+	return item == "thumb.png" || item == "product.png"
+}
+
 func getCategories() (categories, error) {
 	c := categories{}
 	err := filepath.Walk("./products", func(pth string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(pth, ".png") {
+			if existingProduct(pth) {
+				return nil
+			}
+
 			parts := strings.Split(pth, "/")
 			if len(parts) != 5 {
 				return fmt.Errorf("invalid path to image: %s", pth)

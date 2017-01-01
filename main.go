@@ -14,6 +14,7 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/cswank/store/internal/config"
 	"github.com/cswank/store/internal/handlers"
+	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/site"
 	"github.com/cswank/store/internal/storage"
 	"github.com/cswank/store/internal/templates"
@@ -29,10 +30,11 @@ const (
 var (
 	cfg config.Config
 
-	serve    = kingpin.Command("serve", "Start the server.")
-	fake     = serve.Flag("fake-shopify", "start a fake shopify").Short('f').Bool()
+	serve = kingpin.Command("serve", "Start the server.")
+
 	website  = kingpin.Command("site", "manage site")
 	generate = website.Command("generate", "generate a site")
+	fake     = generate.Flag("fake-shopify", "start a fake shopify").Short('f').Bool()
 
 	ts *httptest.Server
 )
@@ -46,6 +48,7 @@ func doInit() {
 	site.Init(cfg)
 	templates.Init(box)
 	handlers.Init(cfg)
+	shopify.Init(cfg)
 }
 
 func main() {
@@ -55,6 +58,11 @@ func main() {
 	case "serve":
 		doServe()
 	case "site generate":
+		if *fake {
+			cfg = shopify.FakeShopify()
+			site.Init(cfg)
+			shopify.Init(cfg)
+		}
 		err := site.Generate()
 		if err != nil {
 			log.Fatal(err)
@@ -64,12 +72,13 @@ func main() {
 
 func doServe() {
 	storage.Init(cfg)
+
 	r := mux.NewRouter().StrictSlash(true)
 
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(".")))
 
-	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
+	chain := alice.New(handlers.Log()).Then(r)
 	addr := fmt.Sprintf("%s:%d", cfg.Iface, cfg.Port)
 
 	var serve func() error

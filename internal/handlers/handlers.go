@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -29,12 +30,17 @@ func Init(c config.Config) {
 	sc = securecookie.New([]byte(cfg.CookieHashKey), []byte(cfg.CookieBlockKey))
 }
 
+func SetConfig(c config.Config) {
+	cfg = c
+}
+
 type HandlerFunc func(http.ResponseWriter, *http.Request) error
 
 func LineItem(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
 	p := site.NewProduct(vars["title"], vars["category"], vars["subcategory"])
 	vals := req.URL.Query()
+	p.ID = vals.Get("id")
 
 	qs := vals.Get("quantity")
 	if qs == "" {
@@ -77,7 +83,7 @@ func HandleErr(f HandlerFunc) http.HandlerFunc {
 		} else if err == storage.ErrNotFound {
 			handleNotFound(w)
 		} else {
-			lg.Println("internal server err", r.URL.RawPath, err)
+			log.Println("internal server err", r.URL.RawPath, err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
