@@ -26,7 +26,7 @@ func Init(c config.Config) {
 
 	domain = cfg.Domains[0]
 	authCookieName = fmt.Sprintf("%s-user", domain)
-	sc = securecookie.New([]byte(cfg.HashKey), []byte(cfg.BlockKey))
+	sc = securecookie.New([]byte(cfg.CookieHashKey), []byte(cfg.CookieBlockKey))
 }
 
 type HandlerFunc func(http.ResponseWriter, *http.Request) error

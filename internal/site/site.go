@@ -82,7 +82,7 @@ func generateContact(links []link, cats categories) error {
 			Name:    cfg.StoreName,
 			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
 		},
-		CaptchaSiteKey: cfg.CaptchaSiteKey,
+		CaptchaSiteKey: cfg.RecaptchaSiteKey,
 		Captcha:        true,
 	}
 

@@ -90,7 +90,7 @@ func postCaptcha(form url.Values) bool {
 	if form == nil {
 		return false
 	}
-	resp, err := http.Post(cfg.CaptchaURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	resp, err := http.Post(cfg.RecaptchaURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
 		log.Println("invalid captcha post", err)
 		return false
@@ -113,7 +113,7 @@ func getCaptchaForm(req *http.Request) url.Values {
 	}
 
 	return url.Values{
-		"secret":   {cfg.CaptchaSecretKey},
+		"secret":   {cfg.RecaptchaSecretKey},
 		"response": {req.FormValue("g-recaptcha-response")},
 	}
 }

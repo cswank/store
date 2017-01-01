@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"time"
+
+	"github.com/cswank/store/internal/config"
 )
 
 /*
@@ -29,27 +29,21 @@ import (
 */
 
 var (
-	ShopifyAPI    string
-	ShopifyJSKey  string
-	ShopifyDomain string
-	productsURL   string
-	imagesURL     string
-	variantsURL   string
-	deleteURL     string
+	productsURL string
+	imagesURL   string
+	variantsURL string
+	deleteURL   string
+
+	cfg config.Config
 )
 
-func Init() {
-	ShopifyAPI = os.Getenv("SHOPIFY_API")
-	ShopifyJSKey = os.Getenv("SHOPIFY_JS_KEY")
-	ShopifyDomain = os.Getenv("SHOPIFY_DOMAIN")
-	if ShopifyJSKey == "" || ShopifyDomain == "" || ShopifyAPI == "" {
-		log.Fatal("you must set SHOPIFY_API and SHOPIFY_JS_KEY and SHOPIFY_DOMAIN")
-	}
+func Init(c config.Config) {
+	cfg = c
 
-	productsURL = fmt.Sprintf("%s/%s", ShopifyAPI, "admin/products.json")
-	imagesURL = fmt.Sprintf("%s/%s", ShopifyAPI, "/admin/products/%s/images.json")
-	variantsURL = fmt.Sprintf("%s/%s", ShopifyAPI, "admin/variants/%d.json")
-	deleteURL = fmt.Sprintf("%s/%s", ShopifyAPI, "admin/products/%s.json")
+	productsURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products.json")
+	imagesURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "/admin/products/%s/images.json")
+	variantsURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/variants/%d.json")
+	deleteURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products/%s.json")
 }
 
 type Img struct {
