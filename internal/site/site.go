@@ -28,11 +28,16 @@ var (
 		generateProducts,
 	}
 
-	cfg config.Config
+	cfg     config.Config
+	shopAPI shopifyAPI
 )
 
 func Init(c config.Config) {
 	cfg = c
+	shopAPI = shopifyAPI{
+		APIKey: cfg.ShopifyJSKey,
+		Domain: cfg.ShopifyDomain,
+	}
 }
 
 type categories map[string]map[string][]string
@@ -56,9 +61,9 @@ func Generate() error {
 
 func generateHome(links []link, cats categories) error {
 	p := page{
-		Links: links,
-		//Shopify: shopify,
-		Name: cfg.StoreName,
+		Links:   links,
+		Shopify: shopAPI,
+		Name:    cfg.StoreName,
 	}
 
 	f, err := os.Create("index.html")
@@ -110,9 +115,9 @@ type cartPage struct {
 func generateCart(links []link, cats categories) error {
 	p := cartPage{
 		page: page{
-			Links: links,
-			//Shopify: shopify,
-			Name: cfg.StoreName,
+			Links:   links,
+			Shopify: shopAPI,
+			Name:    cfg.StoreName,
 		},
 		Price: cfg.DefaultPrice,
 	}
@@ -147,9 +152,9 @@ func generateSubcategory(links []link, cat, subcat string, names []string) error
 
 	p := subCategoryPage{
 		page: page{
-			Links: links,
-			//Shopify: shopify,
-			Name: cfg.StoreName,
+			Links:   links,
+			Shopify: shopAPI,
+			Name:    cfg.StoreName,
 		},
 		Products: getProducts(cat, subcat, names),
 	}
@@ -201,8 +206,8 @@ func generateProduct(links []link, cat, subcat, name string) error {
 
 	page := productPage{
 		page: page{
-			Links: links,
-			//Shopify:     shopify,
+			Links:       links,
+			Shopify:     shopAPI,
 			Name:        name,
 			Stylesheets: []string{"/css/product.css"},
 		},

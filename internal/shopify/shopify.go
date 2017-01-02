@@ -188,7 +188,7 @@ func FakeShopify() config.Config {
 			json.NewEncoder(w).Encode(m)
 		}
 	}))
-	fmt.Println("ts", ts.URL)
+
 	cfg.ShopifyDomain = ts.URL
 	cfg.ShopifyAPI = ts.URL
 	return cfg
