@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -215,7 +216,9 @@ func generateProduct(links []link, cat, subcat, name string) error {
 	}
 
 	dir := filepath.Join("products", cat, subcat, name)
-	addImages(dir)
+	if err := addImages(dir); err != nil {
+		return err
+	}
 
 	f, err := os.Create(filepath.Join(dir, "index.html"))
 	if err != nil {
@@ -223,7 +226,21 @@ func generateProduct(links []link, cat, subcat, name string) error {
 	}
 	defer f.Close()
 
+	if err := addImageToShopify(cat, subcat, name, p.ID); err != nil {
+		return err
+	}
+
 	return templates.Get("product.html").ExecuteTemplate(f, "base", page)
+}
+
+func addImageToShopify(cat, subcat, name, id string) error {
+	pth := filepath.Join("products", cat, subcat, name, "product.png")
+	img, err := ioutil.ReadFile(pth)
+	if err != nil {
+		return err
+	}
+
+	return shopify.AddImage(id, img)
 }
 
 func addImages(dir string) error {
