@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"time"
 
 	"golang.org/x/crypto/acme/autocert"
@@ -76,42 +77,56 @@ func doServe() {
 	r := mux.NewRouter().StrictSlash(true)
 
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(".")))
+	r.PathPrefix("/").Handler(handlers.HandleErr(handlers.Static()))
 
 	chain := alice.New(handlers.Log()).Then(r)
 	addr := fmt.Sprintf("%s:%d", cfg.Iface, cfg.Port)
 
 	var serve func() error
 
-	srv := &http.Server{
+	server := &http.Server{
 		Addr:         addr,
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		//IdleTimeout:  120 * time.Second,  TODO uncomment when 1.8 is out
+		WriteTimeout: 120 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
-	serve = srv.ListenAndServe
+	serve = server.ListenAndServe
 
 	if cfg.UseTLS {
-		if cfg.TLSCerts == "" {
-			log.Fatal("you must set STORE_CERTS path when using tls")
-		}
+		serve = getTLS(server)
+	}
+
+	log.Printf("listening on %s (tls: %v)\n", addr, cfg.UseTLS)
+	log.Println(serve())
+}
+
+func getTLS(srv *http.Server) func() error {
+	if cfg.TLSCerts == "" {
+		log.Fatal("you must set STORE_CERTS path when using tls")
+	}
+	if cfg.UseLetsEncrypt {
 		m := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(cfg.Domains...),
 			Cache:      autocert.DirCache(cfg.TLSCerts),
 		}
 		srv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
-
-		serve = func() error {
-			return srv.ListenAndServeTLS("", "")
+	} else {
+		c := filepath.Join(cfg.TLSCerts, "cert.pem")
+		k := filepath.Join(cfg.TLSCerts, "key.pem")
+		cer, err := tls.LoadX509KeyPair(c, k)
+		if err != nil {
+			log.Fatal(err)
 		}
-		go http.ListenAndServe(":80", http.HandlerFunc(handlers.Redirect))
+		srv.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cer}}
 	}
+	go http.ListenAndServe(":80", http.HandlerFunc(handlers.Redirect))
 
-	log.Printf("listening on %s (tls: %v)\n", addr, cfg.UseTLS)
-	log.Println(serve())
+	return func() error {
+		return srv.ListenAndServeTLS("", "")
+	}
 }
 
 func getMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {

@@ -19,5 +19,7 @@ type Config struct {
 	ShopifyJSKey       string   `env:"STORE_SHOPIFY_JS_KEY"`
 	StoreName          string   `env:"STORE_NAME" envDefault:"example"`
 	TLSCerts           string   `env:"STORE_TLS_CERTS"`
-	UseTLS             bool     `env:"STORE_USE_TLS" envDefault:"false"`
+	UseTLS             bool     `env:"STORE_TLS" envDefault:"false"`
+	UseLetsEncrypt     bool     `env:"STORE_LETS_ENCRYPT" envDefault:"true"`
+	Pushes             string   `env:"STORE_PUSHES" envDefault:"{}"`
 }
