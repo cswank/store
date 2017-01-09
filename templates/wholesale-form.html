@@ -8,8 +8,19 @@
 
   <div class="pure-g">
     <div class="pure-u-1-2">
-      login
+      <div class="form-holder">
+        <form class="pure-form pure-form-stacked" action="/login" method="POST">
+          <fieldset>
+            <legend>Log in</legend>
+            <input name="Email" type="text" required placeholder="Email">
+            <input name="Password" type="password" required placeholder="Password">
+            <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+            <button type="submit" class="pure-button pure-button-primary">Submit</button>
+          </fieldset>
+        </form>
+      </div>
     </div>
+    
     <div class="pure-u-1-2">
       <form class="pure-form pure-form-stacked" action="/wholesale/register" method="POST">
         <fieldset>

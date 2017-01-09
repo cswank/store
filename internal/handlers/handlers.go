@@ -25,9 +25,10 @@ var (
 
 func Init(c config.Config) {
 	cfg = c
+	fmt.Println("pushes", cfg.Domains)
 
 	if err := json.Unmarshal([]byte(cfg.Pushes), &pushes); err != nil {
-		log.Println("no pushes defined in config", err)
+		log.Println("no pushes defined in config ", err)
 	}
 
 	domain = cfg.Domains[0]
@@ -44,14 +45,14 @@ type HandlerFunc func(http.ResponseWriter, *http.Request) error
 func Static() HandlerFunc {
 	srv := http.FileServer(http.Dir("."))
 	return func(w http.ResponseWriter, req *http.Request) error {
-		pusher, ok := w.(http.Pusher)
-		if ok {
-			for _, resource := range pushes[req.URL.Path] {
-				if err := pusher.Push(resource, nil); err != nil {
-					return err
-				}
-			}
-		}
+		// pusher, ok := w.(http.Pusher)
+		// if ok {
+		// 	for _, resource := range pushes[req.URL.Path] {
+		// 		if err := pusher.Push(resource, nil); err != nil {
+		// 			return err
+		// 		}
+		// 	}
+		// }
 		srv.ServeHTTP(w, req)
 		return nil
 	}

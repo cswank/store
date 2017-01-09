@@ -18,6 +18,7 @@ import (
 	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/site"
 	"github.com/cswank/store/internal/storage"
+	"github.com/cswank/store/internal/storage/mock"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
@@ -31,7 +32,8 @@ const (
 var (
 	cfg config.Config
 
-	serve = kingpin.Command("serve", "Start the server.")
+	serve         = kingpin.Command("serve", "Start the server.")
+	fakeRecaptcha = serve.Flag("fake-recaptcha", "start a fake shopify").Bool()
 
 	website  = kingpin.Command("site", "manage site")
 	generate = website.Command("generate", "generate a site")
@@ -73,7 +75,9 @@ func main() {
 }
 
 func doServe() {
+	cfg = initServe()
 	storage.Init(cfg)
+	handlers.Init(cfg)
 
 	r := mux.NewRouter().StrictSlash(true)
 
@@ -99,7 +103,7 @@ func doServe() {
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 120 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		//IdleTimeout:  120 * time.Second,
 	}
 
 	serve = server.ListenAndServe
@@ -141,4 +145,11 @@ func getTLS(srv *http.Server) func() error {
 
 func getMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
 	return alice.New(handlers.Authentication, handlers.Perm(perm)).Then(handlers.HandleErr(f))
+}
+
+func initServe() config.Config {
+	if *fakeRecaptcha {
+		return mock.FakeRecaptcha(cfg)
+	}
+	return cfg
 }

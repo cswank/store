@@ -10,14 +10,24 @@ import (
 type Permission int
 
 const (
-	Wholesale Permission = iota
+	Wholesaler Permission = iota
 	Admin
 )
 
 type User struct {
-	Email          string     `schema:"email" json:"email"`
-	FirstName      string     `schema:"first_name" json:"first_name"`
-	LastName       string     `schema:"last_name" json:"last_name"`
+	Email string `schema:"email" json:"email"`
+	//Wholesale stuff
+	FirstName   string `schema:"first_name" json:"first_name,omitempty"`
+	LastName    string `schema:"last_name" json:"last_name,omitempty"`
+	CompanyName string `schema:"company_name" json:"company_name,omitempty"`
+	Address     string `schema:"address" json:"address,omitempty"`
+	Address2    string `schema:"address2" json:"address2,omitempty"`
+	Zip         string `schema:"zip" json:"zip,omitempty"`
+	City        string `schema:"city" json:"city,omitempty"`
+	State       string `schema:"state" json:"state,omitempty"`
+	Country     string `schema:"country" json:"country,omitempty"`
+	Confirmed   bool   `schema:"confirmed" json:"confirmed,omitempty"`
+
 	Permission     Permission `json:"permission"`
 	Password       string     `schema:"password" json:"password,omitempty"`
 	HashedPassword []byte     `json:"hashed_password,omitempty"`
@@ -43,6 +53,19 @@ func (u *User) Fetch() error {
 }
 
 func (u *User) Save() error {
+	return u.save(false)
+}
+
+func (u *User) Update() error {
+	return u.save(false)
+}
+
+func (u *User) save(isNew bool) error {
+	u.Confirmed = false
+	if err := u.checkIfExists(isNew); err != nil {
+		return err
+	}
+
 	if err := u.savePassword(); err != nil {
 		return err
 	}
@@ -51,13 +74,30 @@ func (u *User) Save() error {
 	return db.Put([]Row{{Key: []byte(u.Email), Val: d, Buckets: [][]byte{[]byte("users")}}})
 }
 
+func (u *User) checkIfExists(isNew bool) error {
+	if !isNew {
+		return nil
+	}
+
+	err := db.Get([]Row{{Key: []byte(u.Email), Buckets: [][]byte{[]byte("users")}}}, func(key, val []byte) error {
+		return nil
+	})
+
+	if err == ErrNotFound {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return ErrAlreadyExists
+}
+
 func (u *User) savePassword() error {
 	if len(u.Password) < 8 {
 		return errors.New("password is too short (must be at least 8 characters long)")
 	}
 
-	u.hashPassword()
-	return nil
+	return u.hashPassword()
 }
 
 func (u *User) Delete() error {

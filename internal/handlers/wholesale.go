@@ -21,10 +21,9 @@ func Purchase(w http.ResponseWriter, req *http.Request) error {
 
 func Wholesale(w http.ResponseWriter, req *http.Request) error {
 	if Wholesaler(req) {
-		return getWholesaleForm(w, req)
-
+		return getWholesalePage(w, req)
 	}
-	return getWholesalePage(w, req)
+	return getWholesaleForm(w, req)
 }
 
 type wholesalePage struct {
@@ -78,15 +77,17 @@ func WholesalerRegistration(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	var ws storage.Wholesaler
+	u := storage.User{
+		Permission: storage.Wholesaler,
+	}
 
 	dec := schema.NewDecoder()
 	dec.IgnoreUnknownKeys(true)
-	if err := dec.Decode(&ws, req.PostForm); err != nil {
+	if err := dec.Decode(&u, req.PostForm); err != nil {
 		return err
 	}
 
-	if err := ws.Save(true); err != nil {
+	if err := u.Save(); err != nil {
 		return err
 	}
 
