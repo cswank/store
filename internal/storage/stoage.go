@@ -26,9 +26,10 @@ type storer interface {
 }
 
 var (
-	ErrNotFound = errors.New("not found")
-	db          storer
-	cfg         config.Config
+	ErrNotFound      = errors.New("not found")
+	ErrAlreadyExists = errors.New("already exists")
+	db               storer
+	cfg              config.Config
 )
 
 func Init(c config.Config, opts ...func()) {

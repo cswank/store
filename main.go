@@ -47,7 +47,7 @@ func doInit() {
 
 	box := rice.MustFindBox("templates")
 	site.Init(cfg)
-	templates.Init(box)
+	templates.Init(cfg, box)
 	handlers.Init(cfg)
 	shopify.Init(cfg)
 }
@@ -57,6 +57,7 @@ func main() {
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("Craig Swank")
 	switch kingpin.Parse() {
 	case "serve":
+		templates.InitProducts()
 		doServe()
 	case "site generate":
 		if *fake {
@@ -76,6 +77,15 @@ func doServe() {
 
 	r := mux.NewRouter().StrictSlash(true)
 
+	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
+	r.Handle("/login", getMiddleware(handlers.Human, handlers.DoLogin)).Methods("POST")
+	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
+	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
+
+	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
+	r.Handle("/wholesale", getMiddleware(handlers.Wholesaler, handlers.Purchase)).Methods("POST")
+	r.Handle("/wholesale/register", getMiddleware(handlers.Human, handlers.WholesalerRegistration)).Methods("POST")
+	r.Handle("/contact", getMiddleware(handlers.Human, handlers.Contact)).Methods("POST")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
 	r.PathPrefix("/").Handler(handlers.HandleErr(handlers.Static()))
 

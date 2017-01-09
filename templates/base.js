@@ -31,6 +31,8 @@ function addToCart(title, id) {
         cart = {};
     }
 
+    var quantity = parseInt($("#quantity").val());
+
     var item = cart[title];
     if (item == undefined) {
         item = {

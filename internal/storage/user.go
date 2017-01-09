@@ -10,14 +10,16 @@ import (
 type Permission int
 
 const (
-	Read Permission = iota
+	Wholesale Permission = iota
 	Admin
 )
 
 type User struct {
-	Email          string     `json:"email"`
+	Email          string     `schema:"email" json:"email"`
+	FirstName      string     `schema:"first_name" json:"first_name"`
+	LastName       string     `schema:"last_name" json:"last_name"`
 	Permission     Permission `json:"permission"`
-	Password       string     `json:"password,omitempty"`
+	Password       string     `schema:"password" json:"password,omitempty"`
 	HashedPassword []byte     `json:"hashed_password,omitempty"`
 }
 

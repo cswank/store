@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/cswank/store/internal/config"
-	"github.com/cswank/store/internal/site"
 	"github.com/cswank/store/internal/storage"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
@@ -60,7 +59,7 @@ func Static() HandlerFunc {
 
 func LineItem(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
-	p := site.NewProduct(vars["title"], vars["category"], vars["subcategory"])
+	p := templates.NewProduct(vars["title"], vars["category"], vars["subcategory"])
 	vals := req.URL.Query()
 	p.ID = vals.Get("id")
 
