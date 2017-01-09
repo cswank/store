@@ -10,7 +10,8 @@ import (
 type Permission int
 
 const (
-	Wholesaler Permission = iota
+	Reader Permission = iota
+	Wholesaler
 	Admin
 )
 
@@ -52,8 +53,22 @@ func (u *User) Fetch() error {
 	})
 }
 
+func (u *User) Delete() error {
+	return db.Delete([]Row{{Buckets: [][]byte{[]byte("users")}, Key: []byte(u.Email)}})
+}
+
+func (u *User) CheckPassword() (bool, error) {
+	pw := u.Password
+	if len(u.HashedPassword) == 0 {
+		if err := u.Fetch(); err != nil {
+			return false, err
+		}
+	}
+	return compare(u.HashedPassword, []byte(pw)) == nil, nil
+}
+
 func (u *User) Save() error {
-	return u.save(false)
+	return u.save(true)
 }
 
 func (u *User) Update() error {
@@ -85,7 +100,9 @@ func (u *User) checkIfExists(isNew bool) error {
 
 	if err == ErrNotFound {
 		return nil
-	} else if err != nil {
+	}
+
+	if err != nil {
 		return err
 	}
 
@@ -100,23 +117,9 @@ func (u *User) savePassword() error {
 	return u.hashPassword()
 }
 
-func (u *User) Delete() error {
-	return db.Delete([]Row{{Buckets: [][]byte{[]byte("users")}, Key: []byte(u.Email)}})
-}
-
-func (u *User) CheckPassword() (bool, error) {
-	pw := u.Password
-	if len(u.HashedPassword) == 0 {
-		if err := u.Fetch(); err != nil {
-			return false, err
-		}
-	}
-	return bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(pw)) == nil, nil
-}
-
 func (u *User) hashPassword() error {
 	var err error
-	u.HashedPassword, err = bcrypt.GenerateFromPassword(
+	u.HashedPassword, err = hash(
 		[]byte(u.Password),
 		bcrypt.DefaultCost,
 	)

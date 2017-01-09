@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net/http"
 
-	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/storage"
 )
 
 type Result struct {
@@ -16,25 +16,25 @@ type DB struct {
 	i       int
 	errors  []error
 	buckets map[string][]Result
-	Rows    []store.Row
+	Rows    []storage.Row
 }
 
 func NewDB(buckets map[string][]Result, errors []error) *DB {
 	return &DB{
 		buckets: buckets,
 		errors:  errors,
-		Rows:    []store.Row{},
+		Rows:    []storage.Row{},
 	}
 }
 
-func (d *DB) Put(rows []store.Row) error {
+func (d *DB) Put(rows []storage.Row) error {
 	err := d.errors[d.i]
 	d.i++
 	d.Rows = append(d.Rows, rows...)
 	return err
 }
 
-func (d *DB) AddBucket(row store.Row) error {
+func (d *DB) AddBucket(row storage.Row) error {
 	err := d.errors[d.i]
 	d.i++
 	d.Rows = append(d.Rows, row)
@@ -45,14 +45,15 @@ func (d *DB) GetBackup(w http.ResponseWriter) error {
 	return nil
 }
 
-func (d *DB) RenameBucket(dst, src store.Row) error {
+func (d *DB) RenameBucket(dst, src storage.Row) error {
 	return nil
 }
 
-func (d *DB) Get(rows []store.Row, f func([]byte, []byte) error) error {
+func (d *DB) Get(rows []storage.Row, f func([]byte, []byte) error) error {
 	for _, r := range rows {
 		d.Rows = append(d.Rows, r)
 		err := d.errors[d.i]
+		d.i++
 		if err != nil {
 			return err
 		}
@@ -65,12 +66,11 @@ func (d *DB) Get(rows []store.Row, f func([]byte, []byte) error) error {
 				}
 			}
 		}
-		d.i++
 	}
 	return nil
 }
 
-func (d *DB) GetAll(row store.Row, f func(key, val []byte) error) error {
+func (d *DB) GetAll(row storage.Row, f func(key, val []byte) error) error {
 	err := d.errors[d.i]
 	d.i++
 	d.Rows = append(d.Rows, row)
@@ -84,7 +84,7 @@ func (d *DB) GetAll(row store.Row, f func(key, val []byte) error) error {
 	return err
 }
 
-func (d *DB) Delete(rows []store.Row) error {
+func (d *DB) Delete(rows []storage.Row) error {
 	err := d.errors[d.i]
 	d.i++
 	d.Rows = append(d.Rows, rows...)
@@ -94,6 +94,6 @@ func (d *DB) Delete(rows []store.Row) error {
 func (d *DB) DeleteAll(bucket []byte) error {
 	err := d.errors[d.i]
 	d.i++
-	d.Rows = append(d.Rows, store.Row{Buckets: [][]byte{bucket}})
+	d.Rows = append(d.Rows, storage.Row{Buckets: [][]byte{bucket}})
 	return err
 }
