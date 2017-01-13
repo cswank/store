@@ -28,6 +28,7 @@ func Login(w http.ResponseWriter, req *http.Request) error {
 }
 
 func DoLogin(w http.ResponseWriter, req *http.Request) error {
+
 	err := req.ParseForm()
 	if err != nil {
 		return err

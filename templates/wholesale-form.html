@@ -1,5 +1,5 @@
 {{define "content"}}
-<div class="form-holder">
+<div id="wholesale-form">
   {{if .ShowMessage}}
   <div class="center">
     <p>Thanks for registering as a wholesaler with bangsandteeth.com.  Once we verify your status you will recieve a confirmation email.  You will then be able to log in and purchase products from the wholesale page.</p>
@@ -8,17 +8,15 @@
 
   <div class="pure-g">
     <div class="pure-u-1-2">
-      <div class="form-holder">
-        <form class="pure-form pure-form-stacked" action="/login" method="POST">
-          <fieldset>
-            <legend>Log in</legend>
-            <input name="Email" type="text" required placeholder="Email">
-            <input name="Password" type="password" required placeholder="Password">
-            <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
-            <button type="submit" class="pure-button pure-button-primary">Submit</button>
-          </fieldset>
-        </form>
-      </div>
+      <form class="pure-form pure-form-stacked" action="/login" method="POST">
+        <fieldset>
+          <legend>Log in</legend>
+          <input name="Email" type="text" required placeholder="Email">
+          <input name="Password" type="password" required placeholder="Password">
+          <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+          <button type="submit" class="pure-button pure-button-primary">Submit</button>
+        </fieldset>
+      </form>
     </div>
     
     <div class="pure-u-1-2">
@@ -65,7 +63,7 @@
           <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
           <button type="submit" class="pure-button pure-button-primary">Submit</button>
         </fieldset>
-      </form>
+      </form>      
     </div>
   </div>
   {{end}}

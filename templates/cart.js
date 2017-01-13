@@ -22,7 +22,7 @@ function getProducts() {
 }
 
 function loadCart() {
-    getProducts();
+    
     if (items == undefined) {
         items = {};
     }
@@ -38,7 +38,6 @@ function loadCart() {
     }
 
     updateTotal(items);
-    
     showCart(i);
 }
 
@@ -102,6 +101,7 @@ function removeItem(title) {
 }
 
 function checkout() {
+    getProducts();
     shopClient.createCart().then(function(cart) {
         var variants = [];
         for (var title in items) {

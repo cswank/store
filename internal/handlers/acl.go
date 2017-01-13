@@ -51,7 +51,7 @@ func Admin(req *http.Request) bool {
 
 func Wholesaler(req *http.Request) bool {
 	user := getUser(req)
-	return user != nil && (user.Permission == storage.Wholesaler || user.Permission == storage.Admin)
+	return user != nil && user.Confirmed && (user.Permission == storage.Wholesaler || user.Permission == storage.Admin)
 }
 
 func Anyone(req *http.Request) bool {
