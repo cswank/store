@@ -4,20 +4,21 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/storage"
 	"github.com/justinas/alice"
 )
 
-func getUser(req *http.Request) *store.User {
+func getUser(req *http.Request) *storage.User {
 	u := req.Context().Value("user")
 	if u == nil {
 		return nil
 	}
-	return u.(*store.User)
+	return u.(*storage.User)
 }
 
 type ACL func(req *http.Request) bool
@@ -45,12 +46,12 @@ func And(acls ...ACL) ACL {
 
 func Admin(req *http.Request) bool {
 	user := getUser(req)
-	return user != nil && user.Permission == store.Admin
+	return user != nil && user.Permission == storage.Admin
 }
 
 func Read(req *http.Request) bool {
 	user := getUser(req)
-	return user != nil && (user.Permission == store.Admin || user.Permission == store.Read)
+	return user != nil && (user.Permission == storage.Admin || user.Permission == storage.Read)
 }
 
 func Anyone(req *http.Request) bool {
@@ -80,20 +81,25 @@ func Human(req *http.Request) bool {
 	return postCaptcha(form)
 }
 
+type captchaResp struct {
+	Success bool     `json:"success"`
+	Errors  []string `json:"error-codes"`
+}
+
 func postCaptcha(form url.Values) bool {
 	if form == nil {
 		return false
 	}
-	resp, err := http.Post(captchaURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	resp, err := http.Post(cfg.RecaptchaURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
-		lg.Println("invalid captcha post", err)
+		log.Println("invalid captcha post", err)
 		return false
 	}
 	defer resp.Body.Close()
 
 	var c captchaResp
 	if err := json.NewDecoder(resp.Body).Decode(&c); err != nil {
-		lg.Println("invalid captcha json", err)
+		log.Println("invalid captcha json", err)
 		return false
 	}
 
@@ -102,12 +108,12 @@ func postCaptcha(form url.Values) bool {
 
 func getCaptchaForm(req *http.Request) url.Values {
 	if err := req.ParseForm(); err != nil {
-		lg.Println("invalid captcha schema form parse", err)
+		log.Println("invalid captcha schema form parse", err)
 		return nil
 	}
 
 	return url.Values{
-		"secret":   {captchaSecretKey},
+		"secret":   {cfg.RecaptchaSecretKey},
 		"response": {req.FormValue("g-recaptcha-response")},
 	}
 }

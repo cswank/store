@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
+	"net/http/httptest"
 	"time"
+
+	"github.com/cswank/store/internal/config"
 )
 
 /*
@@ -29,27 +30,23 @@ import (
 */
 
 var (
-	ShopifyAPI    string
-	ShopifyJSKey  string
-	ShopifyDomain string
-	productsURL   string
-	imagesURL     string
-	variantsURL   string
-	deleteURL     string
+	productsURL string
+	imagesURL   string
+	variantsURL string
+	deleteURL   string
+
+	cfg config.Config
+
+	ts *httptest.Server
 )
 
-func Init() {
-	ShopifyAPI = os.Getenv("SHOPIFY_API")
-	ShopifyJSKey = os.Getenv("SHOPIFY_JS_KEY")
-	ShopifyDomain = os.Getenv("SHOPIFY_DOMAIN")
-	if ShopifyJSKey == "" || ShopifyDomain == "" || ShopifyAPI == "" {
-		log.Fatal("you must set SHOPIFY_API and SHOPIFY_JS_KEY and SHOPIFY_DOMAIN")
-	}
+func Init(c config.Config) {
+	cfg = c
 
-	productsURL = fmt.Sprintf("%s/%s", ShopifyAPI, "admin/products.json")
-	imagesURL = fmt.Sprintf("%s/%s", ShopifyAPI, "/admin/products/%s/images.json")
-	variantsURL = fmt.Sprintf("%s/%s", ShopifyAPI, "admin/variants/%d.json")
-	deleteURL = fmt.Sprintf("%s/%s", ShopifyAPI, "admin/products/%s.json")
+	productsURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products.json")
+	imagesURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "/admin/products/%s/images.json")
+	variantsURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/variants/%d.json")
+	deleteURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products/%s.json")
 }
 
 type Img struct {
@@ -173,4 +170,26 @@ func updatePrice(id int, price string) error {
 		return err
 	}
 	return resp.Body.Close()
+}
+
+func FakeShopify() config.Config {
+	id := 1
+	ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			var m map[string]Product
+			json.NewDecoder(r.Body).Decode(&m)
+			p := m["product"]
+			p.ID = id
+			p.Variants = []Variant{
+				{ID: id},
+			}
+			m["product"] = p
+			id++
+			json.NewEncoder(w).Encode(m)
+		}
+	}))
+
+	cfg.ShopifyDomain = ts.URL
+	cfg.ShopifyAPI = ts.URL
+	return cfg
 }
