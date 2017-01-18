@@ -29,20 +29,6 @@ func Image(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func SiteImage(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
-	img, err := store.GetSiteImage(vars["title"])
-	if err != nil {
-		return err
-	}
-
-	setEtag(w, req.URL.Path, img)
-
-	w.Header().Set("Content-Type", "image/png")
-	w.Write(img)
-	return nil
-}
-
 func setEtag(w http.ResponseWriter, pth string, img []byte) {
 	t := fmt.Sprintf("%x", md5.Sum(img))
 	eLock.Lock()

@@ -129,7 +129,6 @@ func doServe() {
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
 	r.Handle("/images/{type}/{title}/{size}", getImageMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
-	r.Handle("/images/site/{title}", getImageMiddleware(handlers.Anyone, handlers.SiteImage)).Methods("GET")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
@@ -143,7 +142,6 @@ func doServe() {
 	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
 	r.Handle("/admin/db/backup", getMiddleware(handlers.Admin, handlers.BackupDB)).Methods("GET")
 	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
-	r.Handle("/admin/site/images/home", getMiddleware(handlers.Admin, handlers.AddHomeImage)).Methods("POST")
 	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.AdminCategoryPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.RenameCategory)).Methods("POST")
@@ -156,7 +154,8 @@ func doServe() {
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr((handlers.ServeBox))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr(handlers.ServeBox)))
+	r.PathPrefix("/site/").Handler(http.StripPrefix("/site/", handlers.HandleErr(handlers.Static())))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	iface := os.Getenv("STORE_IFACE")
@@ -168,7 +167,7 @@ func doServe() {
 		Addr:         addr,
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: 60 * time.Second,
 		//IdleTimeout:  120 * time.Second,  TODO uncomment when 1.8 is out
 	}
 

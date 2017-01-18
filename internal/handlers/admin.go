@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"crypto/md5"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -321,30 +320,4 @@ func Confirm(w http.ResponseWriter, req *http.Request) error {
 		Resource: resource,
 	}
 	return templates["confirm.html"].template.ExecuteTemplate(w, "base", p)
-}
-
-func AddHomeImage(w http.ResponseWriter, req *http.Request) error {
-	if err := req.ParseMultipartForm(32 << 20); err != nil {
-		return err
-	}
-
-	ff, _, err := req.FormFile("Image")
-	if err != nil {
-		return err
-	}
-	defer ff.Close()
-
-	img, err := store.AddHomeImage(ff)
-	if err != nil {
-		return err
-	}
-
-	t := fmt.Sprintf("%x", md5.Sum(img))
-	eLock.Lock()
-	etags["home.png"] = t
-	eLock.Unlock()
-
-	w.Header().Set("Location", "/")
-	w.WriteHeader(http.StatusFound)
-	return nil
 }
