@@ -1,0 +1,28 @@
+{{define "content"}}
+<div class="text-center">
+  <div>
+    <button onClick="addItemsToCart()" class="pure-button pure-button-primary">Add To Cart</button>
+    {{range $category, $subcategories := .Products}}
+    <div>
+      <h2>{{$category}}</h2>
+      {{range $subcategory, $products := $subcategories}}
+      {{if ne $subcategory "NOSUBCATEGORIES"}}
+      <h3>{{$subcategory}}</h3>
+      {{end}}
+      <div class="pure-g">
+        {{range $product := $products}}
+        {{template "wholesale-thumb" dict "Category" $category "Subcategory" $subcategory "Product" $product}}
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+    {{end}}
+    <button onClick="addItemsToCart()" class="pure-button pure-button-primary">Add To Cart</button>
+  </div>
+</div>
+
+<script>
+  {{template "wholesale.js" .}}
+</script>
+
+{{end}}

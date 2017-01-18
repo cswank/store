@@ -1,0 +1,22 @@
+{{define "content"}}
+
+{{if .Error}}
+<div class="center error-msg">{{.Error}}</div>
+{{end}}
+
+<div class="form-holder">
+  <form class="pure-form pure-form-stacked" action="/login" method="POST">
+    <fieldset>
+      <legend>Log in</legend>
+      <input name="Email" type="text" required placeholder="Email">
+      <input name="Password" type="password" required placeholder="Password">
+      <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+      <button type="submit" class="pure-button pure-button-primary">Submit</button>
+    </fieldset>
+  </form>
+  <div><a href="/wholesale/application">Apply for a wholesale account</a></div>
+  <div><a href="/login/reset">Forgot password?</a></div>
+</div>
+
+{{end}}
+

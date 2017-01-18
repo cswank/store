@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,9 +17,12 @@ import (
 
 	"github.com/GeertJohan/go.rice"
 	"github.com/caarlos0/env"
+	"github.com/cswank/store/internal/config"
+	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/handlers"
 	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/templates"
 	"github.com/cswank/store/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
@@ -25,25 +30,24 @@ import (
 )
 
 var (
-	cfg      store.Config
+	cfg      config.Config
 	serve    = kingpin.Command("serve", "Start the server.")
 	fake     = serve.Flag("fake-shopify", "start a fake shopify").Short('f').Bool()
 	items    = kingpin.Command("items", "save and delete items")
 	itemAdd  = items.Command("add", "add an item")
 	itemEdit = items.Command("edit", "edit items")
 
+	users    = kingpin.Command("users", "save and delete users")
+	userAdd  = users.Command("add", "add an item")
+	userEdit = users.Command("edit", "edit users")
+
 	categories = kingpin.Command("categories", "save, edit and delete categories")
+	edit       = categories.Command("edit", "edit categories and subcategories")
 
-	users             = kingpin.Command("users", "save and delete users")
-	userAdd           = users.Command("add", "add an item")
-	userEdit          = users.Command("edit", "edit users")
-	products          = kingpin.Command("products", "save and delete products")
-	deleteAllProducts = products.Command("delete-all", "edit users")
-	box               *rice.Box
+	box       *rice.Box
+	staticBox *rice.Box
 
-	port    string
-	domains []string
-	ts      *httptest.Server
+	ts *httptest.Server
 )
 
 const (
@@ -52,9 +56,10 @@ const (
 
 func init() {
 	if err := env.Parse(&cfg); err != nil {
-		log.Fatal(err)
+		log.Fatal("could not parse config", err)
 	}
 	store.Init(cfg)
+	email.Init(cfg)
 }
 
 func main() {
@@ -68,45 +73,44 @@ func main() {
 		utils.AddUser()
 	case "users edit":
 		utils.EditUser()
+	case "categories edit":
+		utils.EditCategory()
 	}
 }
 
 func initServe() {
 	if *fake {
-		id := 1
 		ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == "POST" {
-				var m map[string]shopify.Product
-				json.NewDecoder(r.Body).Decode(&m)
-				p := m["product"]
-				p.ID = id
-				p.Variants = []shopify.Variant{
-					{ID: id},
+				if strings.Contains(r.URL.Path, "products") {
+					var m map[string]shopify.Product
+					json.NewDecoder(r.Body).Decode(&m)
+					p := m["product"]
+					p.ID = rand.Int()
+					p.Variants = []shopify.Variant{
+						{ID: p.ID},
+					}
+					m["product"] = p
+					json.NewEncoder(w).Encode(m)
+				} else if strings.Contains(r.URL.Path, "discounts") {
+					var m map[string]shopify.DiscountCode
+					json.NewDecoder(r.Body).Decode(&m)
+					dc := m["discount"]
+					dc.ID = int(rand.Int63())
+					m["discount"] = dc
+					w.WriteHeader(http.StatusCreated)
+					json.NewEncoder(w).Encode(m)
 				}
-				m["product"] = p
-				id++
-				json.NewEncoder(w).Encode(m)
 			}
 		}))
-		fmt.Println("ts", ts.URL)
-		os.Setenv("SHOPIFY_DOMAIN", ts.URL)
-		os.Setenv("SHOPIFY_API", ts.URL)
-	}
-	domain := os.Getenv("STORE_DOMAINS")
-	if domain == "" {
-		log.Println("tls not enabled because STORE_DOMAIN is not set")
-	} else {
-		domains = strings.Split(domain, ",")
+		//cfg.Domains = []string{ts.URL}
+		cfg.ShopifyAPI = ts.URL
 	}
 
-	port = os.Getenv("STORE_PORT")
-	if port == "" {
-		log.Fatal("you must set STORE_PORT")
-	}
-
-	box = rice.MustFindBox("static")
-	shopify.Init()
-	handlers.Init(box)
+	box = rice.MustFindBox("templates")
+	shopify.Init(cfg)
+	handlers.Init(cfg)
+	templates.Init(box)
 }
 
 func getMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
@@ -123,30 +127,46 @@ func doServe() {
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Human, handlers.DoLogin)).Methods("POST")
+	r.Handle("/login/reset", getMiddleware(handlers.Anyone, handlers.ResetPage)).Methods("GET")
+	r.Handle("/login/reset", getMiddleware(handlers.Human, handlers.SendReset)).Methods("POST")
+	r.Handle("/login/reset/{token}", getMiddleware(handlers.Anyone, handlers.ResetPassword)).Methods("GET")
+	r.Handle("/login/password", getMiddleware(handlers.Anyone, handlers.DoResetPassword)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
+
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
+
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
-	r.Handle("/images/{type}/{title}/{size}", getImageMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
-	r.Handle("/images/site/{title}", getImageMiddleware(handlers.Anyone, handlers.SiteImage)).Methods("GET")
+	r.Handle("/wholesale/invoice", getMiddleware(handlers.Wholesaler, handlers.Invoice)).Methods("GET", "POST")
+	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApplication)).Methods("GET")
+	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApply)).Methods("POST")
+	r.Handle("/wholesale/application/{token}", getMiddleware(handlers.Anyone, handlers.WholesaleVerify)).Methods("GET")
+	r.Handle("/wholesale/thanks", getMiddleware(handlers.Anyone, handlers.WholesaleThanks)).Methods("GET")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
+
 	r.Handle("/shop", getMiddleware(handlers.Anyone, handlers.Shop)).Methods("GET")
 	r.Handle("/shop/{category}", getMiddleware(handlers.Anyone, handlers.Category)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.Product)).Methods("GET")
+	r.Handle("/shop/images/{type}/{title}/{size}", getImageMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
 
 	r.Handle("/api/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.GetProduct)).Methods("GET")
 
 	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
+	r.Handle("/admin/wholesalers", getMiddleware(handlers.Admin, handlers.AdminWholesalers)).Methods("GET")
+	r.Handle("/admin/wholesalers/{wholesaler}", getMiddleware(handlers.Admin, handlers.AdminWholesaler)).Methods("GET")
+	r.Handle("/admin/wholesalers/{wholesaler}", getMiddleware(handlers.Admin, handlers.AdminWholesalerUpdate)).Methods("POST")
+	r.Handle("/admin/wholesalers/{wholesaler}", getMiddleware(handlers.Admin, handlers.AdminWholesalerDelete)).Methods("DELETE")
+	r.Handle("/admin/wholesalers/{wholesaler}/confirmation", getMiddleware(handlers.Admin, handlers.AdminWholesalerConfirm)).Methods("POST")
 	r.Handle("/admin/db/backup", getMiddleware(handlers.Admin, handlers.BackupDB)).Methods("GET")
 	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
-	r.Handle("/admin/site/images/home", getMiddleware(handlers.Admin, handlers.AddHomeImage)).Methods("POST")
 	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.AdminCategoryPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.RenameCategory)).Methods("POST")
+	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.DeleteCategory)).Methods("DELETE")
 	r.Handle("/admin/categories/{category}/subcategories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.AdminAddProductPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.RenameSubcategory)).Methods("POST")
@@ -155,12 +175,18 @@ func doServe() {
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.UpdateProduct)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
-	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr((handlers.ServeBox))))
+	r.NotFoundHandler = http.HandlerFunc(handlers.NotFound)
+
+	//r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
+	r.PathPrefix("/images").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/robots.txt").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/favicon.ico").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/css").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/js").Handler(handlers.HandleErr(handlers.Static()))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	iface := os.Getenv("STORE_IFACE")
-	addr := fmt.Sprintf("%s:%s", iface, port)
+	addr := fmt.Sprintf("%s:%d", iface, cfg.Port)
 
 	var serve func() error
 
@@ -168,36 +194,44 @@ func doServe() {
 		Addr:         addr,
 		Handler:      chain,
 		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: 60 * time.Second,
 		//IdleTimeout:  120 * time.Second,  TODO uncomment when 1.8 is out
 	}
 
 	serve = srv.ListenAndServe
 
-	var withTLS bool
+	if cfg.TLS {
+		serve = getTLS(srv)
+	}
 
-	if os.Getenv("STORE_TLS") == "true" {
-		certs := os.Getenv("STORE_CERTS")
-		if certs == "" {
-			log.Fatal("you must set STORE_CERTS path when using tls")
-		}
+	log.Printf("listening on %s (tls: %v)\n", addr, cfg.TLS)
+	log.Println(serve())
+}
+
+func getTLS(srv *http.Server) func() error {
+	if cfg.TLSCerts == "" {
+		log.Fatal("you must set STORE_CERTS path when using tls")
+	}
+	fmt.Println("use lets encrypt", cfg.LetsEncrypt)
+	if cfg.LetsEncrypt {
 		m := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(domains...),
-			Cache:      autocert.DirCache(certs),
+			HostPolicy: autocert.HostWhitelist(cfg.Domains...),
+			Cache:      autocert.DirCache(cfg.TLSCerts),
 		}
 		srv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
-
-		serve = func() error {
-			return srv.ListenAndServeTLS("", "")
+	} else {
+		c := filepath.Join(cfg.TLSCerts, "cert.pem")
+		k := filepath.Join(cfg.TLSCerts, "key.pem")
+		cer, err := tls.LoadX509KeyPair(c, k)
+		if err != nil {
+			log.Fatal("could not load tls certs", err)
 		}
-		withTLS = true
+		srv.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cer}}
 	}
+	go http.ListenAndServe(":80", http.HandlerFunc(handlers.Redirect))
 
-	if withTLS {
-		go http.ListenAndServe(":80", http.HandlerFunc(handlers.Redirect))
+	return func() error {
+		return srv.ListenAndServeTLS("", "")
 	}
-
-	log.Printf("listening on %s (tls: %v)\n", addr, withTLS)
-	log.Println(serve())
 }

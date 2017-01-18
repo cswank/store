@@ -1,0 +1,53 @@
+{{define "content"}}
+
+<div id="cart">
+
+  <div id="checkout">
+    {{if .UnderConstruction}}
+    This site is under construction and items can't be purchased.  Please check back soon.  
+    {{else}}
+    <button onClick="checkout()" class="pure-button pure-button-primary">Checkout</button>
+    {{end}}
+  </div>
+  
+  <div id="items">
+    <div class="lineitem-header pure-g">
+      <div class="pure-u-1-4">
+      </div>
+      <div class="pure-u-1-4">
+        Item
+      </div>
+      <div class="pure-u-1-4">
+        Quantity
+      </div>
+      <div class="pure-u-1-4">
+        Total
+      </div>
+    </div>
+  </div>
+  <div>
+    <div id="lineitem-total" class="pure-g">
+      <div class="pure-u-1-4">
+      </div>
+      <div class="pure-u-1-4">
+      </div>
+      <div class="pure-u-1-4">
+      </div>
+      <div id="grand-total" class="pure-u-1-4">
+      </div>
+    </div>
+  </div>
+  <div id="clear">
+    <button onClick="clearCart()" class="pure-button pure-button-primary">Empty Cart</button>
+  </div>
+</div>
+
+<div id="empty-cart" class="center">
+  Your cart is empty.
+</div>
+
+<script>
+  {{template "cart.js" .}}
+</script>
+{{end}}
+

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/cswank/store/internal/templates"
 )
 
 type page struct {
@@ -13,6 +15,7 @@ type page struct {
 	Scripts     []string
 	Stylesheets []string
 	Name        string
+	Message     string
 }
 
 var (
@@ -23,10 +26,10 @@ func Home(w http.ResponseWriter, req *http.Request) error {
 	p := page{
 		Links:   getNavbarLinks(req),
 		Admin:   Admin(req),
-		Shopify: shopify,
+		Shopify: shopifyKey,
 		Name:    name,
 	}
-	return templates["index.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("index.html").ExecuteTemplate(w, "base", p)
 }
 
 func Redirect(w http.ResponseWriter, req *http.Request) {

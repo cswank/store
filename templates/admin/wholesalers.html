@@ -1,0 +1,19 @@
+{{define "content"}}
+<div class="center">
+  <h1>Wholesalers</h1>
+  <table>
+    <tr>
+      <th>Email</th>
+      <th>Verified</th> 
+      <th>Confirmed</th>
+    </tr>
+    {{range $wholesaler := .Wholesalers}}
+    <tr>
+      <td><a href="/admin/wholesalers/{{$wholesaler.Email}}">{{$wholesaler.Email}}</a></td>
+      <td>{{$wholesaler.Verified}}</td>
+      <td>{{$wholesaler.Confirmed}}</td>
+    </tr>
+    {{end}}
+  </table>
+</div>
+{{end}}

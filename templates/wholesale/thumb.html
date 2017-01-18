@@ -1,0 +1,14 @@
+{{define "wholesale-thumb"}}
+<div class="pure-u-1-4">
+  <p class="thumb center center-text">
+    <a><img id="thumb shadowed" src="{{.Product.Image}}"/></a><br/>
+    <a class="title">{{.Product.Title}}</a><br/>
+    <a>${{.Product.Price}}</a>
+    <div class="center text-center">
+      <i class="incrementer fa fa-minus" aria-hidden="true" onClick="updateQuantity('{{.Product.ID}}', -1)"></i>
+      <input type="text" class="quantity" name="{{.Product.Title}}" id="{{.Product.ID}}" value="0"/>
+      <i class="incrementer fa fa-plus" aria-hidden="true" onClick="updateQuantity('{{.Product.ID}}', 1)"></i>
+    </div>
+  </p>
+</div>
+{{end}}

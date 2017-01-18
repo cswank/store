@@ -1,0 +1,17 @@
+{{define "content"}}
+<div  id="confirm" class="center text-center">
+  <div>
+    Really delete {{.Name}}?
+  </div>
+  <button onClick="doDelete()">delete</button>
+  <button onClick="back()">cancel</button>
+</div>
+<div  id="success" class="center text-center">
+  <div>
+    <button onClick="back()">Done!</button>
+  </div>
+</div>
+<script>
+  {{template "confirm.js" .}}
+</script>
+{{end}}

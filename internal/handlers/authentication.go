@@ -3,11 +3,8 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"strings"
 
 	"github.com/cswank/store/internal/store"
 	"github.com/gorilla/securecookie"
@@ -18,22 +15,6 @@ var (
 	sc                     *securecookie.SecureCookie
 	domain, authCookieName string
 )
-
-func init() {
-	domains := os.Getenv("STORE_DOMAINS")
-	if domains == "" {
-		log.Fatal("you must set STORE_DOMAINS")
-	}
-
-	domain = strings.Split(domains, ",")[0]
-	authCookieName = fmt.Sprintf("%s-user", domain)
-	hashKey = []byte(os.Getenv("STORE_HASH_KEY"))
-	blockKey = []byte(os.Getenv("STORE_BLOCK_KEY"))
-	if string(hashKey) == "" || string(blockKey) == "" {
-		log.Fatal("you must set STORE_HASH_KEY and STORE_BLOCK_KEY")
-	}
-	sc = securecookie.New(hashKey, blockKey)
-}
 
 func Authentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -54,7 +35,10 @@ func getCookie(email string) *http.Cookie {
 		"email": email,
 	}
 
-	encoded, _ := sc.Encode(authCookieName, val)
+	encoded, err := sc.Encode(authCookieName, val)
+	if err != nil {
+		log.Println("couldn't encode cookie", err)
+	}
 	return &http.Cookie{
 		Name:     authCookieName,
 		Value:    encoded,

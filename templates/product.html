@@ -1,0 +1,59 @@
+{{define "content"}}
+<div id="product">
+  <div class="pure-g">
+    <div class="pure-u-1-2 center text-center">
+      <img class="shadowed product-img" id="img" src="/shop/images/products/{{.Product.Title}}/image.png"/>
+      <div>
+        <a>${{.Product.Price}}</a>        
+      </div>
+      <div>
+        <i class="incrementer fa fa-minus" aria-hidden="true" onClick="updateQuantity('{{.Product.ID}}', -1)"></i>
+        <input type="nmber" class="quantity" id="{{.Product.ID}}" value="0"/>
+        <i class="incrementer fa fa-plus" aria-hidden="true" onClick="updateQuantity('{{.Product.ID}}', 1)"></i>
+      </div>
+      <button onClick="addToCart({{.Product.Title}})" class="pure-button pure-button-primary">Add To Cart</button>
+    </div>
+    <div class="pure-u-1-2">
+      <div>
+        <h4>{{.Product.Title}}</h4>
+      </div>
+      <div>
+        <a>{{.Product.Description}}</a>        
+      </div>
+      <!-- TODO: this shouldn't be part of the store repo -->
+      <ul class="bullets">
+        <li>
+          <p>Card is blank inside.</p>
+        </li>
+        <li>
+          <p>Size is A2 4.25" X 5.5" when folded.</p>
+        </li>
+        <li>
+          <p>Coordinating envelope.</p>
+        </li>
+        <li>
+          <p>Printed on quality 110 lb white recycled card stock.</p>
+        </li>
+        <li>
+          <p>Packaged in a cellophane sleeve.</p>
+        </li>
+        <li>
+          <p>Designed and printed in the USA.</p>
+        </li>
+        
+      </ul>
+      <button class="pure-button pure-button-primary"><a href="{{.Back}}">Back To {{.BackText}}</a></button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<div id="product-modal" class="modal">
+  <span class="close" onclick="document.getElementById('myModal').style.display='none'">&times;</span>
+  <img class="modal-content" id="img01">
+</div>
+
+<script>
+  {{template "shop.js" .}}
+</script>
+{{end}}

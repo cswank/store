@@ -45,12 +45,26 @@ func And(acls ...ACL) ACL {
 
 func Admin(req *http.Request) bool {
 	user := getUser(req)
+	return isAdmin(user)
+}
+
+func isAdmin(user *store.User) bool {
 	return user != nil && user.Permission == store.Admin
+}
+
+func Wholesaler(req *http.Request) bool {
+	user := getUser(req)
+	return user != nil && user.Permission >= store.Wholesaler && user.Confirmed && user.Verified
+}
+
+func NewWholesaler(req *http.Request) bool {
+	user := getUser(req)
+	return user != nil && user.Permission >= store.Wholesaler
 }
 
 func Read(req *http.Request) bool {
 	user := getUser(req)
-	return user != nil && (user.Permission == store.Admin || user.Permission == store.Read)
+	return user != nil && user.Permission >= store.Read
 }
 
 func Anyone(req *http.Request) bool {
@@ -84,7 +98,7 @@ func postCaptcha(form url.Values) bool {
 	if form == nil {
 		return false
 	}
-	resp, err := http.Post(captchaURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	resp, err := http.Post(cfg.RecaptchaURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
 		lg.Println("invalid captcha post", err)
 		return false
@@ -107,7 +121,7 @@ func getCaptchaForm(req *http.Request) url.Values {
 	}
 
 	return url.Values{
-		"secret":   {captchaSecretKey},
+		"secret":   {cfg.RecaptchaSecretKey},
 		"response": {req.FormValue("g-recaptcha-response")},
 	}
 }

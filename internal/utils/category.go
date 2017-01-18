@@ -7,7 +7,6 @@ import (
 	"github.com/cswank/store/internal/store"
 )
 
-//AddUser adds a user from the command line
 func EditCategory() {
 	cats, err := store.GetCategories()
 	if err != nil {

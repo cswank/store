@@ -45,7 +45,7 @@ func getBolt(pth string) *bolt.DB {
 }
 
 //Rename bucket takes 2 rows, the first should point to
-func (b *Bolt) RenameBucket(src, dst Row) error {
+func (b *Bolt) RenameBucket(src, dst Query) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		oldParent, err := b.getOrCreateBucket(tx, src.Buckets)
 		if err != nil {
@@ -92,7 +92,7 @@ func (b *Bolt) GetBackup(w http.ResponseWriter) error {
 	})
 }
 
-func (b *Bolt) AddBucket(row Row) error {
+func (b *Bolt) AddBucket(row Query) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		bu, err := b.getOrCreateBucket(tx, row.Buckets)
 		if err != nil {
@@ -103,7 +103,7 @@ func (b *Bolt) AddBucket(row Row) error {
 	})
 }
 
-func (b *Bolt) Put(rows []Row) error {
+func (b *Bolt) Put(rows []Query) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		var err error
 		for _, r := range rows {
@@ -153,13 +153,14 @@ func (b *Bolt) getBucket(tx *bolt.Tx, buckets [][]byte) (*bolt.Bucket, error) {
 	return bu, nil
 }
 
-func (b *Bolt) Get(rows []Row, f func(key, val []byte) error) error {
+func (b *Bolt) Get(rows []Query, f func(key, val []byte) error) error {
 	return b.db.View(func(tx *bolt.Tx) error {
 		for _, r := range rows {
 			bu, err := b.getBucket(tx, r.Buckets)
 			if err != nil {
 				return ErrNotFound
 			}
+
 			v := bu.Get(r.Key)
 			if len(v) == 0 {
 				return ErrNotFound
@@ -172,7 +173,7 @@ func (b *Bolt) Get(rows []Row, f func(key, val []byte) error) error {
 	})
 }
 
-func (b *Bolt) GetAll(r Row, f func(key, val []byte) error) error {
+func (b *Bolt) GetAll(r Query, f func(key, val []byte) error) error {
 	return b.db.View(func(tx *bolt.Tx) error {
 		bu, err := b.getBucket(tx, r.Buckets)
 		if err != nil {
@@ -188,7 +189,7 @@ func (b *Bolt) GetAll(r Row, f func(key, val []byte) error) error {
 	})
 }
 
-func (b *Bolt) Delete(rows []Row) error {
+func (b *Bolt) Delete(rows []Query) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		for _, r := range rows {
 			var key []byte

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/caarlos0/env"
+	"github.com/cswank/store/internal/config"
 	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/store/mock"
@@ -21,7 +22,7 @@ var _ = Describe("products", func() {
 		db      *mock.DB
 		id      int
 		ts      *httptest.Server
-		cfg     store.Config
+		cfg     config.Config
 		buckets map[string][]mock.Result
 		errs    []error
 	)
@@ -60,7 +61,7 @@ var _ = Describe("products", func() {
 			buckets,
 			errs,
 		)
-		shopify.Init()
+		shopify.Init(cfg)
 		store.Init(cfg, store.SetDB(db))
 	})
 
@@ -119,7 +120,7 @@ var _ = Describe("products", func() {
 		)
 
 		BeforeEach(func() {
-			prod = store.NewProduct("you-are-fucked", "Cards", "Happy Birthday", "Blah blah blah!")
+			prod = store.NewProduct("you-are-fucked", "Cards", "Happy Birthday", store.ProductDescription("Blah blah blah!"))
 		})
 
 		Describe("Delete", func() {
@@ -170,16 +171,16 @@ var _ = Describe("products", func() {
 						nil,
 						nil,
 						nil,
+						nil,
 					}
 
 				})
 
 				It("succeeds", func() {
-					p2 := store.NewProduct(prod.Title, prod.Cat, "Anniversary", "Blah blah blah!")
+					p2 := store.NewProduct(prod.Title, prod.Cat, "Anniversary", store.ProductDescription("Blah blah blah!"))
 					Expect(prod.Update(p2)).To(BeNil())
-					Expect(db.Rows).To(HaveLen(3))
+					Expect(db.Rows).To(HaveLen(4))
 
-					//query
 					r := db.Rows[0]
 					Expect(r.Buckets).To(HaveLen(3))
 					Expect(string(r.Buckets[0])).To(Equal("products"))

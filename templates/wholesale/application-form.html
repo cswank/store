@@ -1,0 +1,56 @@
+{{define "content"}}
+<div class="form-holder">
+
+  <form class="pure-form pure-form-stacked" action="/wholesale/application" method="POST">
+    <fieldset>
+      <legend>Register as a wholesaler</legend>
+
+      <label for="store_name">Store Name</label>
+      <input type="text" placeholder="store name" name="store_name" required>
+
+      <label for="website">Website</label>
+      <input type="text" placeholder="website" name="website" required>
+
+      <label for="email">Email</label>
+      <input type="email" placeholder="email" name="email" required>
+
+      <label for="first_name">First Name</label>
+      <input type="text" placeholder="first name" name="first_name" required>
+      
+      <label for="last_name">Last Name</label>
+      <input type="text" placeholder="last name" name="last_name" required>   
+      
+      <label for="address">Address</label>
+      <input type="text" placeholder="address" name="address.address" required>
+      
+      <label for="address2">Address 2</label>
+      <input type="text" placeholder="address 2" name="address.address2" required>
+
+      <label for="zip">Zip</label>
+      <input type="text" placeholder="zip" name="address.zip" required>
+
+      <label for="city">City</label>
+      <input type="text" placeholder="city" name="address.city" required>
+
+      <label for="state">State</label>
+      <input type="text" placeholder="state" name="address.state" required>
+
+      <label for="country">Country</label>
+      <input type="text" placeholder="country" name="address.country" required>
+
+      <label for="password">Password</label>
+      <input type="password" placeholder="password" name="password" required>
+      
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" placeholder="confirm password" name="confirm-password" required>
+
+      <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+      <button type="submit" class="pure-button pure-button-primary">Submit</button>
+    </fieldset>
+  </form>      
+</div>
+
+<script>
+  {{template "wholesale-application.js" .}}
+</script>
+{{end}}

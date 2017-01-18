@@ -18,26 +18,15 @@ var (
 
 func Image(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
+
 	img, err := store.GetImage(vars["type"], vars["title"], vars["size"])
 	if err != nil {
 		return err
 	}
 
-	setEtag(w, req.URL.Path, img)
-	w.Header().Set("Content-Type", "image/png")
-	w.Write(img)
-	return nil
-}
-
-func SiteImage(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
-	img, err := store.GetSiteImage(vars["title"])
-	if err != nil {
-		return err
+	if vars["type"] == "products" {
+		setEtag(w, req.URL.Path, img)
 	}
-
-	setEtag(w, req.URL.Path, img)
-
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(img)
 	return nil
@@ -49,6 +38,15 @@ func setEtag(w http.ResponseWriter, pth string, img []byte) {
 	etags[pth] = t
 	eLock.Unlock()
 	w.Header().Set("Etag", t)
+}
+
+func clearEtag(title string) {
+	eLock.Lock()
+	for _, s := range []string{"image.png", "thumb.png"} {
+		u := fmt.Sprintf("/shop/images/products/%s/%s", title, s)
+		delete(etags, u)
+	}
+	eLock.Unlock()
 }
 
 //ETag short-circuts the request if the client already has this resource.
@@ -71,5 +69,6 @@ func matches(req *http.Request) bool {
 	}
 
 	match := req.Header.Get("If-None-Match")
+
 	return match != "" && strings.Contains(match, t)
 }

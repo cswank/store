@@ -1,0 +1,33 @@
+{{define "content"}}
+<div class="text-center">
+  <form action="/wholesale/invoice" method="POST">
+    <button type="submit" class="pure-button pure-button-primary">Looks good, email me this invoice</button>
+    {{$price := .Price}}
+    {{range $i, $product := .Products}}
+    <div class="pure-g">
+      <div class="pure-u-1-4">
+        <a><img class="invoice-thumb" id="thumb shadowed" src="/shop/images/products/{{$product.Title}}/thumb.png"/></a><br/>
+      </div>
+      <div class="pure-u-1-4">
+        <input type="hidden" name="{{$product.Title}}" value="{{$product.Quantity}}"/>
+        {{$product.Title}}
+      </div>
+      <div class="pure-u-1-4">
+        {{$product.Quantity}} x {{$price}}
+      </div>
+      <div class="pure-u-1-4">
+        {{$product.Total}}
+      </div>
+    </div>
+    {{end}}
+    <div class="pure-g">
+      <div class="pure-u-1-4"></div>
+      <div class="pure-u-1-4"></div>
+      <div class="pure-u-1-4"></div>
+      <div class="pure-u-1-4" id="total">
+        {{.Total}}
+      </div>
+    </div>
+  </form>
+</div>
+{{end}}

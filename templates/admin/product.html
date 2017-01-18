@@ -1,0 +1,27 @@
+{{define "content"}}
+{{template "admin-links.html" .}}
+
+<div class="center">
+  <p>product {{.Product.Title}}, shopify id {{.Product.ID}}</p>
+  <img class="shadowed" id="product-img" src="/shop/images/products/{{.Product.Title}}/image.png"/>
+  <form action="{{.URI}}" method="POST" enctype="multipart/form-data">
+    <fieldset>
+      <input type="text" name="Title" value="{{.Product.Title}}" placeholder="{{.Placeholder}}" required/><br/>
+      <label for="Description">
+        <textarea name="Description" rows="8" cols="50">{{.Product.Description}}</textarea>
+      </label></br>
+      <label for="Image">Image
+        <input type="file" name="Image" placeholder="Image"/><br/>
+      </label>
+      <button type="submit" class="pure-button pure-button-primary">Update</button>
+      <button type="submit" class="pure-button pure-button-primary" onClick="confirm()">Delete</button>
+    </fieldset>
+  </form>
+  <br/>
+  
+  <script>
+    {{template "admin-product.js" .}}
+  </script>
+  </div>
+{{end}}
+
