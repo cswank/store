@@ -11,6 +11,7 @@ type Permission int
 
 const (
 	Read Permission = iota
+	Wholesaler
 	Admin
 )
 
