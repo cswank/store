@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
+	"path/filepath"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -41,9 +41,7 @@ var (
 	deleteAllProducts = products.Command("delete-all", "edit users")
 	box               *rice.Box
 
-	port    string
-	domains []string
-	ts      *httptest.Server
+	ts *httptest.Server
 )
 
 const (
@@ -88,20 +86,8 @@ func initServe() {
 				json.NewEncoder(w).Encode(m)
 			}
 		}))
-		fmt.Println("ts", ts.URL)
-		os.Setenv("SHOPIFY_DOMAIN", ts.URL)
-		os.Setenv("SHOPIFY_API", ts.URL)
-	}
-	domain := os.Getenv("STORE_DOMAINS")
-	if domain == "" {
-		log.Println("tls not enabled because STORE_DOMAIN is not set")
-	} else {
-		domains = strings.Split(domain, ",")
-	}
-
-	port = os.Getenv("STORE_PORT")
-	if port == "" {
-		log.Fatal("you must set STORE_PORT")
+		cfg.Domains = []string{ts.URL}
+		cfg.ShopifyAPI = ts.URL
 	}
 
 	box = rice.MustFindBox("static")
@@ -159,7 +145,7 @@ func doServe() {
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	iface := os.Getenv("STORE_IFACE")
-	addr := fmt.Sprintf("%s:%s", iface, port)
+	addr := fmt.Sprintf("%s:%d", iface, cfg.Port)
 
 	var serve func() error
 
@@ -175,28 +161,38 @@ func doServe() {
 
 	var withTLS bool
 
-	if os.Getenv("STORE_TLS") == "true" {
-		certs := os.Getenv("STORE_CERTS")
-		if certs == "" {
-			log.Fatal("you must set STORE_CERTS path when using tls")
-		}
-		m := autocert.Manager{
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(domains...),
-			Cache:      autocert.DirCache(certs),
-		}
-		srv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
-
-		serve = func() error {
-			return srv.ListenAndServeTLS("", "")
-		}
-		withTLS = true
-	}
-
-	if withTLS {
-		go http.ListenAndServe(":80", http.HandlerFunc(handlers.Redirect))
+	if cfg.TLS {
+		serve = getTLS(srv)
 	}
 
 	log.Printf("listening on %s (tls: %v)\n", addr, withTLS)
 	log.Println(serve())
+}
+
+func getTLS(srv *http.Server) func() error {
+	if cfg.TLSCerts == "" {
+		log.Fatal("you must set STORE_CERTS path when using tls")
+	}
+	fmt.Println("use lets encrypt", cfg.LetsEncrypt)
+	if cfg.LetsEncrypt {
+		m := autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(cfg.Domains...),
+			Cache:      autocert.DirCache(cfg.TLSCerts),
+		}
+		srv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
+	} else {
+		c := filepath.Join(cfg.TLSCerts, "cert.pem")
+		k := filepath.Join(cfg.TLSCerts, "key.pem")
+		cer, err := tls.LoadX509KeyPair(c, k)
+		if err != nil {
+			log.Fatal(err)
+		}
+		srv.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cer}}
+	}
+	go http.ListenAndServe(":80", http.HandlerFunc(handlers.Redirect))
+
+	return func() error {
+		return srv.ListenAndServeTLS("", "")
+	}
 }

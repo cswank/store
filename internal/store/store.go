@@ -24,6 +24,7 @@ type Config struct {
 	Port          int      `env:"STORE_PORT" envDefault:"8080"`
 	TLS           bool     `env:"STORE_TLS" envDefault:"false"`
 	TLSCerts      string   `env:"STORE_TLS_CERTS" envDefault:"$HOME/.store/certs"`
+	LetsEncrypt   bool     `env:"STORE_LETS_ENCRYPT" envDefault:"false"`
 
 	RecaptchaSiteKey   string `env:"RECAPTCHA_SITE_KEY" envDefault:"yellow submarine"`
 	RecaptchaURL       string `env:"RECATCHA_URL" envDefault:"yellow submarine"`
