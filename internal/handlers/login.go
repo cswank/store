@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/schema"
 )
 
@@ -27,7 +28,7 @@ func Login(w http.ResponseWriter, req *http.Request) error {
 		Error:          req.URL.Query().Get("error"),
 	}
 
-	return templates["login.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("login.html").ExecuteTemplate(w, "base", p)
 }
 
 func DoLogin(w http.ResponseWriter, req *http.Request) error {
@@ -61,7 +62,7 @@ func Logout(w http.ResponseWriter, req *http.Request) error {
 			Admin: Admin(req),
 		},
 	}
-	return templates["logout.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("logout.html").ExecuteTemplate(w, "base", p)
 }
 
 func DoLogout(w http.ResponseWriter, req *http.Request) error {

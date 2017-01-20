@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
 )
 
@@ -51,7 +52,7 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 		Placeholder: "new category",
 		AdminLinks:  []link{{Name: "Categories", Link: "/admin"}},
 	}
-	return templates["admin.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("admin.html").ExecuteTemplate(w, "base", p)
 }
 
 func AddCategory(w http.ResponseWriter, req *http.Request) error {
@@ -109,7 +110,7 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 			{Name: vars["category"], Link: from},
 		},
 	}
-	return templates["admin.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("admin.html").ExecuteTemplate(w, "base", p)
 }
 
 func RenameCategory(w http.ResponseWriter, req *http.Request) error {
@@ -213,7 +214,7 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 		IsProduct: true,
 	}
 
-	return templates["admin.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("admin.html").ExecuteTemplate(w, "base", p)
 }
 
 func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
@@ -250,7 +251,7 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 		Subcategories: subs,
 	}
 
-	return templates["admin-product.html"].template.ExecuteTemplate(w, "base", page)
+	return templates.Get("admin-product.html").ExecuteTemplate(w, "base", page)
 }
 
 func DeleteProduct(w http.ResponseWriter, req *http.Request) error {
@@ -319,5 +320,5 @@ func Confirm(w http.ResponseWriter, req *http.Request) error {
 		Name:     name,
 		Resource: resource,
 	}
-	return templates["confirm.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("confirm.html").ExecuteTemplate(w, "base", p)
 }

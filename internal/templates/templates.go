@@ -1,17 +1,11 @@
-package handlers
+package templates
 
 import (
 	"errors"
 	"html/template"
-	"io"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"os"
-	"strings"
 
 	"github.com/GeertJohan/go.rice"
-	"github.com/cswank/store/internal/store"
 )
 
 var (
@@ -46,8 +40,6 @@ var (
 
 	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
 	templates              map[string]tmpl
-	ico                    []byte
-	box                    *rice.Box
 )
 
 type tmpl struct {
@@ -56,8 +48,7 @@ type tmpl struct {
 	bare     bool
 }
 
-func Init(b *rice.Box) {
-	box = b
+func Init(box *rice.Box) {
 	data := map[string]string{}
 	for _, pth := range html {
 		s, err := box.String(pth)
@@ -105,64 +96,8 @@ func Init(b *rice.Box) {
 		val.template = t
 		templates[key] = val
 	}
-
-	f, err := box.Open("images/favicon.ico")
-
-	if err == nil {
-		ico, _ = ioutil.ReadAll(f)
-		f.Close()
-	}
-
-	shopify = shopifyAPI{
-		APIKey: os.Getenv("SHOPIFY_JS_KEY"),
-		Domain: os.Getenv("SHOPIFY_DOMAIN"),
-	}
-
-	captchaSiteKey = os.Getenv("RECAPTCHA_SITE_KEY")
-	captchaSecretKey = os.Getenv("RECAPTCHA_SECRET_KEY")
-	captchaURL = os.Getenv("RECAPTCHA_URL")
-	if captchaSiteKey != "" && captchaSecretKey != "" && captchaURL != "" {
-		captcha = true
-	}
-
-	if shopify.APIKey == "" || shopify.Domain == "" {
-		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")
-	}
-
-	storeEmail = os.Getenv("STORE_EMAIL")
-	storeEmailPassword = os.Getenv("STORE_EMAIL_PASSWORD")
-	if storeEmail == "" || storeEmailPassword == "" {
-		log.Fatal("you must set STORE_EMAIL and STORE_EMAIL_PASSWORD")
-	}
-
-	makeNavbarLinks()
-	etags = make(map[string]string)
 }
 
-func Favicon(w http.ResponseWriter, req *http.Request) error {
-	w.Header().Set("Cache-Control", "max-age=86400")
-	w.Write(ico)
-	return nil
-}
-
-func ServeBox(w http.ResponseWriter, req *http.Request) error {
-	pth := req.URL.Path
-	if strings.HasPrefix(pth, ".") || strings.HasPrefix(pth, "/") {
-		return store.ErrNotFound
-	}
-
-	f, err := box.Open(pth)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(pth, ".css") {
-		w.Header().Set("Content-Type", "text/css")
-	}
-
-	w.Header().Set("Cache-Control", "max-age=86400")
-	io.Copy(w, f)
-	f.Close()
-
-	return nil
+func Get(k string) *template.Template {
+	return templates[k].template
 }

@@ -3,9 +3,13 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"strings"
 	"sync"
 
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/cswank/store/internal/store"
 )
 
@@ -13,7 +17,39 @@ var (
 	errInvalidLogin = errors.New("invalid login")
 	lock            sync.Mutex
 	shoppingLinks   []link
+	cfg             store.Config
+	box             *rice.Box
+	ico             []byte
 )
+
+func Init(c store.Config, b *rice.Box) {
+	cfg = c
+	box = b
+	shopify = shopifyAPI{
+		APIKey: cfg.ShopifyJSKey,
+		Domain: cfg.ShopifyDomain,
+	}
+
+	captchaSiteKey = cfg.RecaptchaSiteKey
+	captchaSecretKey = cfg.RecpatchaSecretKey
+	captchaURL = cfg.RecaptchaURL
+	if captchaSiteKey != "" && captchaSecretKey != "" && captchaURL != "" {
+		captcha = true
+	}
+
+	if shopify.APIKey == "" || shopify.Domain == "" {
+		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")
+	}
+
+	storeEmail = cfg.Email
+	storeEmailPassword = cfg.EmailPassword
+	if storeEmail == "" || storeEmailPassword == "" {
+		log.Fatal("you must set STORE_EMAIL and STORE_EMAIL_PASSWORD")
+	}
+
+	makeNavbarLinks()
+	etags = make(map[string]string)
+}
 
 type HandlerFunc func(http.ResponseWriter, *http.Request) error
 
@@ -136,4 +172,32 @@ func handleNotFound(w http.ResponseWriter) {
 func handleInvalidLogin(w http.ResponseWriter) {
 	w.Header().Set("Location", "/login?error=email or password is incorrect, please try again")
 	w.WriteHeader(http.StatusFound)
+}
+
+// func Favicon(w http.ResponseWriter, req *http.Request) error {
+// 	w.Header().Set("Cache-Control", "max-age=86400")
+// 	w.Write(ico)
+// 	return nil
+// }
+
+func ServeBox(w http.ResponseWriter, req *http.Request) error {
+	pth := req.URL.Path
+	if strings.HasPrefix(pth, ".") || strings.HasPrefix(pth, "/") {
+		return store.ErrNotFound
+	}
+
+	f, err := box.Open(pth)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(pth, ".css") {
+		w.Header().Set("Content-Type", "text/css")
+	}
+
+	w.Header().Set("Cache-Control", "max-age=86400")
+	io.Copy(w, f)
+	f.Close()
+
+	return nil
 }

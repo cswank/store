@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
 )
 
@@ -42,7 +43,7 @@ func Shop(w http.ResponseWriter, req *http.Request) error {
 			Shopify: shopify,
 		},
 	}
-	return templates["shop.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("shop.html").ExecuteTemplate(w, "base", p)
 }
 
 type cartPage struct {
@@ -61,7 +62,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 		},
 		Price: store.DefaultPrice,
 	}
-	return templates["cart.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("cart.html").ExecuteTemplate(w, "base", p)
 }
 
 func LineItem(w http.ResponseWriter, req *http.Request) error {
@@ -91,7 +92,7 @@ func LineItem(w http.ResponseWriter, req *http.Request) error {
 
 	t := float64(q) * price
 	p.Total = fmt.Sprintf("%.02f", t)
-	return templates["lineitem.html"].template.ExecuteTemplate(w, "lineitem.html", p)
+	return templates.Get("lineitem.html").ExecuteTemplate(w, "lineitem.html", p)
 }
 
 type categoryPage struct {
@@ -115,7 +116,7 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 			Name:    name,
 		},
 	}
-	return templates["category.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("category.html").ExecuteTemplate(w, "base", p)
 }
 
 func getLinks(href string, names []string) []link {
@@ -160,7 +161,7 @@ func SubCategory(w http.ResponseWriter, req *http.Request) error {
 		},
 		Products: getProducts(vars["category"], vars["subcategory"], prods),
 	}
-	return templates["subcategory.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("subcategory.html").ExecuteTemplate(w, "base", p)
 }
 
 type productPage struct {
@@ -207,5 +208,5 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 		},
 		Product: *p,
 	}
-	return templates["product.html"].template.ExecuteTemplate(w, "base", page)
+	return templates.Get("product.html").ExecuteTemplate(w, "base", page)
 }

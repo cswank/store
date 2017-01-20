@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/smtp"
 
+	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/schema"
 )
 
@@ -50,7 +51,7 @@ func Contact(w http.ResponseWriter, req *http.Request) error {
 		p.ShowMessage = true
 	}
 
-	return templates["contact.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("contact.html").ExecuteTemplate(w, "base", p)
 }
 
 type msg struct {

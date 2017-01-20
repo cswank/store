@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/cswank/store/internal/templates"
 )
 
 type page struct {
@@ -26,7 +28,7 @@ func Home(w http.ResponseWriter, req *http.Request) error {
 		Shopify: shopify,
 		Name:    name,
 	}
-	return templates["index.html"].template.ExecuteTemplate(w, "base", p)
+	return templates.Get("index.html").ExecuteTemplate(w, "base", p)
 }
 
 func Redirect(w http.ResponseWriter, req *http.Request) {

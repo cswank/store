@@ -41,30 +41,30 @@ type Row struct {
 	Val     []byte
 }
 
-func NewRow(opts ...func(Row)) Row {
-	var r Row
+func NewRow(opts ...func(*Row)) Row {
+	r := &Row{}
 	for _, o := range opts {
 		o(r)
 	}
-	return r
+	return *r
 }
 
-func Key(k string) func(Row) {
-	return func(r Row) {
+func Key(k string) func(*Row) {
+	return func(r *Row) {
 		r.Key = []byte(k)
 	}
 }
 
-func Buckets(buckets ...string) func(Row) {
-	return func(r Row) {
+func Buckets(buckets ...string) func(*Row) {
+	return func(r *Row) {
 		for _, b := range buckets {
 			r.Buckets = append(r.Buckets, []byte(b))
 		}
 	}
 }
 
-func Val(v []byte) func(Row) {
-	return func(r Row) {
+func Val(v []byte) func(*Row) {
+	return func(r *Row) {
 		r.Val = v
 	}
 }

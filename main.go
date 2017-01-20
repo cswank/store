@@ -18,6 +18,7 @@ import (
 	"github.com/cswank/store/internal/handlers"
 	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/templates"
 	"github.com/cswank/store/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
@@ -40,6 +41,7 @@ var (
 	products          = kingpin.Command("products", "save and delete products")
 	deleteAllProducts = products.Command("delete-all", "edit users")
 	box               *rice.Box
+	staticBox         *rice.Box
 
 	ts *httptest.Server
 )
@@ -91,8 +93,10 @@ func initServe() {
 	}
 
 	box = rice.MustFindBox("templates")
+	staticBox = rice.MustFindBox("static")
 	shopify.Init()
-	handlers.Init(box)
+	handlers.Init(cfg, staticBox)
+	templates.Init(box)
 }
 
 func getMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler {
@@ -139,7 +143,7 @@ func doServe() {
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.UpdateProduct)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
-	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
+	//r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 	r.PathPrefix("/templates/").Handler(http.StripPrefix("/templates/", handlers.HandleErr(handlers.ServeBox)))
 	r.PathPrefix("/site/").Handler(http.StripPrefix("/site/", handlers.HandleErr(handlers.Static())))
 
