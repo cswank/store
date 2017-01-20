@@ -90,7 +90,7 @@ func initServe() {
 		cfg.ShopifyAPI = ts.URL
 	}
 
-	box = rice.MustFindBox("static")
+	box = rice.MustFindBox("templates")
 	shopify.Init()
 	handlers.Init(box)
 }
@@ -140,7 +140,7 @@ func doServe() {
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
 	r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr(handlers.ServeBox)))
+	r.PathPrefix("/templates/").Handler(http.StripPrefix("/templates/", handlers.HandleErr(handlers.ServeBox)))
 	r.PathPrefix("/site/").Handler(http.StripPrefix("/site/", handlers.HandleErr(handlers.Static())))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)

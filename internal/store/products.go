@@ -29,35 +29,35 @@ var (
 )
 
 func AddCategory(name string) error {
-	row := Row{Buckets: [][]byte{[]byte("products")}, Key: []byte(name)}
+	row := NewRow(Buckets("products"), Key(name))
 	return db.AddBucket(row)
 }
 
 func RenameCategory(old, name string) error {
-	src := Row{Buckets: [][]byte{[]byte("products")}, Key: []byte(old)}
-	dst := Row{Buckets: [][]byte{[]byte("products")}, Key: []byte(name)}
+	src := NewRow(Buckets("products"), Key(old))
+	dst := NewRow(Buckets("products"), Key(name))
 	return db.RenameBucket(src, dst)
 }
 
 func AddSubcategory(cat, name string) error {
-	row := Row{Buckets: [][]byte{[]byte("products"), []byte(cat)}, Key: []byte(name)}
+	row := NewRow(Buckets("products", cat), Key(name))
 	return db.AddBucket(row)
 }
 
 func RenameSubcategory(cat, old, name string) error {
-	src := Row{Buckets: [][]byte{[]byte("products"), []byte(cat)}, Key: []byte(old)}
-	dst := Row{Buckets: [][]byte{[]byte("products"), []byte(cat)}, Key: []byte(name)}
+	src := NewRow(Buckets("products", cat), Key(old))
+	dst := NewRow(Buckets("products", cat), Key(name))
 	return db.RenameBucket(src, dst)
 }
 
 func DeleteSubcategory(cat, subcat string) error {
-	rows := []Row{{Buckets: [][]byte{[]byte("products"), []byte(cat), []byte(subcat)}}}
+	rows := []Row{NewRow(Buckets("products", cat, subcat))}
 	return db.Delete(rows)
 }
 
 func GetCategories() ([]string, error) {
 	var cats []string
-	q := Row{Buckets: [][]byte{[]byte("products")}}
+	q := NewRow(Buckets("products"))
 	return cats, db.GetAll(q, func(key, val []byte) error {
 		cats = append(cats, string(key))
 		return nil
@@ -66,7 +66,7 @@ func GetCategories() ([]string, error) {
 
 func GetSubCategories(cat string) ([]string, error) {
 	var cats []string
-	q := Row{Buckets: [][]byte{[]byte("products"), []byte(cat)}}
+	q := NewRow(Buckets("products", cat))
 	return cats, db.GetAll(q, func(key, val []byte) error {
 		cats = append(cats, string(key))
 		return nil
@@ -75,7 +75,7 @@ func GetSubCategories(cat string) ([]string, error) {
 
 func GetProducts(cat, subcat string) ([]string, error) {
 	var products []string
-	q := Row{Buckets: [][]byte{[]byte("products"), []byte(cat), []byte(subcat)}}
+	q := NewRow(Buckets("products", cat, subcat))
 	return products, db.GetAll(q, func(key, val []byte) error {
 		products = append(products, string(key))
 		return nil
@@ -159,11 +159,15 @@ func (p *Product) Delete() error {
 
 func (p *Product) query() []Row {
 	d, _ := json.Marshal(p)
-	return []Row{{Key: []byte(p.Title), Val: d, Buckets: [][]byte{[]byte("products"), []byte(p.Cat), []byte(p.Subcat)}}}
+	return []Row{
+		NewRow(Key(p.Title), Val(d), Buckets("products", p.Cat, p.Subcat)),
+	}
 }
 
 func (p *Product) imageQuery() []Row {
-	return []Row{{Buckets: [][]byte{[]byte("images"), []byte("products"), []byte(p.Title)}}}
+	return []Row{
+		NewRow(Buckets("images", "products", p.Title)),
+	}
 }
 
 func (p *Product) Add(r io.Reader) error {
@@ -192,7 +196,7 @@ func (p *Product) Add(r io.Reader) error {
 
 func (p *Product) getSubcat(rows []Row) ([]Row, error) {
 	var ids []string
-	q := Row{Buckets: [][]byte{[]byte("products"), []byte(p.Cat), []byte(p.Subcat)}}
+	q := NewRow(Buckets("products", p.Cat, p.Subcat))
 	err := db.GetAll(q, func(key, val []byte) error {
 		id := string(key)
 		if id == p.Title {
@@ -206,17 +210,17 @@ func (p *Product) getSubcat(rows []Row) ([]Row, error) {
 		return []Row{}, err
 	}
 
-	buckets := [][]byte{
-		[]byte("products"),
-		[]byte(p.Cat),
-		[]byte(p.Subcat),
+	buckets := []string{
+		"products",
+		p.Cat,
+		p.Subcat,
 	}
 
 	d, err := json.Marshal(p)
 	if err != nil {
 		return []Row{}, err
 	}
-	r := Row{Key: []byte(p.Title), Val: d, Buckets: buckets}
+	r := NewRow(Key(p.Title), Val(d), Buckets(buckets...))
 	rows = append(rows, r)
 	return rows, nil
 }
@@ -239,7 +243,7 @@ func addImage(r io.Reader, name, bucket string) ([]byte, []Row, error) {
 			imgData = d
 		}
 
-		r := Row{Key: []byte(sizeNames[s]), Val: d, Buckets: [][]byte{[]byte("images"), []byte(bucket), []byte(name)}}
+		r := NewRow(Key(sizeNames[s]), Val(d), Buckets("images", bucket, name))
 		rows[i] = r
 	}
 	return imgData, rows, nil

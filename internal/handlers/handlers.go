@@ -95,6 +95,22 @@ func getSubcatLinks(cat string) []link {
 	return l
 }
 
+func Static() HandlerFunc {
+	srv := http.FileServer(http.Dir("."))
+	return func(w http.ResponseWriter, req *http.Request) error {
+		// pusher, ok := w.(http.Pusher)
+		// if ok {
+		// 	for _, resource := range pushes[req.URL.Path] {
+		// 		if err := pusher.Push(resource, nil); err != nil {
+		// 			return err
+		// 		}
+		// 	}
+		// }
+		srv.ServeHTTP(w, req)
+		return nil
+	}
+}
+
 func HandleErr(f HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := f(w, r)
