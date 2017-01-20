@@ -11,6 +11,7 @@ import (
 
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/cswank/store/internal/store"
+	"github.com/cswank/store/internal/templates"
 )
 
 var (
@@ -156,7 +157,7 @@ func HandleErr(f HandlerFunc) http.HandlerFunc {
 		if err == errInvalidLogin {
 			handleInvalidLogin(w)
 		} else if err == store.ErrNotFound {
-			handleNotFound(w)
+			handleNotFound(w, r)
 		} else {
 			lg.Println("internal server err", r.URL.RawPath, err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -164,9 +165,14 @@ func HandleErr(f HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func handleNotFound(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("not found"))
+func handleNotFound(w http.ResponseWriter, req *http.Request) {
+	p := page{
+		Links:   getNavbarLinks(req),
+		Admin:   Admin(req),
+		Shopify: shopify,
+		Name:    name,
+	}
+	templates.Get("notfound.html").ExecuteTemplate(w, "base", p)
 }
 
 func handleInvalidLogin(w http.ResponseWriter) {
