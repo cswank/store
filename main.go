@@ -159,13 +159,11 @@ func doServe() {
 
 	serve = srv.ListenAndServe
 
-	var withTLS bool
-
 	if cfg.TLS {
 		serve = getTLS(srv)
 	}
 
-	log.Printf("listening on %s (tls: %v)\n", addr, withTLS)
+	log.Printf("listening on %s (tls: %v)\n", addr, cfg.TLS)
 	log.Println(serve())
 }
 

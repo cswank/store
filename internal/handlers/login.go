@@ -12,6 +12,7 @@ type loginPage struct {
 	Resource       string
 	Captcha        bool
 	CaptchaSiteKey string
+	Error          string
 }
 
 func Login(w http.ResponseWriter, req *http.Request) error {
@@ -23,6 +24,7 @@ func Login(w http.ResponseWriter, req *http.Request) error {
 		},
 		Captcha:        true,
 		CaptchaSiteKey: captchaSiteKey,
+		Error:          req.URL.Query().Get("error"),
 	}
 
 	return templates["login.html"].template.ExecuteTemplate(w, "base", p)

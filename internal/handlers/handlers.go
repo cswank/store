@@ -118,6 +118,6 @@ func handleNotFound(w http.ResponseWriter) {
 }
 
 func handleInvalidLogin(w http.ResponseWriter) {
-	w.Header().Set("Location", "/login.html?error=invalid-login")
+	w.Header().Set("Location", "/login?error=email or password is incorrect, please try again")
 	w.WriteHeader(http.StatusFound)
 }

@@ -203,7 +203,7 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 			Admin:       Admin(req),
 			Shopify:     shopify,
 			Name:        name,
-			Stylesheets: []string{"/static/css/product.css"},
+			Stylesheets: []string{"/site/css/product.css"},
 		},
 		Product: *p,
 	}

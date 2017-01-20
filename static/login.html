@@ -1,5 +1,9 @@
 {{define "content"}}
 
+{{if .Error}}
+<div class="center error-msg">{{.Error}}</div>
+{{end}}
+
 <div class="form-holder">
   <form class="pure-form pure-form-stacked" action="/login" method="POST">
     <fieldset>
