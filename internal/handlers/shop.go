@@ -137,7 +137,7 @@ func getProducts(cat, subcat string, prods []string) []product {
 	for i, t := range prods {
 		out[i] = product{
 			Title: t,
-			Image: fmt.Sprintf("/images/products/%s/thumb.png", t),
+			Image: fmt.Sprintf("/shop/images/products/%s/thumb.png", t),
 			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, t),
 			Price: store.DefaultPrice,
 		}
@@ -204,7 +204,7 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 			Admin:       Admin(req),
 			Shopify:     shopify,
 			Name:        name,
-			Stylesheets: []string{"/site/css/product.css"},
+			Stylesheets: []string{"/css/product.css"},
 		},
 		Product: *p,
 	}

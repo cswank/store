@@ -44,7 +44,7 @@ func Contact(w http.ResponseWriter, req *http.Request) error {
 	if captcha {
 		p.Captcha = true
 		p.Scripts = []string{"https://www.google.com/recaptcha/api.js"}
-		p.CaptchaSiteKey = captchaSiteKey
+		p.CaptchaSiteKey = cfg.RecaptchaSiteKey
 	}
 
 	if s == "true" {

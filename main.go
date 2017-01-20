@@ -118,7 +118,6 @@ func doServe() {
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
-	r.Handle("/images/{type}/{title}/{size}", getImageMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
@@ -126,6 +125,7 @@ func doServe() {
 	r.Handle("/shop/{category}", getMiddleware(handlers.Anyone, handlers.Category)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.Product)).Methods("GET")
+	r.Handle("/shop/images/{type}/{title}/{size}", getImageMiddleware(handlers.Anyone, handlers.Image)).Methods("GET")
 
 	r.Handle("/api/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.GetProduct)).Methods("GET")
 
@@ -143,9 +143,13 @@ func doServe() {
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.UpdateProduct)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}/products/{title}", getMiddleware(handlers.Admin, handlers.DeleteProduct)).Methods("DELETE")
 
+	r.NotFoundHandler = http.HandlerFunc(handlers.NotFound)
+
 	//r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-	r.PathPrefix("/templates/").Handler(http.StripPrefix("/templates/", handlers.HandleErr(handlers.ServeBox)))
-	r.PathPrefix("/site/").Handler(http.StripPrefix("/site/", handlers.HandleErr(handlers.Static())))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr(handlers.ServeBox)))
+	r.PathPrefix("/images").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/css").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/js").Handler(handlers.HandleErr(handlers.Static()))
 
 	chain := alice.New(handlers.Log(cfg.LogOutput)).Then(r)
 	iface := os.Getenv("STORE_IFACE")

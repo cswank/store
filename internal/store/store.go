@@ -27,7 +27,7 @@ type Config struct {
 	LetsEncrypt   bool     `env:"STORE_LETS_ENCRYPT" envDefault:"false"`
 
 	RecaptchaSiteKey   string `env:"RECAPTCHA_SITE_KEY" envDefault:"yellow submarine"`
-	RecaptchaURL       string `env:"RECATCHA_URL" envDefault:"yellow submarine"`
+	RecaptchaURL       string `env:"RECAPTCHA_URL" envDefault:"yellow submarine"`
 	RecpatchaSecretKey string `env:"RECAPTCHA_SECRET_KEY" envDefault:"yellow submarine"`
 
 	ShopifyAPI    string `env:"SHOPIFY_API" envDefault:"yellow submarine"`

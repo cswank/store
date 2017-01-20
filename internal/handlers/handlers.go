@@ -157,7 +157,7 @@ func HandleErr(f HandlerFunc) http.HandlerFunc {
 		if err == errInvalidLogin {
 			handleInvalidLogin(w)
 		} else if err == store.ErrNotFound {
-			handleNotFound(w, r)
+			NotFound(w, r)
 		} else {
 			lg.Println("internal server err", r.URL.RawPath, err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -165,7 +165,7 @@ func HandleErr(f HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func handleNotFound(w http.ResponseWriter, req *http.Request) {
+func NotFound(w http.ResponseWriter, req *http.Request) {
 	p := page{
 		Links:   getNavbarLinks(req),
 		Admin:   Admin(req),
