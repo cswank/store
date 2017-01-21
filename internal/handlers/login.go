@@ -24,7 +24,7 @@ func Login(w http.ResponseWriter, req *http.Request) error {
 			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
 		},
 		Captcha:        true,
-		CaptchaSiteKey: captchaSiteKey,
+		CaptchaSiteKey: cfg.RecaptchaSiteKey,
 		Error:          req.URL.Query().Get("error"),
 	}
 

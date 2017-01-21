@@ -112,7 +112,7 @@ func getCaptchaForm(req *http.Request) url.Values {
 	}
 
 	return url.Values{
-		"secret":   {cfg.RecaptchaSiteKey},
+		"secret":   {cfg.RecaptchaSecretKey},
 		"response": {req.FormValue("g-recaptcha-response")},
 	}
 }

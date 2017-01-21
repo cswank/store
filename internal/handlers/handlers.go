@@ -31,15 +31,12 @@ func Init(c store.Config, b *rice.Box) {
 		Domain: cfg.ShopifyDomain,
 	}
 
-	captchaSiteKey = cfg.RecaptchaSiteKey
-	captchaSecretKey = cfg.RecpatchaSecretKey
-	captchaURL = cfg.RecaptchaURL
-	if captchaSiteKey != "" && captchaSecretKey != "" && captchaURL != "" {
-		captcha = true
-	}
-
 	if shopify.APIKey == "" || shopify.Domain == "" {
 		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")
+	}
+
+	if cfg.RecaptchaSiteKey != "" && cfg.RecaptchaSecretKey != "" && cfg.RecaptchaURL != "" {
+		captcha = true
 	}
 
 	storeEmail = cfg.Email

@@ -28,7 +28,7 @@ type Config struct {
 
 	RecaptchaSiteKey   string `env:"RECAPTCHA_SITE_KEY" envDefault:"yellow submarine"`
 	RecaptchaURL       string `env:"RECAPTCHA_URL" envDefault:"yellow submarine"`
-	RecpatchaSecretKey string `env:"RECAPTCHA_SECRET_KEY" envDefault:"yellow submarine"`
+	RecaptchaSecretKey string `env:"RECAPTCHA_SECRET_KEY" envDefault:"yellow submarine"`
 
 	ShopifyAPI    string `env:"SHOPIFY_API" envDefault:"yellow submarine"`
 	ShopifyDomain string `env:"SHOPIFY_DOMAIN" envDefault:"yellow submarine"`

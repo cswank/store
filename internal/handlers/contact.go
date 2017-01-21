@@ -12,9 +12,6 @@ import (
 var (
 	storeEmail         string
 	storeEmailPassword string
-	captchaSiteKey     string
-	captchaSecretKey   string
-	captchaURL         string
 	captcha            bool
 	mailTemplate       = `From: %s
 To: %s
