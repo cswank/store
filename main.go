@@ -15,6 +15,7 @@ import (
 
 	"github.com/GeertJohan/go.rice"
 	"github.com/caarlos0/env"
+	"github.com/cswank/store/internal/config"
 	"github.com/cswank/store/internal/handlers"
 	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
@@ -26,7 +27,7 @@ import (
 )
 
 var (
-	cfg      store.Config
+	cfg      config.Config
 	serve    = kingpin.Command("serve", "Start the server.")
 	fake     = serve.Flag("fake-shopify", "start a fake shopify").Short('f').Bool()
 	items    = kingpin.Command("items", "save and delete items")
@@ -94,7 +95,7 @@ func initServe() {
 
 	box = rice.MustFindBox("templates")
 	staticBox = rice.MustFindBox("static")
-	shopify.Init()
+	shopify.Init(cfg)
 	handlers.Init(cfg, staticBox)
 	templates.Init(box)
 }
@@ -148,6 +149,8 @@ func doServe() {
 	//r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr(handlers.ServeBox)))
 	r.PathPrefix("/images").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/robots.txt").Handler(handlers.HandleErr(handlers.Static()))
+	r.PathPrefix("/favicon.ico").Handler(handlers.HandleErr(handlers.Static()))
 	r.PathPrefix("/css").Handler(handlers.HandleErr(handlers.Static()))
 	r.PathPrefix("/js").Handler(handlers.HandleErr(handlers.Static()))
 

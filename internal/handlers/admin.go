@@ -8,7 +8,6 @@ import (
 
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
-	"github.com/gorilla/mux"
 )
 
 type adminPage struct {
@@ -56,13 +55,17 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AddCategory(w http.ResponseWriter, req *http.Request) error {
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
+
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return err
 	}
 
 	name := req.FormValue("Name")
-	vars := mux.Vars(req)
-	cat := vars["category"]
+
 	if cat == "" {
 		if err := store.AddCategory(name); err != nil {
 			return err
@@ -85,7 +88,11 @@ func AddCategory(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
+
 	subcats, err := store.GetSubCategories(vars["category"])
 	if err != nil {
 		return err
@@ -114,8 +121,10 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 }
 
 func RenameCategory(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
-	cat := vars["category"]
+	cat, _, _, err := getVars(req)
+	if err != nil {
+		return err
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return err
@@ -135,16 +144,17 @@ func RenameCategory(w http.ResponseWriter, req *http.Request) error {
 }
 
 func RenameSubcategory(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
-	cat := vars["category"]
-	subcat := vars["subcategory"]
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return err
 	}
 
 	newName := req.FormValue("Name")
-	err := store.RenameSubcategory(cat, subcat, newName)
+	err = store.RenameSubcategory(cat, subcat, newName)
 	if err != nil {
 		return err
 	}
@@ -157,9 +167,10 @@ func RenameSubcategory(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AddProduct(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
-	cat := vars["category"]
-	subcat := vars["subcategory"]
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
 
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return err
@@ -186,7 +197,11 @@ func AddProduct(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
+
 	products, err := store.GetProducts(vars["category"], vars["subcategory"])
 	if err != nil {
 		return err
@@ -218,7 +233,11 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
+
 	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
 	err := p.Fetch()
 	if err != nil {
@@ -255,7 +274,11 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 }
 
 func DeleteProduct(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
+
 	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
 	if err := p.Fetch(); err != nil {
 		return err
@@ -279,9 +302,13 @@ func clearEtag(title string) {
 }
 
 func UpdateProduct(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
+
 	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
-	err := p.Fetch()
+	err = p.Fetch()
 	if err != nil {
 		return err
 	}

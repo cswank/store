@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/cswank/store/internal/store"
-	"github.com/gorilla/mux"
 )
 
 var (
@@ -17,7 +16,11 @@ var (
 )
 
 func Image(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
+	cat, subcat, vars, err := getVars(req)
+	if err != nil {
+		return err
+	}
+
 	img, err := store.GetImage(vars["type"], vars["title"], vars["size"])
 	if err != nil {
 		return err

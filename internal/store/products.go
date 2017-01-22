@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	full  = 360
-	thumb = 200
+	full  = 660
+	thumb = 260
 )
 
 var (
@@ -250,7 +250,7 @@ func addImage(r io.Reader, name, bucket string) ([]byte, []Row, error) {
 }
 
 func resizeImage(img image.Image, size uint) ([]byte, error) {
-	m := resize.Resize(size, 0, img, resize.Lanczos3)
+	m := resize.Resize(size, 0, img, resize.Bilinear)
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, m); err != nil {
 		return nil, err

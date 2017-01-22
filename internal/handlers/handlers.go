@@ -6,10 +6,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 
 	rice "github.com/GeertJohan/go.rice"
+	"github.com/cswank/store/internal/config"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
 )
@@ -18,12 +20,12 @@ var (
 	errInvalidLogin = errors.New("invalid login")
 	lock            sync.Mutex
 	shoppingLinks   []link
-	cfg             store.Config
+	cfg             config.Config
 	box             *rice.Box
 	ico             []byte
 )
 
-func Init(c store.Config, b *rice.Box) {
+func Init(c config.Config, b *rice.Box) {
 	cfg = c
 	box = b
 	shopify = shopifyAPI{
@@ -121,7 +123,7 @@ func getSubcatLinks(cat string) []link {
 
 	for i, subcat := range subcats {
 		l[i] = link{
-			Link: fmt.Sprintf("/shop/%s/%s", cat, subcat),
+			Link: fmt.Sprintf("/shop/%s/%s", url.QueryEscape(cat), url.QueryEscape(subcat)),
 			Name: subcat,
 		}
 	}

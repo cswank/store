@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/caarlos0/env"
+	"github.com/cswank/store/internal/config"
 	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/store/mock"
@@ -21,7 +22,7 @@ var _ = Describe("products", func() {
 		db      *mock.DB
 		id      int
 		ts      *httptest.Server
-		cfg     store.Config
+		cfg     config.Config
 		buckets map[string][]mock.Result
 		errs    []error
 	)
