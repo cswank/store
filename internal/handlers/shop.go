@@ -175,7 +175,9 @@ func SubCategory(w http.ResponseWriter, req *http.Request) error {
 
 type productPage struct {
 	page
-	Product store.Product
+	Product     store.Product
+	Back        string
+	Subcategory string
 }
 
 type product struct {
@@ -216,7 +218,9 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 			Name:        name,
 			Stylesheets: []string{"/css/product.css"},
 		},
-		Product: *p,
+		Product:     *p,
+		Back:        fmt.Sprintf("/shop/%s/%s", cat, subcat),
+		Subcategory: subcat,
 	}
 	return templates.Get("product.html").ExecuteTemplate(w, "base", page)
 }

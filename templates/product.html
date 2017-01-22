@@ -2,7 +2,7 @@
 <div id="product">
   <div class="pure-g">
     <div class="pure-u-1-2 center">
-      <img class="shadowed" id="img" src="/shop/images/products/{{.Product.Title}}/image.png"/>
+      <img class="shadowed product-img" id="img" src="/shop/images/products/{{.Product.Title}}/image.png"/>
       <div>
         <a>${{.Product.Price}}</a>        
       </div>
@@ -40,7 +40,9 @@
         <li>
           <p>Designed and printed in the USA.</p>
         </li>
+        
       </ul>
+      <button class="pure-button pure-button-primary"><a href="{{.Back}}">Back To {{.Subcategory}}</a></button>
     </div>
     </div>
   </div>
