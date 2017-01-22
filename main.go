@@ -34,15 +34,15 @@ var (
 	itemAdd  = items.Command("add", "add an item")
 	itemEdit = items.Command("edit", "edit items")
 
-	categories = kingpin.Command("categories", "save, edit and delete categories")
+	users    = kingpin.Command("users", "save and delete users")
+	userAdd  = users.Command("add", "add an item")
+	userEdit = users.Command("edit", "edit users")
 
-	users             = kingpin.Command("users", "save and delete users")
-	userAdd           = users.Command("add", "add an item")
-	userEdit          = users.Command("edit", "edit users")
-	products          = kingpin.Command("products", "save and delete products")
-	deleteAllProducts = products.Command("delete-all", "edit users")
-	box               *rice.Box
-	staticBox         *rice.Box
+	categories = kingpin.Command("categories", "save, edit and delete categories")
+	edit       = categories.Command("edit", "edit categories and subcategories")
+
+	box       *rice.Box
+	staticBox *rice.Box
 
 	ts *httptest.Server
 )
@@ -69,6 +69,8 @@ func main() {
 		utils.AddUser()
 	case "users edit":
 		utils.EditUser()
+	case "categories edit":
+		utils.EditCategory()
 	}
 }
 

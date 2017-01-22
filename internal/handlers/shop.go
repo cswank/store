@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"path"
 	"strconv"
 
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
+	"github.com/gorilla/mux"
 )
 
 type shopifyAPI struct {
@@ -65,10 +65,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 }
 
 func LineItem(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, vars := getVars(req)
 
 	p := store.NewProduct(vars["title"], cat, subcat, "")
 	if err := p.Fetch(); err != nil {
@@ -104,10 +101,7 @@ type categoryPage struct {
 }
 
 func Category(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, _, _ := getVars(req)
 
 	subs, err := store.GetSubCategories(cat)
 	if err != nil {
@@ -152,25 +146,16 @@ func getProducts(cat, subcat string, prods []string) []product {
 	return out
 }
 
-func getVars(req *http.Request) (string, string, map[string]string, error) {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
-
-	cat, err := url.QueryUnescape(cat)
-	if err != nil {
-		return "", "", nil, err
-	}
-	subcat, err := url.QueryUnescape(subcat)
-	return cat, subcat, vars, err
+func getVars(req *http.Request) (string, string, map[string]string) {
+	vars := mux.Vars(req)
+	cat := vars["category"]
+	subcat := vars["subcategory"]
+	return cat, subcat, vars
 }
 
 func SubCategory(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, _ := getVars(req)
+
 	prods, err := store.GetProducts(cat, subcat)
 	if err != nil {
 		return err
@@ -202,10 +187,7 @@ type product struct {
 }
 
 func GetProduct(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, vars := getVars(req)
 
 	p := store.NewProduct(vars["title"], cat, subcat, "")
 	if err := p.Fetch(); err != nil {
@@ -216,10 +198,7 @@ func GetProduct(w http.ResponseWriter, req *http.Request) error {
 }
 
 func Product(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, vars := getVars(req)
 
 	p := store.NewProduct(vars["title"], cat, subcat, "")
 

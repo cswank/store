@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 
@@ -123,7 +122,7 @@ func getSubcatLinks(cat string) []link {
 
 	for i, subcat := range subcats {
 		l[i] = link{
-			Link: fmt.Sprintf("/shop/%s/%s", url.QueryEscape(cat), url.QueryEscape(subcat)),
+			Link: fmt.Sprintf("/shop/%s/%s", cat, subcat),
 			Name: subcat,
 		}
 	}

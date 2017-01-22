@@ -55,16 +55,16 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AddCategory(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, _, _ := getVars(req)
 
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return err
 	}
 
 	name := req.FormValue("Name")
+	if strings.Contains(name, "/") {
+		return fmt.Errorf("illegal character (/)")
+	}
 
 	if cat == "" {
 		if err := store.AddCategory(name); err != nil {
@@ -88,17 +88,14 @@ func AddCategory(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
+	cat, _, _ := getVars(req)
+
+	subcats, err := store.GetSubCategories(cat)
 	if err != nil {
 		return err
 	}
 
-	subcats, err := store.GetSubCategories(vars["category"])
-	if err != nil {
-		return err
-	}
-
-	from := fmt.Sprintf("/admin/categories/%s", vars["category"])
+	from := fmt.Sprintf("/admin/categories/%s", cat)
 	p := adminPage{
 		page: page{
 			Admin:   Admin(req),
@@ -108,23 +105,20 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 		},
 		Items:        subcats,
 		From:         from,
-		URI:          fmt.Sprintf("/admin/categories/%s/subcategories", vars["category"]),
-		Resource:     fmt.Sprintf("/admin/categories/%s", vars["category"]),
-		ResourceName: vars["category"],
+		URI:          fmt.Sprintf("/admin/categories/%s/subcategories", cat),
+		Resource:     fmt.Sprintf("/admin/categories/%s", cat),
+		ResourceName: cat,
 		Placeholder:  "new sub-category",
 		AdminLinks: []link{
 			{Name: "Categories", Link: "/admin"},
-			{Name: vars["category"], Link: from},
+			{Name: cat, Link: from},
 		},
 	}
 	return templates.Get("admin.html").ExecuteTemplate(w, "base", p)
 }
 
 func RenameCategory(w http.ResponseWriter, req *http.Request) error {
-	cat, _, _, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, _, _ := getVars(req)
 
 	if err := req.ParseForm(); err != nil {
 		return err
@@ -144,17 +138,14 @@ func RenameCategory(w http.ResponseWriter, req *http.Request) error {
 }
 
 func RenameSubcategory(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, _ := getVars(req)
 
 	if err := req.ParseForm(); err != nil {
 		return err
 	}
 
 	newName := req.FormValue("Name")
-	err = store.RenameSubcategory(cat, subcat, newName)
+	err := store.RenameSubcategory(cat, subcat, newName)
 	if err != nil {
 		return err
 	}
@@ -167,10 +158,7 @@ func RenameSubcategory(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AddProduct(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, _ := getVars(req)
 
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return err
@@ -197,17 +185,14 @@ func AddProduct(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
+	cat, subcat, _ := getVars(req)
+
+	products, err := store.GetProducts(cat, subcat)
 	if err != nil {
 		return err
 	}
 
-	products, err := store.GetProducts(vars["category"], vars["subcategory"])
-	if err != nil {
-		return err
-	}
-
-	from := fmt.Sprintf("/admin/categories/%s/subcategories/%s", vars["category"], vars["subcategory"])
+	from := fmt.Sprintf("/admin/categories/%s/subcategories/%s", cat, subcat)
 	p := adminPage{
 		page: page{
 			Admin:   Admin(req),
@@ -217,14 +202,14 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 		},
 		Items:        products,
 		From:         from,
-		URI:          fmt.Sprintf("/admin/categories/%s/subcategories/%s/products", vars["category"], vars["subcategory"]),
-		Resource:     fmt.Sprintf("/admin/categories/%s/subcategories/%s", vars["category"], vars["subcategory"]),
-		ResourceName: vars["subcategory"],
+		URI:          fmt.Sprintf("/admin/categories/%s/subcategories/%s/products", cat, subcat),
+		Resource:     fmt.Sprintf("/admin/categories/%s/subcategories/%s", cat, subcat),
+		ResourceName: subcat,
 		Placeholder:  "new product",
 		AdminLinks: []link{
 			{Name: "Categories", Link: "/admin"},
-			{Name: vars["category"], Link: fmt.Sprintf("/admin/categories/%s", vars["category"])},
-			{Name: vars["subcategory"], Link: from},
+			{Name: cat, Link: fmt.Sprintf("/admin/categories/%s", cat)},
+			{Name: subcat, Link: from},
 		},
 		IsProduct: true,
 	}
@@ -233,12 +218,9 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 }
 
 func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
+	p := store.NewProduct(vars["title"], cat, subcat, "")
 	err := p.Fetch()
 	if err != nil {
 		return err
@@ -274,12 +256,9 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 }
 
 func DeleteProduct(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
+	p := store.NewProduct(vars["title"], cat, subcat, "")
 	if err := p.Fetch(); err != nil {
 		return err
 	}
@@ -302,13 +281,10 @@ func clearEtag(title string) {
 }
 
 func UpdateProduct(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars, err := getVars(req)
-	if err != nil {
-		return err
-	}
+	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], vars["category"], vars["subcategory"], "")
-	err = p.Fetch()
+	p := store.NewProduct(vars["title"], cat, subcat, "")
+	err := p.Fetch()
 	if err != nil {
 		return err
 	}
