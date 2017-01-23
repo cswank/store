@@ -47,7 +47,8 @@ func Shop(w http.ResponseWriter, req *http.Request) error {
 
 type cartPage struct {
 	page
-	Price string
+	Price             string
+	UnderConstruction bool
 }
 
 func Cart(w http.ResponseWriter, req *http.Request) error {
@@ -59,7 +60,8 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 			Shopify: shopify,
 			Name:    name,
 		},
-		Price: store.DefaultPrice,
+		Price:             cfg.DefaultPrice,
+		UnderConstruction: cfg.UnderConstruction,
 	}
 	return templates.Get("cart.html").ExecuteTemplate(w, "base", p)
 }
@@ -85,7 +87,7 @@ func LineItem(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	p.Quantity = int(q)
-	price, err := strconv.ParseFloat(store.DefaultPrice, 10)
+	price, err := strconv.ParseFloat(cfg.DefaultPrice, 10)
 	if err != nil {
 		return err
 	}
@@ -140,7 +142,7 @@ func getProducts(cat, subcat string, prods []string) []product {
 			Title: t,
 			Image: fmt.Sprintf("/shop/images/products/%s/thumb.png", t),
 			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, t),
-			Price: store.DefaultPrice,
+			Price: cfg.DefaultPrice,
 		}
 	}
 	return out

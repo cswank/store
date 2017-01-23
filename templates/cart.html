@@ -3,7 +3,11 @@
 <div id="cart">
 
   <div id="checkout">
+    {{if .UnderConstruction}}
+    This site is under construction and items can't be purchased.  Please check back soon.  
+    {{else}}
     <button onClick="checkout()" class="pure-button pure-button-primary">Checkout</button>
+    {{end}}
   </div>
   
   <div id="items">

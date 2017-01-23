@@ -8,10 +8,6 @@ import (
 	"github.com/cswank/store/internal/config"
 )
 
-var (
-	DefaultPrice string
-)
-
 type Row struct {
 	Key     []byte
 	Buckets [][]byte
@@ -73,8 +69,6 @@ func Init(c config.Config, opts ...func()) {
 		b := getBolt(filepath.Join(cfg.DataDir, "db"))
 		db = &Bolt{db: b}
 	}
-
-	DefaultPrice = cfg.DefaultPrice
 }
 
 func SetDB(d storer) func() {

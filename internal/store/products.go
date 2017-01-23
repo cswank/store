@@ -103,7 +103,7 @@ func NewProduct(title, cat, subcat, description string) *Product {
 		Cat:         cat,
 		Subcat:      subcat,
 		Description: description,
-		Price:       DefaultPrice,
+		Price:       cfg.DefaultPrice,
 	}
 }
 
