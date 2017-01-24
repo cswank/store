@@ -23,7 +23,7 @@ func Wholesale(w http.ResponseWriter, req *http.Request) error {
 	if Wholesaler(req) {
 		return getWholesalePage(w, req)
 	}
-	return getWholesaleForm(w, req)
+	return getWholesaleLogin(w, req)
 }
 
 type wholesalePage struct {
@@ -73,7 +73,7 @@ func getWholesaleProducts(cats []string) (map[string]map[string][]product, error
 	return m, nil
 }
 
-func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
+func getWholesaleLogin(w http.ResponseWriter, req *http.Request) error {
 	params := req.URL.Query()
 	p := formPage{
 		page: page{
@@ -86,10 +86,10 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		Captcha:        true,
 	}
 
-	return templates.Get("wholesale-form.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("wholesale-login.html").ExecuteTemplate(w, "base", p)
 }
 
-func WholesalerRegistration(w http.ResponseWriter, req *http.Request) error {
+func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 	if err := req.ParseForm(); err != nil {
 		return err
 	}

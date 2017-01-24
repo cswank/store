@@ -121,6 +121,8 @@ func doServe() {
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
+	r.Handle("/wholesale/apply", getMiddleware(handlers.Anyone, handlers.WholesaleForm)).Methods("GET")
+	r.Handle("/wholesale/apply", getMiddleware(handlers.Anyone, handlers.WholesaleApply)).Methods("POST")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
