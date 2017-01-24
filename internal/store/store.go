@@ -2,11 +2,17 @@ package store
 
 import (
 	"errors"
+	"math/rand"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/cswank/store/internal/config"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 type Row struct {
 	Key     []byte

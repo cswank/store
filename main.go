@@ -16,6 +16,7 @@ import (
 	"github.com/GeertJohan/go.rice"
 	"github.com/caarlos0/env"
 	"github.com/cswank/store/internal/config"
+	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/handlers"
 	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
@@ -56,6 +57,7 @@ func init() {
 		log.Fatal(err)
 	}
 	store.Init(cfg)
+	email.Init(cfg)
 }
 
 func main() {

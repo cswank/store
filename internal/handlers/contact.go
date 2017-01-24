@@ -1,28 +1,20 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"net/smtp"
 
+	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/schema"
 )
 
 var (
-	storeEmail         string
-	storeEmailPassword string
-	captcha            bool
-	mailTemplate       = `From: %s
-To: %s
-Subject: %s
-
-%s
-`
+	captcha bool
 )
 
 type contactPage struct {
 	page
+
 	Captcha        bool
 	CaptchaSiteKey string
 	ShowMessage    bool
@@ -51,13 +43,6 @@ func Contact(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("contact.html").ExecuteTemplate(w, "base", p)
 }
 
-type msg struct {
-	Name    string `schema:"name"`
-	Email   string `schema:"email"`
-	Subject string `schema:"subject"`
-	Body    string `schema:"body"`
-}
-
 type captchaResp struct {
 	Success bool     `json:"success"`
 	Errors  []string `json:"error-codes"`
@@ -68,28 +53,18 @@ func DoContact(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	var m msg
+	var m email.Msg
 	dec := schema.NewDecoder()
 	dec.IgnoreUnknownKeys(true)
 	if err := dec.Decode(&m, req.PostForm); err != nil {
 		return err
 	}
 
-	if err := sendEmail(m); err != nil {
+	if err := email.Send(m); err != nil {
 		return err
 	}
 
 	w.Header().Set("Location", "/contact?submitted=true")
 	w.WriteHeader(http.StatusFound)
 	return nil
-}
-
-func sendEmail(m msg) error {
-	msg := fmt.Sprintf(mailTemplate, m.Email, storeEmail, m.Subject, m.Body)
-
-	return smtp.SendMail("smtp.gmail.com:587",
-		smtp.PlainAuth("", storeEmail, storeEmailPassword, "smtp.gmail.com"),
-		m.Email,
-		[]string{storeEmail}, []byte(msg),
-	)
 }

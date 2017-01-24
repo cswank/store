@@ -1,71 +1,49 @@
 {{define "content"}}
-<div id="wholesale-form">
-  {{if .ShowMessage}}
-  <div class="center">
-    <p>Thanks for registering as a wholesaler with bangsandteeth.com.  Once we verify your status you will recieve a confirmation email.  You will then be able to log in and purchase products from the wholesale page.</p>
-  </div>
-  {{else}}
+<div class="form-holder">
 
-  <div class="pure-g">
-    <div class="pure-u-1-2">
-      <form class="pure-form pure-form-stacked" action="/login" method="POST">
-        <fieldset>
-          <legend>Log in</legend>
-          <input name="Email" type="text" required placeholder="Email">
-          <input name="Password" type="password" required placeholder="Password">
-          <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
-          <button type="submit" class="pure-button pure-button-primary">Submit</button>
-        </fieldset>
-      </form>
-    </div>
-    
-    <div class="pure-u-1-2">
-      <form class="pure-form pure-form-stacked" action="/wholesale/register" method="POST">
-        <fieldset>
-          <legend>Register as a wholesaler</legend>
+  <form class="pure-form pure-form-stacked" action="/wholesale/apply" method="POST">
+    <fieldset>
+      <legend>Register as a wholesaler</legend>
 
-          <label for="name">First Name</label>
-          <input type="text" placeholder="first name" name="first_name" required>
-          
-          <label for="name">Last Name</label>
-          <input type="text" placeholder="last name" name="last_name" required>
-          
-          <label for="email">Email</label>
-          <input type="email" placeholder="email" name="email" required>
-          
-          <label for="company_name">Company Name</label>
-          <input type="text" placeholder="company name" name="company_name">
+      <label for="name">First Name</label>
+      <input type="text" placeholder="first name" name="first_name" required>
+      
+      <label for="name">Last Name</label>
+      <input type="text" placeholder="last name" name="last_name" required>
+      
+      <label for="email">Email</label>
+      <input type="email" placeholder="email" name="email" required>
+      
+      <label for="company_name">Company Name</label>
+      <input type="text" placeholder="company name" name="company_name">
 
-          <label for="address">Address</label>
-          <input type="text" placeholder="address" name="address">
-          
-          <label for="address2">Address 2</label>
-          <input type="text" placeholder="address 2" name="address2">
+      <label for="address">Address</label>
+      <input type="text" placeholder="address" name="address">
+      
+      <label for="address2">Address 2</label>
+      <input type="text" placeholder="address 2" name="address2">
 
-          <label for="zip">Zip</label>
-          <input type="text" placeholder="zip" name="zip">
+      <label for="zip">Zip</label>
+      <input type="text" placeholder="zip" name="zip">
 
-          <label for="city">City</label>
-          <input type="text" placeholder="city" name="city">
+      <label for="city">City</label>
+      <input type="text" placeholder="city" name="city">
 
-          <label for="state">State</label>
-          <input type="text" placeholder="state" name="state">
+      <label for="state">State</label>
+      <input type="text" placeholder="state" name="state">
 
-          <label for="country">Country</label>
-          <input type="text" placeholder="country" name="country">
+      <label for="country">Country</label>
+      <input type="text" placeholder="country" name="country">
 
-          <label for="password">Password</label>
-          <input type="password" placeholder="password" name="password">
+      <label for="password">Password</label>
+      <input type="password" placeholder="password" name="password">
 
-          <label for="confirm-password">Confirm Password</label>
-          <input type="password" placeholder="confirm password" name="confirm-password">
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" placeholder="confirm password" name="confirm-password">
 
-          <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
-          <button type="submit" class="pure-button pure-button-primary">Submit</button>
-        </fieldset>
-      </form>      
-    </div>
-  </div>
-  {{end}}
+      <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+      <button type="submit" class="pure-button pure-button-primary">Submit</button>
+    </fieldset>
+  </form>      
 </div>
 {{end}}

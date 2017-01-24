@@ -13,6 +13,7 @@ import (
 	"github.com/cswank/store/internal/config"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
+	"github.com/gorilla/securecookie"
 )
 
 var (
@@ -40,14 +41,22 @@ func Init(c config.Config, b *rice.Box) {
 		captcha = true
 	}
 
-	storeEmail = cfg.Email
-	storeEmailPassword = cfg.EmailPassword
-	if storeEmail == "" || storeEmailPassword == "" {
-		log.Fatal("you must set STORE_EMAIL and STORE_EMAIL_PASSWORD")
-	}
-
 	makeNavbarLinks()
 	etags = make(map[string]string)
+
+	domains := cfg.Domains
+	if len(domains) == 0 {
+		log.Fatal("you must set STORE_DOMAINS")
+	}
+
+	domain = domains[0]
+	authCookieName = fmt.Sprintf("%s-user", domain)
+	hashKey = []byte(cfg.HashKey)
+	blockKey = []byte(cfg.BlockKey)
+	if string(hashKey) == "" || string(blockKey) == "" {
+		log.Fatal("you must set STORE_HASH_KEY and STORE_BLOCK_KEY")
+	}
+	sc = securecookie.New(hashKey, blockKey)
 }
 
 type HandlerFunc func(http.ResponseWriter, *http.Request) error

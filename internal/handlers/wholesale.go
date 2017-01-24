@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/schema"
@@ -73,6 +75,22 @@ func getWholesaleProducts(cats []string) (map[string]map[string][]product, error
 	return m, nil
 }
 
+func WholesaleForm(w http.ResponseWriter, req *http.Request) error {
+	params := req.URL.Query()
+	p := formPage{
+		page: page{
+			Links:   getNavbarLinks(req),
+			Name:    cfg.Name,
+			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+		},
+		ShowMessage:    params.Get("success") != "",
+		CaptchaSiteKey: cfg.RecaptchaSiteKey,
+		Captcha:        true,
+	}
+
+	return templates.Get("wholesale-form.html").ExecuteTemplate(w, "base", p)
+}
+
 func getWholesaleLogin(w http.ResponseWriter, req *http.Request) error {
 	params := req.URL.Query()
 	p := formPage{
@@ -104,6 +122,18 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
+	u.GenerateToken()
+
+	msg := email.Msg{
+		Email:   u.Email,
+		Subject: fmt.Sprintf("Thank you for applying to %s", cfg.Domains[0]),
+		Body:    getWholesaleVerificationBody(u),
+	}
+
+	if err := email.Send(msg); err != nil {
+		return err
+	}
+
 	if err := u.Save(); err != nil {
 		return err
 	}
@@ -111,4 +141,23 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 	w.Header().Set("Location", "/wholesale?success=true")
 	w.WriteHeader(http.StatusFound)
 	return nil
+}
+
+func getWholesaleVerificationBody(u store.User) string {
+
+	tmpl := `Hello %s,
+Thank you for applying at %s as a wholesaler.  Please
+click on this link in order to verify your email address.
+
+%s/wholesale/apply/%s
+
+As soon as the site administrator approves your application you will
+receive an additional email informing you that you have been approved.
+You will then be able to log into %s to purchase our products.
+
+Thanks!
+
+%s`
+
+	return fmt.Sprintf(tmpl, u.FirstName, cfg.Domains[0], cfg.Domains[0], u.Verification.Token, cfg.Domains[0], cfg.Email)
 }
