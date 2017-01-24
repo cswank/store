@@ -53,6 +53,7 @@ func Init(c config.Config, b *rice.Box) {
 type HandlerFunc func(http.ResponseWriter, *http.Request) error
 
 type link struct {
+	Category bool
 	Name     string
 	Link     string
 	Style    string
@@ -104,6 +105,7 @@ func getShoppingLinks() []link {
 	var l []link
 
 	for _, cat := range cats {
+		l = append(l, link{Category: true, Name: cat})
 		l = append(l, getSubcatLinks(cat)...)
 	}
 

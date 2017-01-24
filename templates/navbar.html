@@ -29,9 +29,16 @@
             <a href="{{$link.Link}}" id="{{$link.Name}}" class="pure-menu-link">{{$link.Name}}</a>
             <ul class="pure-menu-children">
               {{range $child := $link.Children}}
-              <li class="pure-menu-item">
-                <a href="{{$child.Link}}" class="pure-menu-link">{{$child.Name}}</a>
+              {{if $child.Category}}
+              <li class="pure-menu-item menu-category">
+                <a>{{$child.Name}}</a>
               </li>
+              {{else}}
+              <li class="pure-menu-item">
+                <a href="{{$child.Link}}" class="pure-menu-link subcat-link">{{$child.Name}}</a>
+              </li>
+              {{end}}
+              
               {{end}}
             </ul>
           </li>
