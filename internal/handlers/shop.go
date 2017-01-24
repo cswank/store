@@ -69,7 +69,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 func LineItem(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat, "")
+	p := store.NewProduct(vars["title"], cat, subcat)
 	if err := p.Fetch(); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ type product struct {
 func GetProduct(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat, "")
+	p := store.NewProduct(vars["title"], cat, subcat)
 	if err := p.Fetch(); err != nil {
 		return err
 	}
@@ -204,7 +204,7 @@ func GetProduct(w http.ResponseWriter, req *http.Request) error {
 func Product(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat, "")
+	p := store.NewProduct(vars["title"], cat, subcat)
 
 	if err := p.Fetch(); err != nil {
 		return err

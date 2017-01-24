@@ -95,15 +95,33 @@ type Product struct {
 	Quantity    int    `json:"-"`
 	Description string `json:"description"`
 	ID          string `json:"id"`
+
+	image io.Reader
 }
 
-func NewProduct(title, cat, subcat, description string) *Product {
-	return &Product{
-		Title:       title,
-		Cat:         cat,
-		Subcat:      subcat,
-		Description: description,
-		Price:       cfg.DefaultPrice,
+func NewProduct(title, cat, subcat string, opts ...func(*Product)) *Product {
+	p := &Product{
+		Title:  title,
+		Cat:    cat,
+		Subcat: subcat,
+		Price:  cfg.DefaultPrice,
+	}
+
+	for _, o := range opts {
+		o(p)
+	}
+	return p
+}
+
+func ProductDescription(d string) func(*Product) {
+	return func(p *Product) {
+		p.Description = d
+	}
+}
+
+func ProductImage(r io.Reader) func(*Product) {
+	return func(p *Product) {
+		p.image = r
 	}
 }
 
@@ -118,18 +136,42 @@ func (p *Product) Fetch() error {
 }
 
 func (p *Product) Update(p2 *Product) error {
+	p.Description = p2.Description
+
 	if p2.Subcat != p.Subcat {
 		if err := p.move(p2.Subcat); err != nil {
 			return err
 		}
 	}
 
-	if p2.Title == p.Title {
-		return nil
+	if p2.Title != p.Title {
+		//rename images
+		//delete old key
+		//save new key
 	}
 
-	//TODO enable rename
-	return nil
+	buckets := []string{
+		"products",
+		p.Cat,
+		p.Subcat,
+	}
+
+	d, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	rows := []Row{NewRow(Key(p.Title), Val(d), Buckets(buckets...))}
+
+	if p2.image != nil {
+		var imgRows []Row
+		_, imgRows, err = addImage(p2.image, p.Title, "products")
+		if err != nil {
+			return err
+		}
+		rows = append(rows, imgRows...)
+	}
+
+	return db.Put(rows)
 }
 
 func (p *Product) move(dst string) error {
@@ -195,14 +237,12 @@ func (p *Product) Add(r io.Reader) error {
 }
 
 func (p *Product) getSubcat(rows []Row) ([]Row, error) {
-	var ids []string
 	q := NewRow(Buckets("products", p.Cat, p.Subcat))
 	err := db.GetAll(q, func(key, val []byte) error {
 		id := string(key)
 		if id == p.Title {
 			return ErrExists
 		}
-		ids = append(ids, p.ID)
 		return nil
 	})
 
@@ -226,12 +266,12 @@ func (p *Product) getSubcat(rows []Row) ([]Row, error) {
 }
 
 func addImage(r io.Reader, name, bucket string) ([]byte, []Row, error) {
+	var imgData []byte
 	img, err := png.Decode(r)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var imgData []byte
 	rows := make([]Row, 2)
 	for i, s := range []int{full, thumb} {
 		d, err := resizeImage(img, uint(s))

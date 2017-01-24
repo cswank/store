@@ -120,7 +120,7 @@ var _ = Describe("products", func() {
 		)
 
 		BeforeEach(func() {
-			prod = store.NewProduct("you-are-fucked", "Cards", "Happy Birthday", "Blah blah blah!")
+			prod = store.NewProduct("you-are-fucked", "Cards", "Happy Birthday", store.ProductDescription("Blah blah blah!"))
 		})
 
 		Describe("Delete", func() {
@@ -176,7 +176,7 @@ var _ = Describe("products", func() {
 				})
 
 				It("succeeds", func() {
-					p2 := store.NewProduct(prod.Title, prod.Cat, "Anniversary", "Blah blah blah!")
+					p2 := store.NewProduct(prod.Title, prod.Cat, "Anniversary", store.ProductDescription("Blah blah blah!"))
 					Expect(prod.Update(p2)).To(BeNil())
 					Expect(db.Rows).To(HaveLen(3))
 

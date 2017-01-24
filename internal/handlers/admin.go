@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/cswank/store/internal/store"
@@ -172,7 +171,7 @@ func AddProduct(w http.ResponseWriter, req *http.Request) error {
 	name := req.FormValue("Name")
 	description := strings.Replace(req.FormValue("Description"), "\n", "", -1)
 
-	p := store.NewProduct(name, cat, subcat, description)
+	p := store.NewProduct(name, cat, subcat, store.ProductDescription(description))
 	err = p.Add(ff)
 	if err != nil {
 		return err
@@ -220,7 +219,7 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat, "")
+	p := store.NewProduct(vars["title"], cat, subcat)
 	err := p.Fetch()
 	if err != nil {
 		return err
@@ -231,7 +230,7 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	from := url.QueryEscape(fmt.Sprintf("/admin/categories/%s/subcategories/%s/products/%s", p.Cat, p.Subcat, p.Title))
+	from := fmt.Sprintf("/admin/categories/%s/subcategories/%s/products/%s", p.Cat, p.Subcat, p.Title)
 	page := adminPage{
 		page: page{
 			Admin:   Admin(req),
@@ -255,10 +254,47 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("admin-product.html").ExecuteTemplate(w, "base", page)
 }
 
+func UpdateProduct(w http.ResponseWriter, req *http.Request) error {
+	cat, subcat, vars := getVars(req)
+
+	p := store.NewProduct(vars["title"], cat, subcat)
+	err := p.Fetch()
+	if err != nil {
+		return err
+	}
+
+	if err := req.ParseMultipartForm(32 << 20); err != nil {
+		return err
+	}
+
+	f, _, err := req.FormFile("Image")
+	if f != nil {
+		defer f.Close()
+	}
+
+	title := req.FormValue("Title")
+	desc := req.FormValue("Description")
+
+	p2 := store.NewProduct(title, p.Cat, p.Subcat, store.ProductDescription(desc), store.ProductImage(f))
+
+	if err := p.Update(p2); err != nil {
+		return err
+	}
+
+	clearEtag(p.Title)
+
+	makeNavbarLinks()
+	l := fmt.Sprintf("/admin/categories/%s/subcategories/%s", p.Cat, p2.Subcat)
+	w.Header().Set("Location", l)
+	w.WriteHeader(http.StatusFound)
+
+	return nil
+}
+
 func DeleteProduct(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat, "")
+	p := store.NewProduct(vars["title"], cat, subcat)
 	if err := p.Fetch(); err != nil {
 		return err
 	}
@@ -268,44 +304,6 @@ func DeleteProduct(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	clearEtag(vars["title"])
-	return nil
-}
-
-func clearEtag(title string) {
-	eLock.Lock()
-	for _, s := range []string{"image.png", "thumb.png"} {
-		u := fmt.Sprintf("/images/products/%s/%s", title, s)
-		delete(etags, u)
-	}
-	eLock.Unlock()
-}
-
-func UpdateProduct(w http.ResponseWriter, req *http.Request) error {
-	cat, subcat, vars := getVars(req)
-
-	p := store.NewProduct(vars["title"], cat, subcat, "")
-	err := p.Fetch()
-	if err != nil {
-		return err
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return err
-	}
-
-	title := req.FormValue("Title")
-	sub := req.FormValue("Subcat")
-	p2 := store.NewProduct(title, p.Cat, sub, p.Description)
-
-	if err := p.Update(p2); err != nil {
-		return err
-	}
-
-	makeNavbarLinks()
-	l := fmt.Sprintf("/admin/categories/%s/subcategories/%s/products/%s", p.Cat, p2.Subcat, p2.Title)
-	w.Header().Set("Location", l)
-	w.WriteHeader(http.StatusFound)
-
 	return nil
 }
 
