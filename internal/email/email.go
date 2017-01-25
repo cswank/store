@@ -27,8 +27,8 @@ type Msg struct {
 	Body    string `schema:"body"`
 }
 
-func Init(cfg config.Config) {
-	fmt.Println(cfg.Email, cfg.EmailPassword)
+func Init(c config.Config) {
+	cfg = c
 	if cfg.Email == "" || cfg.EmailPassword == "" {
 		log.Println("warning: STORE_EMAIL or STORE_EMAIL_PASSWORD not set, using fake email (writes to /tmp/mail.txt)")
 		Send = sendFake
@@ -38,9 +38,10 @@ func Init(cfg config.Config) {
 }
 
 func sendEmail(m Msg) error {
-	msg := fmt.Sprintf(mailTemplate, m.Email, cfg.Email, m.Subject, m.Body)
+	msg := fmt.Sprintf(mailTemplate, cfg.Email, m.Email, m.Subject, m.Body)
 
-	return smtp.SendMail("smtp.gmail.com:587",
+	return smtp.SendMail(
+		"smtp.gmail.com:587",
 		smtp.PlainAuth("", cfg.Email, cfg.EmailPassword, "smtp.gmail.com"),
 		m.Email,
 		[]string{cfg.Email}, []byte(msg),
@@ -48,7 +49,7 @@ func sendEmail(m Msg) error {
 }
 
 func sendFake(msg Msg) error {
-	text := fmt.Sprintf(mailTemplate, cfg.Email, "the developer", msg.Subject, msg.Body)
+	text := fmt.Sprintf(mailTemplate, cfg.Email, msg.Email, msg.Subject, msg.Body)
 
 	f, err := os.OpenFile("/tmp/mail.txt", os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {

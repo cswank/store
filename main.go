@@ -56,6 +56,7 @@ func init() {
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("parse cfg", cfg.Email)
 	store.Init(cfg)
 	email.Init(cfg)
 }

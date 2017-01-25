@@ -22,12 +22,8 @@ var (
 )
 
 type Verification struct {
-	Token   string    `json:"token,omitempty"`
-	Expires time.Time `json:"expiers,omitempty"`
-	Email   bool      `json:"email,omitempty"`
-
-	//Admin approval as a real wholesaler
-	Legit bool `json:"legit,omitempty"`
+	Email   string    `json:"email"`
+	Expires time.Time `json:"expiers"`
 }
 
 type User struct {
@@ -47,7 +43,10 @@ type User struct {
 	Password       string     `schema:"password" json:"password,omitempty"`
 	HashedPassword []byte     `json:"hashed_password,omitempty"`
 
-	Verification Verification `json:"confirmed,omitempty"`
+	//They clicked on the verification email link
+	Verified bool `json:"verified"`
+	//Admin approval as a real wholesaler
+	Confirmed bool `json:"confirmed,omitempty"`
 }
 
 func GetUsers() ([]User, error) {
@@ -69,13 +68,23 @@ func (u *User) Fetch() error {
 	})
 }
 
-func (u *User) Save() error {
+func (u *User) Save(opts ...func() Row) error {
+
 	if err := u.savePassword(); err != nil {
 		return err
 	}
 
-	d, _ := json.Marshal(u)
-	return db.Put([]Row{{Key: []byte(u.Email), Val: d, Buckets: [][]byte{[]byte("users")}}})
+	d, err := json.Marshal(u)
+	if err != nil {
+		return err
+	}
+
+	rows := []Row{{Key: []byte(u.Email), Val: d, Buckets: [][]byte{[]byte("users")}}}
+	for _, o := range opts {
+		rows = append(rows, o())
+	}
+
+	return db.Put(rows)
 }
 
 func (u *User) savePassword() error {
@@ -111,13 +120,15 @@ func (u *User) hashPassword() error {
 	return err
 }
 
-func (u *User) GenerateToken() {
-	u.Verification = Verification{
-		Token:   randStr(32),
+func (u *User) GenerateToken() (string, Row, error) {
+	token := randStr(32)
+	v := Verification{
+		Email:   u.Email,
 		Expires: time.Now().Add(24 * 7 * time.Hour),
-		Email:   false,
-		Legit:   false,
 	}
+
+	d, err := json.Marshal(v)
+	return token, NewRow(Key(token), Val(d), Buckets("verifications")), err
 }
 
 func randStr(n int) string {

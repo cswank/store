@@ -122,19 +122,26 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	u.GenerateToken()
+	token, row, err := u.GenerateToken()
+	if err != nil {
+		return err
+	}
 
 	msg := email.Msg{
 		Email:   u.Email,
 		Subject: fmt.Sprintf("Thank you for applying to %s", cfg.Domains[0]),
-		Body:    getWholesaleVerificationBody(u),
+		Body:    getWholesaleVerificationBody(u, token),
 	}
 
 	if err := email.Send(msg); err != nil {
 		return err
 	}
 
-	if err := u.Save(); err != nil {
+	f := func() store.Row {
+		return row
+	}
+
+	if err := u.Save(f); err != nil {
 		return err
 	}
 
@@ -143,7 +150,7 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func getWholesaleVerificationBody(u store.User) string {
+func getWholesaleVerificationBody(u store.User, token string) string {
 
 	tmpl := `Hello %s,
 Thank you for applying at %s as a wholesaler.  Please
@@ -159,5 +166,5 @@ Thanks!
 
 %s`
 
-	return fmt.Sprintf(tmpl, u.FirstName, cfg.Domains[0], cfg.Domains[0], u.Verification.Token, cfg.Domains[0], cfg.Email)
+	return fmt.Sprintf(tmpl, u.FirstName, cfg.Domains[0], cfg.Domains[0], token, cfg.Domains[0], cfg.Email)
 }
