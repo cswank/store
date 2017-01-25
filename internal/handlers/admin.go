@@ -323,3 +323,33 @@ func Confirm(w http.ResponseWriter, req *http.Request) error {
 	}
 	return templates.Get("confirm.html").ExecuteTemplate(w, "base", p)
 }
+
+type wholesaleAdminPage struct {
+	page
+	Wholesalers []store.User
+}
+
+func AdminWholesalers(w http.ResponseWriter, req *http.Request) error {
+	users, err := store.GetUsers()
+	if err != nil {
+		return err
+	}
+
+	var wholesalers []store.User
+	for _, u := range users {
+		if u.Permission == store.Wholesaler {
+			wholesalers = append(wholesalers, u)
+		}
+	}
+
+	p := wholesaleAdminPage{
+		page: page{
+			Admin: Admin(req),
+			Links: getNavbarLinks(req),
+			Name:  name,
+		},
+		Wholesalers: wholesalers,
+	}
+
+	return templates.Get("admin-wholesalers.html").ExecuteTemplate(w, "base", p)
+}

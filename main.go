@@ -124,8 +124,9 @@ func doServe() {
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
-	r.Handle("/wholesale/apply", getMiddleware(handlers.Anyone, handlers.WholesaleForm)).Methods("GET")
-	r.Handle("/wholesale/apply", getMiddleware(handlers.Anyone, handlers.WholesaleApply)).Methods("POST")
+	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleForm)).Methods("GET")
+	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApply)).Methods("POST")
+	r.Handle("/wholesale/application/{token}", getMiddleware(handlers.Anyone, handlers.WholesaleConfirm)).Methods("GET")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
@@ -138,6 +139,7 @@ func doServe() {
 	r.Handle("/api/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.GetProduct)).Methods("GET")
 
 	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
+	r.Handle("/admin/wholesalers", getMiddleware(handlers.Admin, handlers.AdminWholesalers)).Methods("GET")
 	r.Handle("/admin/db/backup", getMiddleware(handlers.Admin, handlers.BackupDB)).Methods("GET")
 	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
 	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")

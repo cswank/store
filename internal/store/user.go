@@ -3,6 +3,7 @@ package store
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -68,10 +69,11 @@ func (u *User) Fetch() error {
 	})
 }
 
-func (u *User) Save(opts ...func() Row) error {
-
-	if err := u.savePassword(); err != nil {
-		return err
+func (u *User) Save(moreRows ...Row) error {
+	if len(u.HashedPassword) == 0 { //a new user
+		if err := u.savePassword(); err != nil {
+			return err
+		}
 	}
 
 	d, err := json.Marshal(u)
@@ -80,8 +82,8 @@ func (u *User) Save(opts ...func() Row) error {
 	}
 
 	rows := []Row{{Key: []byte(u.Email), Val: d, Buckets: [][]byte{[]byte("users")}}}
-	for _, o := range opts {
-		rows = append(rows, o())
+	for _, r := range moreRows {
+		rows = append(rows, r)
 	}
 
 	return db.Put(rows)
@@ -137,4 +139,38 @@ func randStr(n int) string {
 		b[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(b)
+}
+
+func ConfirmWholesaler(token string) (User, error) {
+	var u User
+	var email string
+
+	q := []Row{NewRow(Key(token), Buckets("verifications"))}
+	err := db.Get(q, func(key, val []byte) error {
+		var v Verification
+		err := json.Unmarshal(val, &v)
+		if err != nil {
+			return err
+		}
+		if time.Now().Sub(v.Expires) < 0 {
+			return fmt.Errorf("expired token for %s", v.Email)
+		}
+		email = v.Email
+		return nil
+	})
+	if err != nil {
+		return u, err
+	}
+
+	q = []Row{NewRow(Key(email), Buckets("users"))}
+
+	err = db.Get(q, func(key, val []byte) error {
+		return json.Unmarshal(val, &u)
+	})
+	if err != nil {
+		return u, err
+	}
+
+	u.Verified = true
+	return u, u.Save()
 }

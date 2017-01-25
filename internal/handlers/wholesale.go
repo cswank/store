@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 )
 
@@ -137,11 +139,7 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	f := func() store.Row {
-		return row
-	}
-
-	if err := u.Save(f); err != nil {
+	if err := u.Save(row); err != nil {
 		return err
 	}
 
@@ -156,7 +154,7 @@ func getWholesaleVerificationBody(u store.User, token string) string {
 Thank you for applying at %s as a wholesaler.  Please
 click on this link in order to verify your email address.
 
-%s/wholesale/apply/%s
+%s/wholesale/registrations/%s
 
 As soon as the site administrator approves your application you will
 receive an additional email informing you that you have been approved.
@@ -167,4 +165,27 @@ Thanks!
 %s`
 
 	return fmt.Sprintf(tmpl, u.FirstName, cfg.Domains[0], cfg.Domains[0], token, cfg.Domains[0], cfg.Email)
+}
+
+func WholesaleConfirm(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	u, err := store.ConfirmWholesaler(vars["token"])
+	if err != nil {
+		return fmt.Errorf("failed to confirm user %s with token %s, err: %v", u.Email, vars["token"], err)
+	}
+
+	var f func(io.Writer, string, interface{}) error
+	if u.Verified && u.Confirmed {
+		f = templates.Get("wholesale-welcome.html").ExecuteTemplate
+	} else {
+		f = templates.Get("wholesale-pending.html").ExecuteTemplate
+	}
+
+	p := page{
+		Links:   getNavbarLinks(req),
+		Admin:   Admin(req),
+		Shopify: shopify,
+		Name:    name,
+	}
+	return f(w, "base", p)
 }
