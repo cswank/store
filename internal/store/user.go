@@ -30,15 +30,16 @@ type Verification struct {
 type User struct {
 	Email string `schema:"email" json:"email"`
 	//Wholesale stuff
-	FirstName   string `schema:"first_name" json:"first_name,omitempty"`
-	LastName    string `schema:"last_name" json:"last_name,omitempty"`
-	CompanyName string `schema:"company_name" json:"company_name,omitempty"`
-	Address     string `schema:"address" json:"address,omitempty"`
-	Address2    string `schema:"address2" json:"address2,omitempty"`
-	Zip         string `schema:"zip" json:"zip,omitempty"`
-	City        string `schema:"city" json:"city,omitempty"`
-	State       string `schema:"state" json:"state,omitempty"`
-	Country     string `schema:"country" json:"country,omitempty"`
+	StoreName string `schema:"store_name" json:"store_name,omitempty"`
+	Website   string `schema:"website" json:"website,omitempty"`
+	FirstName string `schema:"first_name" json:"first_name,omitempty"`
+	LastName  string `schema:"last_name" json:"last_name,omitempty"`
+	Address   string `schema:"address" json:"address,omitempty"`
+	Address2  string `schema:"address2" json:"address2,omitempty"`
+	Zip       string `schema:"zip" json:"zip,omitempty"`
+	City      string `schema:"city" json:"city,omitempty"`
+	State     string `schema:"state" json:"state,omitempty"`
+	Country   string `schema:"country" json:"country,omitempty"`
 
 	Permission     Permission `json:"permission"`
 	Password       string     `schema:"password" json:"password,omitempty"`
@@ -152,7 +153,7 @@ func ConfirmWholesaler(token string) (User, error) {
 		if err != nil {
 			return err
 		}
-		if time.Now().Sub(v.Expires) < 0 {
+		if time.Now().Sub(v.Expires) > 0 {
 			return fmt.Errorf("expired token for %s", v.Email)
 		}
 		email = v.Email

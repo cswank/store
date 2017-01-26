@@ -140,6 +140,8 @@ func doServe() {
 
 	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
 	r.Handle("/admin/wholesalers", getMiddleware(handlers.Admin, handlers.AdminWholesalers)).Methods("GET")
+	r.Handle("/admin/wholesalers/{wholesaler}", getMiddleware(handlers.Admin, handlers.AdminWholesaler)).Methods("GET")
+	r.Handle("/admin/wholesalers/{wholesaler}/confirmation", getMiddleware(handlers.Admin, handlers.AdminWholesalerVerify)).Methods("POST")
 	r.Handle("/admin/db/backup", getMiddleware(handlers.Admin, handlers.BackupDB)).Methods("GET")
 	r.Handle("/admin/confirm", getMiddleware(handlers.Admin, handlers.Confirm)).Methods("GET")
 	r.Handle("/admin/categories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")

@@ -1,0 +1,58 @@
+{{define "content"}}
+<div class="center">
+  <div class="left">
+    <h2>{{.Wholesaler.StoreName}}</h2>
+    <div>
+      <a href="/admin/wholesalers">Back</a>
+    </div>
+    <form class="pure-form pure-form-stacked" action="/admin/wholesalers/{{.Wholesaler.Email}}" method="POST">
+      <fieldset>
+        <legend>Wholesaler</legend>
+        <label for="store_name">Store Name</label>
+        <input type="text" placeholder="store name" name="store_name" required value="{{.Wholesaler.StoreName}}">
+
+        <label for="website">Website</label>
+        <input type="text" placeholder="website" name="website" required value="{{.Wholesaler.Website}}">
+
+        <label for="email">Email</label>
+        <input type="email" placeholder="email" name="email" required value="{{.Wholesaler.Email}}">
+
+        <label for="first_name">First Name</label>
+        <input type="text" placeholder="first name" name="first_name" required value="{{.Wholesaler.FirstName}}">
+        
+        <label for="last_name">Last Name</label>
+        <input type="text" placeholder="last name" name="last_name" required value="{{.Wholesaler.LastName}}">
+        
+        <label for="address">Address</label>
+        <input type="text" placeholder="address" name="address" required value="{{.Wholesaler.Address}}">
+        
+        <label for="address2">Address 2</label>
+        <input type="text" placeholder="address 2" name="address2" required value="{{.Wholesaler.Address2}}">
+
+        <label for="zip">Zip</label>
+        <input type="text" placeholder="zip" name="zip" required value="{{.Wholesaler.Zip}}">
+
+        <label for="city">City</label>
+        <input type="text" placeholder="city" name="city" required value="{{.Wholesaler.City}}">
+
+        <label for="state">State</label>
+        <input type="text" placeholder="state" name="state" required value="{{.Wholesaler.State}}">
+
+        <label for="country">Country</label>
+        <input type="text" placeholder="country" name="country" required value="{{.Wholesaler.Country}}">
+        
+        <button type="submit" class="pure-button pure-button-primary">Update</button>
+      </fieldset>
+    </form>
+    Verified (they clicked on the email link): <strong>{{.Wholesaler.Verified}}</strong>
+    <br/>
+    Confirmed (you have confirmed they are a real wholesaler): <strong>{{.Wholesaler.Confirmed}}</strong>
+    <br/>
+    {{if not .Wholesaler.Confirmed}}
+    <form action="/admin/wholesalers/{{.Wholesaler.Email}}/confirmation" method="POST">
+      <button type="submit" class="pure-button pure-button-primary">Verify {{.Wholesaler.Email}}</button>
+    </form>
+    {{end}}
+  </div>
+</div>
+{{end}}

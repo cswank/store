@@ -14,6 +14,7 @@ var (
 		"admin-product.js",
 		"admin-product.html",
 		"admin-wholesalers.html",
+		"admin-wholesaler.html",
 		"admin.html",
 		"admin.js",
 		"background-images.html",
@@ -67,6 +68,7 @@ func Init(box *rice.Box) {
 	templates = map[string]tmpl{
 		"admin-product.html":     {files: []string{"admin-product.html", "admin-links.html", "admin-product.js", "background-images.html"}},
 		"admin-wholesalers.html": {files: []string{"admin-wholesalers.html"}},
+		"admin-wholesaler.html":  {files: []string{"admin-wholesaler.html"}},
 		"admin.html":             {files: []string{"admin.html", "admin-links.html", "background-images.html", "admin.js"}},
 		"cart.html":              {files: []string{"cart.html", "cart.js"}},
 		"category.html":          {files: []string{"category.html", "thumb.html"}},

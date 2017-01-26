@@ -15,6 +15,7 @@ type page struct {
 	Scripts     []string
 	Stylesheets []string
 	Name        string
+	Message     string
 }
 
 var (

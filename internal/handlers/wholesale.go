@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/cswank/store/internal/email"
@@ -154,7 +155,7 @@ func getWholesaleVerificationBody(u store.User, token string) string {
 Thank you for applying at %s as a wholesaler.  Please
 click on this link in order to verify your email address.
 
-%s/wholesale/registrations/%s
+https://%s/wholesale/application/%s
 
 As soon as the site administrator approves your application you will
 receive an additional email informing you that you have been approved.
@@ -169,17 +170,6 @@ Thanks!
 
 func WholesaleConfirm(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
-	u, err := store.ConfirmWholesaler(vars["token"])
-	if err != nil {
-		return fmt.Errorf("failed to confirm user %s with token %s, err: %v", u.Email, vars["token"], err)
-	}
-
-	var f func(io.Writer, string, interface{}) error
-	if u.Verified && u.Confirmed {
-		f = templates.Get("wholesale-welcome.html").ExecuteTemplate
-	} else {
-		f = templates.Get("wholesale-pending.html").ExecuteTemplate
-	}
 
 	p := page{
 		Links:   getNavbarLinks(req),
@@ -187,5 +177,19 @@ func WholesaleConfirm(w http.ResponseWriter, req *http.Request) error {
 		Shopify: shopify,
 		Name:    name,
 	}
+	var f func(io.Writer, string, interface{}) error
+	u, err := store.ConfirmWholesaler(vars["token"])
+
+	if err != nil {
+		log.Printf("failed to confirm user %s with token %s, err: %v\n", u.Email, vars["token"], err)
+		f = templates.Get("wholesale-pending.html").ExecuteTemplate
+		p.Message = "We were unable to confirm your email address.  If you applied more than 7 days ago your application has expired and you will have to re-apply.  Sorry for the inconvenience."
+	} else if u.Verified && u.Confirmed {
+		f = templates.Get("wholesale-welcome.html").ExecuteTemplate
+	} else {
+		f = templates.Get("wholesale-pending.html").ExecuteTemplate
+		p.Message = "Your email address has been confirmed. Once the site administrator approves your application you will received an email from us."
+	}
+
 	return f(w, "base", p)
 }

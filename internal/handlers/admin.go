@@ -7,6 +7,7 @@ import (
 
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
+	"github.com/gorilla/mux"
 )
 
 type adminPage struct {
@@ -324,7 +325,7 @@ func Confirm(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("confirm.html").ExecuteTemplate(w, "base", p)
 }
 
-type wholesaleAdminPage struct {
+type wholesalersAdminPage struct {
 	page
 	Wholesalers []store.User
 }
@@ -342,7 +343,7 @@ func AdminWholesalers(w http.ResponseWriter, req *http.Request) error {
 		}
 	}
 
-	p := wholesaleAdminPage{
+	p := wholesalersAdminPage{
 		page: page{
 			Admin: Admin(req),
 			Links: getNavbarLinks(req),
@@ -352,4 +353,48 @@ func AdminWholesalers(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	return templates.Get("admin-wholesalers.html").ExecuteTemplate(w, "base", p)
+}
+
+type wholesalerAdminPage struct {
+	page
+	Wholesaler store.User
+}
+
+func AdminWholesaler(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	wholesaler := store.User{Email: vars["wholesaler"]}
+
+	if err := wholesaler.Fetch(); err != nil {
+		return err
+	}
+
+	p := wholesalerAdminPage{
+		page: page{
+			Admin: Admin(req),
+			Links: getNavbarLinks(req),
+			Name:  name,
+		},
+		Wholesaler: wholesaler,
+	}
+
+	return templates.Get("admin-wholesaler.html").ExecuteTemplate(w, "base", p)
+}
+
+func AdminWholesalerVerify(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	wholesaler := store.User{Email: vars["wholesaler"]}
+
+	if err := wholesaler.Fetch(); err != nil {
+		return err
+	}
+	wholesaler.Confirmed = true
+
+	if err := wholesaler.Save(); err != nil {
+		return err
+	}
+
+	l := "/admin/wholesalers"
+	w.Header().Set("Location", l)
+	w.WriteHeader(http.StatusFound)
+	return nil
 }
