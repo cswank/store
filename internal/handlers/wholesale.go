@@ -168,7 +168,7 @@ Thanks!
 	return fmt.Sprintf(tmpl, u.FirstName, cfg.Domains[0], cfg.Domains[0], token, cfg.Domains[0], cfg.Email)
 }
 
-func WholesaleConfirm(w http.ResponseWriter, req *http.Request) error {
+func WholesaleVerify(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
 
 	p := page{
@@ -178,7 +178,7 @@ func WholesaleConfirm(w http.ResponseWriter, req *http.Request) error {
 		Name:    name,
 	}
 	var f func(io.Writer, string, interface{}) error
-	u, err := store.ConfirmWholesaler(vars["token"])
+	u, err := store.VerifyWholesaler(vars["token"])
 
 	if err != nil {
 		log.Printf("failed to confirm user %s with token %s, err: %v\n", u.Email, vars["token"], err)

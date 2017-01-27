@@ -142,7 +142,7 @@ func randStr(n int) string {
 	return string(b)
 }
 
-func ConfirmWholesaler(token string) (User, error) {
+func VerifyWholesaler(token string) (User, error) {
 	var u User
 	var email string
 
@@ -163,11 +163,14 @@ func ConfirmWholesaler(token string) (User, error) {
 		return u, err
 	}
 
-	q = []Row{NewRow(Key(email), Buckets("users"))}
-
-	err = db.Get(q, func(key, val []byte) error {
+	err = db.Get([]Row{NewRow(Key(email), Buckets("users"))}, func(key, val []byte) error {
 		return json.Unmarshal(val, &u)
 	})
+	if err != nil {
+		return u, err
+	}
+
+	err = db.Delete(q)
 	if err != nil {
 		return u, err
 	}

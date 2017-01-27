@@ -16,7 +16,7 @@ function doDelete() {
 }
 
 function back(e) {
-    window.location = "/";
+    window.location = "/admin";
     e.preventDefault();
     return false;
 }

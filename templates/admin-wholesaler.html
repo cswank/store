@@ -50,9 +50,21 @@
     <br/>
     {{if not .Wholesaler.Confirmed}}
     <form action="/admin/wholesalers/{{.Wholesaler.Email}}/confirmation" method="POST">
-      <button type="submit" class="pure-button pure-button-primary">Verify {{.Wholesaler.Email}}</button>
+      <input type="hidden" name="confirmation" required value="true"/>
+      <button type="submit" class="pure-button pure-button-primary">Confirm {{.Wholesaler.Email}}</button>
+    </form>
+    {{else}}
+    <form action="/admin/wholesalers/{{.Wholesaler.Email}}/confirmation" method="POST">
+      <input type="hidden" name="confirmation" required value="false"/>
+      <button type="submit" class="pure-button pure-button-primary">Un-Confirm {{.Wholesaler.Email}}</button>
     </form>
     {{end}}
+    <br/>
+    <form action="/admin/confirm" method="GET">
+      <input type="hidden" name="name" required value="{{.Wholesaler.Email}}"/>
+      <input type="hidden" name="resource" required value="/admin/wholesalers/{{.Wholesaler.Email}}"/>
+      <button type="submit" class="pure-button pure-button-primary">Delete {{.Wholesaler.Email}}</button>
+    </form>
   </div>
 </div>
 {{end}}

@@ -8,6 +8,7 @@ import (
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 )
 
 type adminPage struct {
@@ -361,10 +362,8 @@ type wholesalerAdminPage struct {
 }
 
 func AdminWholesaler(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
-	wholesaler := store.User{Email: vars["wholesaler"]}
-
-	if err := wholesaler.Fetch(); err != nil {
+	wholesaler, err := getWholesaler(req)
+	if err != nil {
 		return err
 	}
 
@@ -380,14 +379,68 @@ func AdminWholesaler(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("admin-wholesaler.html").ExecuteTemplate(w, "base", p)
 }
 
-func AdminWholesalerVerify(w http.ResponseWriter, req *http.Request) error {
+func AdminWholesalerUpdate(w http.ResponseWriter, req *http.Request) error {
+	wholesaler, err := getWholesaler(req)
+	if err != nil {
+		return err
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	dec := schema.NewDecoder()
+	dec.IgnoreUnknownKeys(true)
+	if err := dec.Decode(&wholesaler, req.PostForm); err != nil {
+		return err
+	}
+
+	if err := wholesaler.Save(); err != nil {
+		return err
+	}
+
+	w.Header().Set("Location", "/admin/wholesalers")
+	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
+func AdminWholesalerDelete(w http.ResponseWriter, req *http.Request) error {
+	wholesaler, err := getWholesaler(req)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("deleting wholesaler", wholesaler)
+	if err := wholesaler.Delete(); err != nil {
+		fmt.Println("couldn't delete", err)
+		return err
+	}
+
+	w.Header().Set("Location", "/admin/wholesalers")
+	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
+func getWholesaler(req *http.Request) (store.User, error) {
 	vars := mux.Vars(req)
 	wholesaler := store.User{Email: vars["wholesaler"]}
+
+	return wholesaler, wholesaler.Fetch()
+}
+
+func AdminWholesalerConfirm(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	wholesaler := store.User{Email: vars["wholesaler"]}
+
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
 
 	if err := wholesaler.Fetch(); err != nil {
 		return err
 	}
-	wholesaler.Confirmed = true
+
+	wholesaler.Confirmed = req.FormValue("confirmation") == "true"
 
 	if err := wholesaler.Save(); err != nil {
 		return err
