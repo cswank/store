@@ -33,6 +33,7 @@ var (
 		"navbar.html",
 		"notfound.html",
 		"product.html",
+		"quantity.js",
 		"shop.html",
 		"shop.js",
 		"subcategory.html",
@@ -41,6 +42,7 @@ var (
 		"wholesale-page.html",
 		"wholesale-login.html",
 		"wholesale-pending.html",
+		"wholesale-thumb.html",
 		"wholesale-welcome.html",
 		"head.html",
 	}
@@ -84,7 +86,7 @@ func Init(box *rice.Box) {
 		"subcategory.html":       {files: []string{"subcategory.html", "thumb.html"}},
 		"wholesale-form.html":    {files: []string{"wholesale-form.html"}},
 		"wholesale-login.html":   {files: []string{"wholesale-login.html"}},
-		"wholesale-page.html":    {files: []string{"wholesale-page.html"}},
+		"wholesale-page.html":    {files: []string{"wholesale-page.html", "wholesale-thumb.html", "quantity.js"}},
 		"wholesale-pending.html": {files: []string{"wholesale-pending.html"}},
 		"wholesale-welcome.html": {files: []string{"wholesale-welcome.html"}},
 	}
