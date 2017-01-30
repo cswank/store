@@ -79,3 +79,15 @@ func DoLogout(w http.ResponseWriter, req *http.Request) error {
 	w.WriteHeader(http.StatusFound)
 	return nil
 }
+
+func ResetPage(w http.ResponseWriter, req *http.Request) error {
+	return nil
+}
+
+func SendReset(w http.ResponseWriter, req *http.Request) error {
+	return nil
+}
+
+func ResetPassword(w http.ResponseWriter, req *http.Request) error {
+	return nil
+}
