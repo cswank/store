@@ -6,6 +6,7 @@ import (
 
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 )
 
@@ -15,6 +16,8 @@ type loginPage struct {
 	Captcha        bool
 	CaptchaSiteKey string
 	Error          string
+	Message        string
+	Token          string
 }
 
 func Login(w http.ResponseWriter, req *http.Request) error {
@@ -35,7 +38,6 @@ func Login(w http.ResponseWriter, req *http.Request) error {
 func DoLogin(w http.ResponseWriter, req *http.Request) error {
 	err := req.ParseForm()
 	if err != nil {
-		fmt.Println("parse form", err)
 		return err
 	}
 
@@ -81,13 +83,78 @@ func DoLogout(w http.ResponseWriter, req *http.Request) error {
 }
 
 func ResetPage(w http.ResponseWriter, req *http.Request) error {
-	return nil
+	p := loginPage{
+		page: page{
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(req),
+			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+		},
+		Message:        req.URL.Query().Get("message"),
+		CaptchaSiteKey: cfg.RecaptchaSiteKey,
+	}
+	return templates.Get("reset.html").ExecuteTemplate(w, "base", p)
 }
 
 func SendReset(w http.ResponseWriter, req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	if err := store.SendPasswordReset(req.FormValue("email")); err != nil {
+		return err
+	}
+
+	msg := "You will soon receive an email that contains a link to reset your password."
+	w.Header().Set("Location", fmt.Sprintf("/login/reset?message=%s", msg))
+	w.WriteHeader(http.StatusFound)
 	return nil
 }
 
 func ResetPassword(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	t := vars["token"]
+
+	//TODO
+	// if !store.ValidToken(t) {
+
+	// }
+
+	p := loginPage{
+		page: page{
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(req),
+			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+		},
+		Message:        req.URL.Query().Get("message"),
+		CaptchaSiteKey: cfg.RecaptchaSiteKey,
+		Token:          t,
+	}
+
+	return templates.Get("reset-form.html").ExecuteTemplate(w, "base", p)
+}
+
+func DoResetPassword(w http.ResponseWriter, req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	t := req.FormValue("token")
+	pw := req.FormValue("password")
+	pw2 := req.FormValue("confirm-password")
+
+	u, err := store.GetUserFromResetToken(t)
+	if err != nil {
+		return err
+	}
+
+	u.Password = pw
+	u.Password2 = pw2
+
+	if err := u.UpdatePassword(); err != nil {
+		return err
+	}
+
+	w.Header().Set("Location", "/wholesale")
+	w.WriteHeader(http.StatusFound)
 	return nil
 }

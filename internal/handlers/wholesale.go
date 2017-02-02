@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/store"
@@ -25,10 +26,13 @@ func Purchase(w http.ResponseWriter, req *http.Request) error {
 }
 
 func Wholesale(w http.ResponseWriter, req *http.Request) error {
-	if Wholesaler(req) {
-		return getWholesalePage(w, req)
+	if !Wholesaler(req) {
+		w.Header().Set("Location", "/login?from=/wholesale")
+		w.WriteHeader(http.StatusFound)
+		return nil
 	}
-	return getWholesaleLogin(w, req)
+
+	return getWholesalePage(w, req)
 }
 
 type wholesalePage struct {
@@ -55,7 +59,72 @@ func getWholesalePage(w http.ResponseWriter, req *http.Request) error {
 		Products: prods,
 	}
 
-	return templates.Get("wholesale-page.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("wholesale/page.html").ExecuteTemplate(w, "base", p)
+}
+
+func Invoice(w http.ResponseWriter, req *http.Request) error {
+
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	if req.URL.Query().Get("preview") == "true" {
+		return previewInvoice(w, req)
+	}
+
+	return nil
+}
+
+type invoicePreview struct {
+	page
+	Products map[string]int
+}
+
+func previewInvoice(w http.ResponseWriter, req *http.Request) error {
+	products := map[string]int{}
+	for key, values := range req.Form { // range over map
+		for _, value := range values { // range over []string
+			if value == "0" {
+				continue
+			}
+			q, err := strconv.ParseInt(value, 10, 32)
+			if err != nil {
+				log.Println("couldn't parse form value", key, value, err)
+				continue
+			}
+			products[key] = int(q)
+		}
+	}
+
+	p := invoicePreview{
+		page: page{
+			Links: getNavbarLinks(req),
+			Name:  cfg.Name,
+		},
+		Products: products,
+	}
+
+	return templates.Get("wholesale/preview.html").ExecuteTemplate(w, "base", p)
+}
+
+func ConfirmInvoice(w http.ResponseWriter, req *http.Request) error {
+	return nil
+}
+
+func WholesaleForm(w http.ResponseWriter, req *http.Request) error {
+	params := req.URL.Query()
+	p := formPage{
+		page: page{
+			Links:   getNavbarLinks(req),
+			Name:    cfg.Name,
+			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+		},
+		ShowMessage:    params.Get("success") != "",
+		CaptchaSiteKey: cfg.RecaptchaSiteKey,
+		Captcha:        true,
+	}
+
+	return templates.Get("wholesale/form.html").ExecuteTemplate(w, "base", p)
 }
 
 func getWholesaleProducts(cats []string) (map[string]map[string][]product, error) {
@@ -78,36 +147,13 @@ func getWholesaleProducts(cats []string) (map[string]map[string][]product, error
 	return m, nil
 }
 
-func WholesaleForm(w http.ResponseWriter, req *http.Request) error {
-	params := req.URL.Query()
-	p := formPage{
-		page: page{
-			Links:   getNavbarLinks(req),
-			Name:    cfg.Name,
-			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
-		},
-		ShowMessage:    params.Get("success") != "",
-		CaptchaSiteKey: cfg.RecaptchaSiteKey,
-		Captcha:        true,
+func WholesaleThanks(w http.ResponseWriter, req *http.Request) error {
+	p := page{
+		Links: getNavbarLinks(req),
+		Name:  cfg.Name,
 	}
 
-	return templates.Get("wholesale-form.html").ExecuteTemplate(w, "base", p)
-}
-
-func getWholesaleLogin(w http.ResponseWriter, req *http.Request) error {
-	params := req.URL.Query()
-	p := formPage{
-		page: page{
-			Links:   getNavbarLinks(req),
-			Name:    cfg.Name,
-			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
-		},
-		ShowMessage:    params.Get("success") != "",
-		CaptchaSiteKey: cfg.RecaptchaSiteKey,
-		Captcha:        true,
-	}
-
-	return templates.Get("wholesale-login.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("wholesale/thanks.html").ExecuteTemplate(w, "base", p)
 }
 
 func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
@@ -144,7 +190,7 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	w.Header().Set("Location", "/wholesale?success=true")
+	w.Header().Set("Location", "/wholesale/thanks")
 	w.WriteHeader(http.StatusFound)
 	return nil
 }
@@ -182,12 +228,12 @@ func WholesaleVerify(w http.ResponseWriter, req *http.Request) error {
 
 	if err != nil {
 		log.Printf("failed to confirm user %s with token %s, err: %v\n", u.Email, vars["token"], err)
-		f = templates.Get("wholesale-pending.html").ExecuteTemplate
+		f = templates.Get("wholesale/pending.html").ExecuteTemplate
 		p.Message = "We were unable to confirm your email address.  If you applied more than 7 days ago your application has expired and you will have to re-apply.  Sorry for the inconvenience."
 	} else if u.Verified && u.Confirmed {
-		f = templates.Get("wholesale-welcome.html").ExecuteTemplate
+		f = templates.Get("wholesale/welcome.html").ExecuteTemplate
 	} else {
-		f = templates.Get("wholesale-pending.html").ExecuteTemplate
+		f = templates.Get("wholesale/pending.html").ExecuteTemplate
 		p.Message = "Your email address has been confirmed. Once the site administrator approves your application you will received an email from us."
 	}
 

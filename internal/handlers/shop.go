@@ -135,14 +135,15 @@ type subCategoryPage struct {
 	Products []product
 }
 
-func getProducts(cat, subcat string, prods []string) []product {
+func getProducts(cat, subcat string, prods []store.Product) []product {
 	out := make([]product, len(prods))
-	for i, t := range prods {
+	for i, p := range prods {
 		out[i] = product{
-			Title: t,
-			Image: fmt.Sprintf("/shop/images/products/%s/thumb.png", t),
-			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, t),
+			Title: p.Title,
+			Image: fmt.Sprintf("/shop/images/products/%s/thumb.png", p.Title),
+			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, p.Title),
 			Price: cfg.DefaultPrice,
+			ID:    p.ID,
 		}
 	}
 	return out
@@ -183,6 +184,7 @@ type productPage struct {
 }
 
 type product struct {
+	ID        string
 	Title     string
 	Image     string
 	Link      string

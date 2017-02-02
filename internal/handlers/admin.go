@@ -52,7 +52,7 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 		Placeholder: "new category",
 		AdminLinks:  []link{{Name: "Categories", Link: "/admin"}},
 	}
-	return templates.Get("admin.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/admin.html").ExecuteTemplate(w, "base", p)
 }
 
 func AddCategory(w http.ResponseWriter, req *http.Request) error {
@@ -115,7 +115,7 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 			{Name: cat, Link: from},
 		},
 	}
-	return templates.Get("admin.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/admin.html").ExecuteTemplate(w, "base", p)
 }
 
 func RenameCategory(w http.ResponseWriter, req *http.Request) error {
@@ -188,7 +188,7 @@ func AddProduct(w http.ResponseWriter, req *http.Request) error {
 func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, _ := getVars(req)
 
-	products, err := store.GetProducts(cat, subcat)
+	products, err := store.GetProductTitles(cat, subcat)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 		IsProduct: true,
 	}
 
-	return templates.Get("admin.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/admin.html").ExecuteTemplate(w, "base", p)
 }
 
 func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
@@ -253,7 +253,7 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 		Subcategories: subs,
 	}
 
-	return templates.Get("admin-product.html").ExecuteTemplate(w, "base", page)
+	return templates.Get("admin/product.html").ExecuteTemplate(w, "base", page)
 }
 
 func UpdateProduct(w http.ResponseWriter, req *http.Request) error {
@@ -353,7 +353,7 @@ func AdminWholesalers(w http.ResponseWriter, req *http.Request) error {
 		Wholesalers: wholesalers,
 	}
 
-	return templates.Get("admin-wholesalers.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/wholesalers.html").ExecuteTemplate(w, "base", p)
 }
 
 type wholesalerAdminPage struct {
@@ -376,7 +376,7 @@ func AdminWholesaler(w http.ResponseWriter, req *http.Request) error {
 		Wholesaler: wholesaler,
 	}
 
-	return templates.Get("admin-wholesaler.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/wholesaler.html").ExecuteTemplate(w, "base", p)
 }
 
 func AdminWholesalerUpdate(w http.ResponseWriter, req *http.Request) error {

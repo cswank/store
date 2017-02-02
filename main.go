@@ -94,7 +94,7 @@ func initServe() {
 				json.NewEncoder(w).Encode(m)
 			}
 		}))
-		cfg.Domains = []string{ts.URL}
+		//cfg.Domains = []string{ts.URL}
 		cfg.ShopifyAPI = ts.URL
 	}
 
@@ -119,14 +119,16 @@ func doServe() {
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Human, handlers.DoLogin)).Methods("POST")
-	r.Handle("/login/reset", getMiddleware(handlers.Human, handlers.ResetPage)).Methods("GET")
+	r.Handle("/login/reset", getMiddleware(handlers.Anyone, handlers.ResetPage)).Methods("GET")
 	r.Handle("/login/reset", getMiddleware(handlers.Human, handlers.SendReset)).Methods("POST")
-	r.Handle("/login/reset/{tokan}", getMiddleware(handlers.Human, handlers.ResetPassword)).Methods("GET")
+	r.Handle("/login/reset/{token}", getMiddleware(handlers.Anyone, handlers.ResetPassword)).Methods("GET")
+	r.Handle("/login/password", getMiddleware(handlers.Anyone, handlers.DoResetPassword)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
+	r.Handle("/wholesale/invoice", getMiddleware(handlers.Wholesaler, handlers.Invoice)).Methods("POST")
 	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleForm)).Methods("GET")
 	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApply)).Methods("POST")
 	r.Handle("/wholesale/application/{token}", getMiddleware(handlers.Anyone, handlers.WholesaleVerify)).Methods("GET")

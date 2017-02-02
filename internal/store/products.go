@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"image"
 	"image/png"
 	"io"
@@ -73,11 +74,27 @@ func GetSubCategories(cat string) ([]string, error) {
 	})
 }
 
-func GetProducts(cat, subcat string) ([]string, error) {
+func GetProductTitles(cat, subcat string) ([]string, error) {
 	var products []string
 	q := NewRow(Buckets("products", cat, subcat))
 	return products, db.GetAll(q, func(key, val []byte) error {
+		fmt.Println(string(val))
 		products = append(products, string(key))
+		return nil
+	})
+}
+
+func GetProducts(cat, subcat string) ([]Product, error) {
+	var products []Product
+	q := NewRow(Buckets("products", cat, subcat))
+	return products, db.GetAll(q, func(key, val []byte) error {
+		var p Product
+		err := json.Unmarshal(val, &p)
+		if err != nil {
+			return err
+		}
+		p.Title = string(key)
+		products = append(products, p)
 		return nil
 	})
 }

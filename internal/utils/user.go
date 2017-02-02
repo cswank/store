@@ -36,10 +36,8 @@ func getPasswd(u *store.User) {
 		log.Fatal(err)
 	}
 	p2 := string(b2)
-	if p1 != p2 {
-		log.Fatal("passwords don't match")
-	}
 	u.Password = p1
+	u.Password2 = p2
 }
 
 func EditUser() {

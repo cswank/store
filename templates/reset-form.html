@@ -1,0 +1,24 @@
+{{define "content"}}
+
+{{if .Message}}
+<div class="center text-center">{{.Message}}</div>
+{{else}}
+<div class="form-holder">
+  <form class="pure-form pure-form-stacked" action="/login/password" method="POST">
+    <fieldset>
+      <legend>Password Reset</legend>
+      <input type="hidden" name="token" value="{{.Token}}">
+      <label for="password">Password</label>
+      <input type="password" placeholder="password" name="password" required>
+
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" placeholder="confirm password" name="confirm-password" required>
+      
+      <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+      <button type="submit" class="pure-button pure-button-primary">Submit</button>
+    </fieldset>
+  </form>
+</div>
+{{end}}
+{{end}}
+

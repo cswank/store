@@ -4,49 +4,13 @@ import (
 	"errors"
 	"html/template"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/GeertJohan/go.rice"
 )
 
 var (
-	html = []string{
-		"admin-links.html",
-		"admin-product.js",
-		"admin-product.html",
-		"admin-wholesalers.html",
-		"admin-wholesaler.html",
-		"admin.html",
-		"admin.js",
-		"background-images.html",
-		"base.html",
-		"base.js",
-		"cart.html",
-		"cart.js",
-		"category.html",
-		"confirm.html",
-		"confirm.js",
-		"contact.html",
-		"index.html",
-		"lineitem.html",
-		"login.html",
-		"logout.html",
-		"navbar.html",
-		"notfound.html",
-		"product.html",
-		"quantity.js",
-		"shop.html",
-		"shop.js",
-		"subcategory.html",
-		"thumb.html",
-		"wholesale-form.html",
-		"wholesale-page.html",
-		"wholesale-login.html",
-		"wholesale-pending.html",
-		"wholesale-thumb.html",
-		"wholesale-welcome.html",
-		"head.html",
-	}
-
 	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
 	templates              map[string]tmpl
 )
@@ -59,6 +23,7 @@ type tmpl struct {
 
 func Init(box *rice.Box) {
 	data := map[string]string{}
+	html := getHTML(box)
 	for _, pth := range html {
 		s, err := box.String(pth)
 		if err != nil {
@@ -68,10 +33,10 @@ func Init(box *rice.Box) {
 	}
 
 	templates = map[string]tmpl{
-		"admin-product.html":     {files: []string{"admin-product.html", "admin-links.html", "admin-product.js", "background-images.html"}},
-		"admin-wholesalers.html": {files: []string{"admin-wholesalers.html"}},
-		"admin-wholesaler.html":  {files: []string{"admin-wholesaler.html"}},
-		"admin.html":             {files: []string{"admin.html", "admin-links.html", "background-images.html", "admin.js"}},
+		"admin/product.html":     {files: []string{"admin/product.html", "admin/links.html", "admin/product.js", "background-images.html"}},
+		"admin/wholesalers.html": {files: []string{"admin/wholesalers.html"}},
+		"admin/wholesaler.html":  {files: []string{"admin/wholesaler.html"}},
+		"admin/admin.html":       {files: []string{"admin/admin.html", "admin/links.html", "background-images.html", "admin/admin.js"}},
 		"cart.html":              {files: []string{"cart.html", "cart.js"}},
 		"category.html":          {files: []string{"category.html", "thumb.html"}},
 		"confirm.html":           {files: []string{"confirm.html", "confirm.js"}},
@@ -82,13 +47,16 @@ func Init(box *rice.Box) {
 		"logout.html":            {files: []string{"logout.html", "confirm.js"}},
 		"notfound.html":          {files: []string{"notfound.html"}},
 		"product.html":           {files: []string{"product.html", "shop.js"}},
+		"reset.html":             {files: []string{"reset.html"}},
+		"reset-form.html":        {files: []string{"reset-form.html"}},
 		"shop.html":              {files: []string{"shop.html", "thumb.html"}},
 		"subcategory.html":       {files: []string{"subcategory.html", "thumb.html"}},
-		"wholesale-form.html":    {files: []string{"wholesale-form.html"}},
-		"wholesale-login.html":   {files: []string{"wholesale-login.html"}},
-		"wholesale-page.html":    {files: []string{"wholesale-page.html", "wholesale-thumb.html", "quantity.js"}},
-		"wholesale-pending.html": {files: []string{"wholesale-pending.html"}},
-		"wholesale-welcome.html": {files: []string{"wholesale-welcome.html"}},
+		"wholesale/form.html":    {files: []string{"wholesale/form.html"}},
+		"wholesale/preview.html": {files: []string{"wholesale/preview.html"}},
+		"wholesale/thanks.html":  {files: []string{"wholesale/thanks.html"}},
+		"wholesale/page.html":    {files: []string{"wholesale/page.html", "wholesale/thumb.html", "quantity.js"}},
+		"wholesale/pending.html": {files: []string{"wholesale/pending.html"}},
+		"wholesale/welcome.html": {files: []string{"wholesale/welcome.html"}},
 	}
 
 	base := []string{"head.html", "base.html", "navbar.html", "base.js"}
@@ -112,6 +80,20 @@ func Init(box *rice.Box) {
 		val.template = t
 		templates[key] = val
 	}
+}
+
+func getHTML(box *rice.Box) []string {
+	var html []string
+	box.Walk("/", func(pth string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+		if strings.HasSuffix(pth, ".html") || strings.HasSuffix(pth, ".js") {
+			html = append(html, pth)
+		}
+		return nil
+	})
+	return html
 }
 
 func Get(k string) *template.Template {

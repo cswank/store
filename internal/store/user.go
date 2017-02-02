@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
+
+	"github.com/cswank/store/internal/email"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -19,10 +22,17 @@ const (
 )
 
 var (
-	chars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	chars  = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	pwBody = `Dear %s,
+Please click on the following link to reset your %s password.
+
+https://%s/login/reset/%s
+
+%s
+`
 )
 
-type Verification struct {
+type Token struct {
 	Email   string    `json:"email"`
 	Expires time.Time `json:"expiers"`
 }
@@ -42,7 +52,8 @@ type User struct {
 	Country   string `schema:"country" json:"country,omitempty"`
 
 	Permission     Permission `json:"permission"`
-	Password       string     `schema:"password" json:"password,omitempty"`
+	Password       string     `schema:"password" json:"-"`
+	Password2      string     `schema:"confirm-password" json:"-"`
 	HashedPassword []byte     `json:"hashed_password,omitempty"`
 
 	//They clicked on the verification email link
@@ -90,9 +101,21 @@ func (u *User) Save(moreRows ...Row) error {
 	return db.Put(rows)
 }
 
+func (u *User) UpdatePassword() error {
+	if err := u.savePassword(); err != nil {
+		return err
+	}
+
+	return u.Save()
+}
+
 func (u *User) savePassword() error {
 	if len(u.Password) < 8 {
 		return errors.New("password is too short (must be at least 8 characters long)")
+	}
+
+	if u.Password != u.Password2 {
+		return errors.New("passwords don't match")
 	}
 
 	u.hashPassword()
@@ -120,17 +143,18 @@ func (u *User) hashPassword() error {
 		bcrypt.DefaultCost,
 	)
 	u.Password = ""
+	u.Password2 = ""
 	return err
 }
 
 func (u *User) GenerateToken() (string, Row, error) {
 	token := randStr(32)
-	v := Verification{
+	t := Token{
 		Email:   u.Email,
 		Expires: time.Now().Add(24 * 7 * time.Hour),
 	}
 
-	d, err := json.Marshal(v)
+	d, err := json.Marshal(t)
 	return token, NewRow(Key(token), Val(d), Buckets("verifications")), err
 }
 
@@ -146,17 +170,17 @@ func VerifyWholesaler(token string) (User, error) {
 	var u User
 	var email string
 
-	q := []Row{NewRow(Key(token), Buckets("verifications"))}
+	q := []Row{NewRow(Key(token), Buckets("tokens"))}
 	err := db.Get(q, func(key, val []byte) error {
-		var v Verification
-		err := json.Unmarshal(val, &v)
+		var t Token
+		err := json.Unmarshal(val, &t)
 		if err != nil {
 			return err
 		}
-		if time.Now().Sub(v.Expires) > 0 {
-			return fmt.Errorf("expired token for %s", v.Email)
+		if time.Now().Sub(t.Expires) > 0 {
+			return fmt.Errorf("expired token for %s", t.Email)
 		}
-		email = v.Email
+		email = t.Email
 		return nil
 	})
 	if err != nil {
@@ -177,4 +201,63 @@ func VerifyWholesaler(token string) (User, error) {
 
 	u.Verified = true
 	return u, u.Save()
+}
+
+func SendPasswordReset(email string) error {
+	u := User{Email: email}
+	if err := u.Fetch(); err != nil {
+		log.Printf("couldn't fetch user for password reset, email: %s, err: %v\n", email, err)
+		return nil
+	}
+
+	k := randStr(64)
+	t := Token{
+		Email:   email,
+		Expires: time.Now().Add(24 * time.Hour),
+	}
+
+	if err := sendPasswordResetEmail(email, k); err != nil {
+		return err
+	}
+
+	d, _ := json.Marshal(t)
+	return db.Put([]Row{NewRow(Key(k), Val(d), Buckets("tokens"))})
+}
+
+func sendPasswordResetEmail(em, token string) error {
+	pwBody := `Dear %s,
+Please click on the following link to reset your %s password.
+
+https://%s/login/reset/%s
+
+%s
+`
+	m := email.Msg{
+		Email:   em,
+		Subject: fmt.Sprintf("%s password reset request", cfg.Name),
+		Body:    fmt.Sprintf(pwBody, em, cfg.Domains[0], cfg.Domains[0], token, cfg.Domains[0]),
+	}
+
+	return email.Send(m)
+}
+
+func GetUserFromResetToken(key string) (User, error) {
+	var u User
+	var t Token
+
+	q := []Row{NewRow(Key(key), Buckets("tokens"))}
+	err := db.Get(q, func(k, v []byte) error {
+		return json.Unmarshal(v, &t)
+	})
+
+	if err != nil {
+		return u, err
+	}
+
+	if time.Now().Sub(t.Expires) > 0 {
+		return u, fmt.Errorf("expired token for %s", t.Email)
+	}
+
+	u.Email = t.Email
+	return u, u.Fetch()
 }
