@@ -128,8 +128,8 @@ func doServe() {
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
-	r.Handle("/wholesale/invoice", getMiddleware(handlers.Wholesaler, handlers.Invoice)).Methods("POST")
-	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleForm)).Methods("GET")
+	r.Handle("/wholesale/invoice", getMiddleware(handlers.Wholesaler, handlers.Invoice)).Methods("GET", "POST")
+	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApplication)).Methods("GET")
 	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApply)).Methods("POST")
 	r.Handle("/wholesale/application/{token}", getMiddleware(handlers.Anyone, handlers.WholesaleVerify)).Methods("GET")
 

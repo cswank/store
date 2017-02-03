@@ -32,7 +32,7 @@ func Wholesale(w http.ResponseWriter, req *http.Request) error {
 		return nil
 	}
 
-	return getWholesalePage(w, req)
+	return getWholesaleForm(w, req)
 }
 
 type wholesalePage struct {
@@ -40,7 +40,7 @@ type wholesalePage struct {
 	Products map[string]map[string][]product
 }
 
-func getWholesalePage(w http.ResponseWriter, req *http.Request) error {
+func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 	cats, err := store.GetCategories()
 	if err != nil {
 		return err
@@ -59,40 +59,51 @@ func getWholesalePage(w http.ResponseWriter, req *http.Request) error {
 		Products: prods,
 	}
 
-	return templates.Get("wholesale/page.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("wholesale/form.html").ExecuteTemplate(w, "base", p)
 }
 
 func Invoice(w http.ResponseWriter, req *http.Request) error {
-
 	if err := req.ParseForm(); err != nil {
 		return err
 	}
 
-	if req.URL.Query().Get("preview") == "true" {
+	if req.Method == "GET" {
 		return previewInvoice(w, req)
 	}
 
 	return nil
 }
 
+type invoiceProduct struct {
+	Title    string
+	Total    string
+	Quantity int
+}
+
 type invoicePreview struct {
 	page
-	Products map[string]int
+	Products []invoiceProduct
+	Price    string
 }
 
 func previewInvoice(w http.ResponseWriter, req *http.Request) error {
-	products := map[string]int{}
+	var products []invoiceProduct
+	price, _ := strconv.ParseFloat(cfg.DefaultPrice, 32)
 	for key, values := range req.Form { // range over map
 		for _, value := range values { // range over []string
 			if value == "0" {
 				continue
 			}
-			q, err := strconv.ParseInt(value, 10, 32)
+			q, err := strconv.ParseFloat(value, 32)
 			if err != nil {
 				log.Println("couldn't parse form value", key, value, err)
 				continue
 			}
-			products[key] = int(q)
+			products = append(products, invoiceProduct{
+				Total:    fmt.Sprintf("%.02f", price*q),
+				Title:    key,
+				Quantity: int(q),
+			})
 		}
 	}
 
@@ -102,6 +113,7 @@ func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 			Name:  cfg.Name,
 		},
 		Products: products,
+		Price:    cfg.DefaultPrice,
 	}
 
 	return templates.Get("wholesale/preview.html").ExecuteTemplate(w, "base", p)
@@ -111,7 +123,7 @@ func ConfirmInvoice(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func WholesaleForm(w http.ResponseWriter, req *http.Request) error {
+func WholesaleApplication(w http.ResponseWriter, req *http.Request) error {
 	params := req.URL.Query()
 	p := formPage{
 		page: page{
@@ -124,7 +136,7 @@ func WholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		Captcha:        true,
 	}
 
-	return templates.Get("wholesale/form.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("wholesale/application-form.html").ExecuteTemplate(w, "base", p)
 }
 
 func getWholesaleProducts(cats []string) (map[string]map[string][]product, error) {
