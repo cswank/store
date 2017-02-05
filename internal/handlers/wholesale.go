@@ -84,11 +84,13 @@ type invoicePreview struct {
 	page
 	Products []invoiceProduct
 	Price    string
+	Total    string
 }
 
 func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 	var products []invoiceProduct
 	price, _ := strconv.ParseFloat(cfg.DefaultPrice, 32)
+	var total float64
 	for key, values := range req.Form { // range over map
 		for _, value := range values { // range over []string
 			if value == "0" {
@@ -99,8 +101,10 @@ func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 				log.Println("couldn't parse form value", key, value, err)
 				continue
 			}
+			t := price * q
+			total += t
 			products = append(products, invoiceProduct{
-				Total:    fmt.Sprintf("%.02f", price*q),
+				Total:    fmt.Sprintf("%.02f", t),
 				Title:    key,
 				Quantity: int(q),
 			})
@@ -114,6 +118,7 @@ func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 		},
 		Products: products,
 		Price:    cfg.DefaultPrice,
+		Total:    fmt.Sprintf("%.02f", total),
 	}
 
 	return templates.Get("wholesale/preview.html").ExecuteTemplate(w, "base", p)

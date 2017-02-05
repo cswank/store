@@ -1,12 +1,24 @@
 {{define "base.js"}}
 
-function updateCartLink(n) {
+function updateCartLink(n, animate) {
+    var $element = $('#Cart');
+    var text = "";
+    var updatedText;
     if (n > 0) {
-        $('#Cart').trigger('mouseenter');
-        $('#Cart').text("Cart (" + n + ")");
+        updatedText = "Cart (" + n + ")";
+        if (animate) {
+            $element.css('background-color', '#FD69E4');
+            $element.css('color', 'white');
+            setTimeout(function(){
+                $element.css('background-color', 'white');
+                $element.css('color', 'black');
+            }, 1500);
+        }
     } else {
-        $('#Cart').text("Cart");
+        updatedText = "Cart";
     }
+    
+    $element.text(updatedText);
 }
 
 function initCart() {
@@ -14,15 +26,15 @@ function initCart() {
     if (cart == undefined) {
         cart = {};
     }
-    doInitCart(cart);
+    doInitCart(cart, false);
 }
 
-function doInitCart(cart) {
+function doInitCart(cart, animate) {
     var n = 0;
     for (var p in cart) {
         n += cart[p].count;
     }
-    updateCartLink(n);
+    updateCartLink(n, animate);
 }
 
 function addToCart(title) {
@@ -41,15 +53,17 @@ function addToCart(title) {
         };
     }
     item.count = quantity;
-    doAddToCart(cart, item, title);
+    doAddToCart(cart, item, title, true);
 }
 
-function doAddToCart(cart, item, title) {
+function doAddToCart(cart, item, title, animate) {
     cart[title] = item;
     localStorage.setItem("shopping-cart", JSON.stringify(cart));
-    doInitCart(cart);
+    doInitCart(cart, animate);
 }
 
-initCart();
+$(document).ready(function() {
+    initCart();
+});
 
 {{end}}

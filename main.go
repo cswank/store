@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -79,18 +80,16 @@ func main() {
 
 func initServe() {
 	if *fake {
-		id := 1
 		ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == "POST" {
 				var m map[string]shopify.Product
 				json.NewDecoder(r.Body).Decode(&m)
 				p := m["product"]
-				p.ID = id
+				p.ID = rand.Int()
 				p.Variants = []shopify.Variant{
-					{ID: id},
+					{ID: p.ID},
 				}
 				m["product"] = p
-				id++
 				json.NewEncoder(w).Encode(m)
 			}
 		}))

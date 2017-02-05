@@ -60,7 +60,7 @@ function update(title, n) {
     if (item.count < 0) {
         item.count = 0;
     }
-    doAddToCart(items, item, title);
+    doAddToCart(items, item, title, false);
     updateTotal(items)
     var sel = "#" + item.id + "-quantity";
     $(sel).val(item.count);
@@ -92,7 +92,7 @@ function removeItem(title) {
     localStorage.setItem("shopping-cart", JSON.stringify(items));
     $("#" + item.id).remove();
     updateTotal(items);
-    doInitCart(items);
+    doInitCart(items, false);
 
     var i = 0;
     for (var title in items) {
@@ -127,7 +127,7 @@ function clearCart() {
     localStorage.removeItem("shopping-cart");
     updateCartLink(0);
     items = {};
-    doInitCart(items);
+    doInitCart(items, false);
 
     showCart(0);
 }
