@@ -34,6 +34,12 @@
     <button type="submit" class="pure-button pure-button-primary">Save</button>
   </fieldset>
 </form>
+<form action="{{.Resource}}" method="POST" id="category-delete-form">
+  <fieldset>
+    <legend>Delete {{.ResourceName}}</legend>
+    <button type="submit" class="pure-button pure-button-primary" onClick="confirmCategory()">Delete</button>
+  </fieldset>
+</form>
 {{else}}
 
 <form action="/admin/site/images/home" method="POST" enctype="multipart/form-data">
@@ -52,8 +58,6 @@
 </div>
 
 {{end}}
-
-
 
 </div>
 <script>

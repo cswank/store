@@ -138,6 +138,20 @@ func RenameCategory(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
+func DeleteCategory(w http.ResponseWriter, req *http.Request) error {
+	cat, _, _ := getVars(req)
+
+	err := store.DeleteCategory(cat)
+	if err != nil {
+		return err
+	}
+
+	makeNavbarLinks()
+	w.Header().Set("Location", fmt.Sprintf("/admin/categories"))
+	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
 func RenameSubcategory(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, _ := getVars(req)
 

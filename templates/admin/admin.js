@@ -10,5 +10,12 @@ function setBackground(title) {
     document.getElementById('background-input').value = title;
 }
 
+function confirmCategory() {
+    document.location.href = "/admin/confirm?resource={{.Resource}}&name={{.ResourceName}}";
+    document.getElementById('category-delete-form').onsubmit = function() {
+        return false;
+    };
+    return false;
+}
 
 {{end}}

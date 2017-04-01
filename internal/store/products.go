@@ -40,6 +40,11 @@ func RenameCategory(old, name string) error {
 	return db.RenameBucket(src, dst)
 }
 
+func DeleteCategory(cat string) error {
+	rows := []Query{NewQuery(Buckets("products", cat))}
+	return db.Delete(rows)
+}
+
 func AddSubcategory(cat, name string) error {
 	row := NewQuery(Buckets("products", cat), Key(name))
 	return db.AddBucket(row)

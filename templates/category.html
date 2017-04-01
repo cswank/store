@@ -4,10 +4,6 @@
   <li>
     <a href="{{$subcat.Link}}">{{$subcat.Name}}</a>
   </li>
-  {{with $products := .Products[$subcat.Name]}}
-  {{range $product := $products}}
-  
-  {{end}}
   {{end}}
 </ul>
 {{end}}
