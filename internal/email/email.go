@@ -51,7 +51,7 @@ func sendEmail(m Msg) error {
 func sendFake(msg Msg) error {
 	text := fmt.Sprintf(mailTemplate, cfg.Email, msg.Email, msg.Subject, msg.Body)
 
-	f, err := os.OpenFile("/tmp/mail.txt", os.O_APPEND|os.O_WRONLY, 0600)
+	f, err := os.Create("/tmp/mail.txt")
 	if err != nil {
 		return err
 	}

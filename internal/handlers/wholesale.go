@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/store"
@@ -71,7 +73,62 @@ func Invoice(w http.ResponseWriter, req *http.Request) error {
 		return previewInvoice(w, req)
 	}
 
-	return nil
+	return sendInvoice(w, req)
+}
+
+type invoiceEmail struct {
+	Number     int
+	Date       time.Time
+	StyleSheet string
+	Total      float64
+	Price      string
+	Products   []invoiceProduct
+	Customer   *store.User
+}
+
+type invoiceSent struct {
+	page
+	Customer *store.User
+}
+
+func sendInvoice(w http.ResponseWriter, req *http.Request) error {
+	products, total := getInvoiceProducts(req)
+	u := getUser(req)
+
+	i := invoiceEmail{
+		Number:     0,
+		Date:       time.Now(),
+		Total:      total,
+		StyleSheet: cfg.InvoiceStylesheet,
+		Customer:   u,
+		Products:   products,
+		Price:      cfg.DefaultPrice,
+	}
+
+	var buf bytes.Buffer
+	if err := templates.Get("wholesale/invoice.html").ExecuteTemplate(&buf, "invoice", i); err != nil {
+		return err
+	}
+
+	msg := email.Msg{
+		Email:   u.Email,
+		Subject: fmt.Sprintf("Invoice #%d from %s", i.Number, cfg.Domains[0]),
+		Body:    buf.String(),
+	}
+
+	if err := email.Send(msg); err != nil {
+		return err
+	}
+
+	p := invoiceSent{
+		page: page{
+			Links: getNavbarLinks(req),
+			Name:  cfg.Name,
+		},
+		Customer: u,
+	}
+
+	return templates.Get("wholesale/invoice-sent.html").ExecuteTemplate(w, "base", p)
 }
 
 type invoiceProduct struct {
@@ -88,6 +145,22 @@ type invoicePreview struct {
 }
 
 func previewInvoice(w http.ResponseWriter, req *http.Request) error {
+	products, total := getInvoiceProducts(req)
+
+	p := invoicePreview{
+		page: page{
+			Links: getNavbarLinks(req),
+			Name:  cfg.Name,
+		},
+		Products: products,
+		Price:    cfg.DefaultPrice,
+		Total:    fmt.Sprintf("%.02f", total),
+	}
+
+	return templates.Get("wholesale/preview.html").ExecuteTemplate(w, "base", p)
+}
+
+func getInvoiceProducts(req *http.Request) ([]invoiceProduct, float64) {
 	var products []invoiceProduct
 	price, _ := strconv.ParseFloat(cfg.DefaultPrice, 32)
 	var total float64
@@ -110,18 +183,7 @@ func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 			})
 		}
 	}
-
-	p := invoicePreview{
-		page: page{
-			Links: getNavbarLinks(req),
-			Name:  cfg.Name,
-		},
-		Products: products,
-		Price:    cfg.DefaultPrice,
-		Total:    fmt.Sprintf("%.02f", total),
-	}
-
-	return templates.Get("wholesale/preview.html").ExecuteTemplate(w, "base", p)
+	return products, total
 }
 
 func ConfirmInvoice(w http.ResponseWriter, req *http.Request) error {
@@ -251,7 +313,7 @@ func WholesaleVerify(w http.ResponseWriter, req *http.Request) error {
 		f = templates.Get("wholesale/welcome.html").ExecuteTemplate
 	} else {
 		f = templates.Get("wholesale/pending.html").ExecuteTemplate
-		p.Message = "Your email address has been confirmed. Once the site administrator approves your application you will received an email from us."
+		p.Message = "Thank you.  Your email address has been confirmed. Once the site administrator approves your application you will receive an email from us."
 	}
 
 	return f(w, "base", p)

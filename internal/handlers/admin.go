@@ -446,8 +446,18 @@ func AdminWholesalerConfirm(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
+	if wholesaler.Confirmed && wholesaler.Verified {
+		if err := welcomeWholesaler(wholesaler); err != nil {
+			return err
+		}
+	}
+
 	l := "/admin/wholesalers"
 	w.Header().Set("Location", l)
 	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
+func welcomeWholesaler(w store.User) error {
 	return nil
 }

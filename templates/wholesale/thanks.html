@@ -1,27 +1,7 @@
 {{define "content"}}
 <div class="form-holder">
-  {{if .ShowMessage}}
   <div class="center">
-    <p>Thanks for registering as a wholesaler with bangsandteeth.com.  Once we verify your status you will recieve a confirmation email.  You will then be able to log in and purchase products from the wholesale page.</p>
+    <p>Thanks for registering as a wholesaler with bangsandteeth.com.  Once we verify your status we will email you an update.  You will then be able to log in and purchase products from the wholesale page.</p>
   </div>
-  {{else}}
-
-  <form class="pure-form pure-form-stacked" action="/login" method="POST">
-    <fieldset>
-      <legend>Log in</legend>
-      <input name="Email" type="text" required placeholder="Email">
-      <input name="Password" type="password" required placeholder="Password">
-      <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
-      <button type="submit" class="pure-button pure-button-primary">Submit</button>
-    </fieldset>
-  </form>
-
-  <div>
-    <a href="/wholesale/application">Apply for a wholesale account</a>
-  </div>
-  <div>
-    <a href="/login/reset">Forgot password?</a>
-  </div>
-  {{end}}
 </div>
 {{end}}

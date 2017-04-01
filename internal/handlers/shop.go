@@ -100,6 +100,7 @@ func LineItem(w http.ResponseWriter, req *http.Request) error {
 type categoryPage struct {
 	page
 	SubCategories []link
+	Products      map[string][]product
 }
 
 func Category(w http.ResponseWriter, req *http.Request) error {
@@ -110,8 +111,19 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
+	if len(subs) == 1 && subs[0] == "NOSUBCATEGORIES" {
+		return showSubcategory(cat, subs[0], w, req)
+	}
+
+	links := getLinks(fmt.Sprintf("/shop/%s", cat), subs)
+	products, err := getProductsFromLinks(cat, links)
+	if err != nil {
+		return err
+	}
+
 	p := categoryPage{
-		SubCategories: getLinks(fmt.Sprintf("/shop/%s", cat), subs),
+		SubCategories: links,
+		Products:      products,
 		page: page{
 			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
@@ -120,6 +132,18 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 		},
 	}
 	return templates.Get("category.html").ExecuteTemplate(w, "base", p)
+}
+
+func getProductsFromLinks(cat string, links []link) (map[string][]product, error) {
+	m := map[string][]product{}
+	for _, l := range links {
+		prods, err := store.GetProducts(cat, l.Name)
+		if err != nil {
+			return nil, err
+		}
+		m[l.Name] = getProducts(cat, l.Name, prods)
+	}
+	return m, nil
 }
 
 func getLinks(href string, names []string) []link {
@@ -158,7 +182,11 @@ func getVars(req *http.Request) (string, string, map[string]string) {
 
 func SubCategory(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, _ := getVars(req)
+	return showSubcategory(cat, subcat, w, req)
 
+}
+
+func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Request) error {
 	prods, err := store.GetProducts(cat, subcat)
 	if err != nil {
 		return err

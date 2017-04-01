@@ -31,7 +31,7 @@
               {{range $child := $link.Children}}
               {{if $child.Category}}
               <li class="pure-menu-item menu-category">
-                <a>{{$child.Name}}</a>
+                <a href="/shop/{{$child.Name}}" >{{$child.Name}}</a>
               </li>
               {{else}}
               <li class="pure-menu-item">

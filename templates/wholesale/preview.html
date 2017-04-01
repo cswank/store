@@ -1,7 +1,7 @@
 {{define "content"}}
 <div class="text-center">
-  <form action="/wholesale/invoice?preview=false" method="POST">
-    <button type="submit" class="pure-button pure-button-primary">Request Invoice</button>
+  <form action="/wholesale/invoice" method="POST">
+    <button type="submit" class="pure-button pure-button-primary">Looks good, email me this invoice</button>
     {{$price := .Price}}
     {{range $i, $product := .Products}}
     <div class="pure-g">
@@ -9,6 +9,7 @@
         <a><img class="invoice-thumb" id="thumb shadowed" src="/shop/images/products/{{$product.Title}}/thumb.png"/></a><br/>
       </div>
       <div class="pure-u-1-4">
+        <input type="hidden" name="{{$product.Title}}" value="{{$product.Quantity}}"/>
         {{$product.Title}}
       </div>
       <div class="pure-u-1-4">

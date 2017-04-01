@@ -30,35 +30,35 @@ var (
 )
 
 func AddCategory(name string) error {
-	row := NewRow(Buckets("products"), Key(name))
+	row := NewQuery(Buckets("products"), Key(name))
 	return db.AddBucket(row)
 }
 
 func RenameCategory(old, name string) error {
-	src := NewRow(Buckets("products"), Key(old))
-	dst := NewRow(Buckets("products"), Key(name))
+	src := NewQuery(Buckets("products"), Key(old))
+	dst := NewQuery(Buckets("products"), Key(name))
 	return db.RenameBucket(src, dst)
 }
 
 func AddSubcategory(cat, name string) error {
-	row := NewRow(Buckets("products", cat), Key(name))
+	row := NewQuery(Buckets("products", cat), Key(name))
 	return db.AddBucket(row)
 }
 
 func RenameSubcategory(cat, old, name string) error {
-	src := NewRow(Buckets("products", cat), Key(old))
-	dst := NewRow(Buckets("products", cat), Key(name))
+	src := NewQuery(Buckets("products", cat), Key(old))
+	dst := NewQuery(Buckets("products", cat), Key(name))
 	return db.RenameBucket(src, dst)
 }
 
 func DeleteSubcategory(cat, subcat string) error {
-	rows := []Row{NewRow(Buckets("products", cat, subcat))}
+	rows := []Query{NewQuery(Buckets("products", cat, subcat))}
 	return db.Delete(rows)
 }
 
 func GetCategories() ([]string, error) {
 	var cats []string
-	q := NewRow(Buckets("products"))
+	q := NewQuery(Buckets("products"))
 	return cats, db.GetAll(q, func(key, val []byte) error {
 		cats = append(cats, string(key))
 		return nil
@@ -67,7 +67,7 @@ func GetCategories() ([]string, error) {
 
 func GetSubCategories(cat string) ([]string, error) {
 	var cats []string
-	q := NewRow(Buckets("products", cat))
+	q := NewQuery(Buckets("products", cat))
 	return cats, db.GetAll(q, func(key, val []byte) error {
 		cats = append(cats, string(key))
 		return nil
@@ -76,7 +76,7 @@ func GetSubCategories(cat string) ([]string, error) {
 
 func GetProductTitles(cat, subcat string) ([]string, error) {
 	var products []string
-	q := NewRow(Buckets("products", cat, subcat))
+	q := NewQuery(Buckets("products", cat, subcat))
 	return products, db.GetAll(q, func(key, val []byte) error {
 		fmt.Println(string(val))
 		products = append(products, string(key))
@@ -86,7 +86,7 @@ func GetProductTitles(cat, subcat string) ([]string, error) {
 
 func GetProducts(cat, subcat string) ([]Product, error) {
 	var products []Product
-	q := NewRow(Buckets("products", cat, subcat))
+	q := NewQuery(Buckets("products", cat, subcat))
 	return products, db.GetAll(q, func(key, val []byte) error {
 		var p Product
 		err := json.Unmarshal(val, &p)
@@ -177,15 +177,15 @@ func (p *Product) Update(p2 *Product) error {
 	if err != nil {
 		return err
 	}
-	rows := []Row{NewRow(Key(p.Title), Val(d), Buckets(buckets...))}
+	rows := []Query{NewQuery(Key(p.Title), Val(d), Buckets(buckets...))}
 
 	if p2.image != nil {
-		var imgRows []Row
-		_, imgRows, err = addImage(p2.image, p.Title, "products")
+		var imgQueries []Query
+		_, imgQueries, err = addImage(p2.image, p.Title, "products")
 		if err != nil {
 			return err
 		}
-		rows = append(rows, imgRows...)
+		rows = append(rows, imgQueries...)
 	}
 
 	return db.Put(rows)
@@ -216,16 +216,16 @@ func (p *Product) Delete() error {
 	return db.Delete(q)
 }
 
-func (p *Product) query() []Row {
+func (p *Product) query() []Query {
 	d, _ := json.Marshal(p)
-	return []Row{
-		NewRow(Key(p.Title), Val(d), Buckets("products", p.Cat, p.Subcat)),
+	return []Query{
+		NewQuery(Key(p.Title), Val(d), Buckets("products", p.Cat, p.Subcat)),
 	}
 }
 
-func (p *Product) imageQuery() []Row {
-	return []Row{
-		NewRow(Buckets("images", "products", p.Title)),
+func (p *Product) imageQuery() []Query {
+	return []Query{
+		NewQuery(Buckets("images", "products", p.Title)),
 	}
 }
 
@@ -253,8 +253,8 @@ func (p *Product) Add(r io.Reader) error {
 	return shopify.AddImage(id, img)
 }
 
-func (p *Product) getSubcat(rows []Row) ([]Row, error) {
-	q := NewRow(Buckets("products", p.Cat, p.Subcat))
+func (p *Product) getSubcat(rows []Query) ([]Query, error) {
+	q := NewQuery(Buckets("products", p.Cat, p.Subcat))
 	err := db.GetAll(q, func(key, val []byte) error {
 		id := string(key)
 		if id == p.Title {
@@ -264,7 +264,7 @@ func (p *Product) getSubcat(rows []Row) ([]Row, error) {
 	})
 
 	if err != nil {
-		return []Row{}, err
+		return []Query{}, err
 	}
 
 	buckets := []string{
@@ -275,21 +275,21 @@ func (p *Product) getSubcat(rows []Row) ([]Row, error) {
 
 	d, err := json.Marshal(p)
 	if err != nil {
-		return []Row{}, err
+		return []Query{}, err
 	}
-	r := NewRow(Key(p.Title), Val(d), Buckets(buckets...))
+	r := NewQuery(Key(p.Title), Val(d), Buckets(buckets...))
 	rows = append(rows, r)
 	return rows, nil
 }
 
-func addImage(r io.Reader, name, bucket string) ([]byte, []Row, error) {
+func addImage(r io.Reader, name, bucket string) ([]byte, []Query, error) {
 	var imgData []byte
 	img, err := png.Decode(r)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	rows := make([]Row, 2)
+	rows := make([]Query, 2)
 	for i, s := range []int{full, thumb} {
 		d, err := resizeImage(img, uint(s))
 		if err != nil {
@@ -300,7 +300,7 @@ func addImage(r io.Reader, name, bucket string) ([]byte, []Row, error) {
 			imgData = d
 		}
 
-		r := NewRow(Key(sizeNames[s]), Val(d), Buckets("images", bucket, name))
+		r := NewQuery(Key(sizeNames[s]), Val(d), Buckets("images", bucket, name))
 		rows[i] = r
 	}
 	return imgData, rows, nil

@@ -37,24 +37,28 @@ type Token struct {
 	Expires time.Time `json:"expiers"`
 }
 
+type Address struct {
+	Address  string `schema:"address" json:"address,omitempty"`
+	Address2 string `schema:"address2" json:"address2,omitempty"`
+	Zip      string `schema:"zip" json:"zip,omitempty"`
+	City     string `schema:"city" json:"city,omitempty"`
+	State    string `schema:"state" json:"state,omitempty"`
+	Country  string `schema:"country" json:"country,omitempty"`
+}
+
 type User struct {
 	Email string `schema:"email" json:"email"`
 	//Wholesale stuff
-	StoreName string `schema:"store_name" json:"store_name,omitempty"`
-	Website   string `schema:"website" json:"website,omitempty"`
-	FirstName string `schema:"first_name" json:"first_name,omitempty"`
-	LastName  string `schema:"last_name" json:"last_name,omitempty"`
-	Address   string `schema:"address" json:"address,omitempty"`
-	Address2  string `schema:"address2" json:"address2,omitempty"`
-	Zip       string `schema:"zip" json:"zip,omitempty"`
-	City      string `schema:"city" json:"city,omitempty"`
-	State     string `schema:"state" json:"state,omitempty"`
-	Country   string `schema:"country" json:"country,omitempty"`
-
-	Permission     Permission `json:"permission"`
-	Password       string     `schema:"password" json:"-"`
-	Password2      string     `schema:"confirm-password" json:"-"`
-	HashedPassword []byte     `json:"hashed_password,omitempty"`
+	StoreName       string     `schema:"store_name" json:"store_name,omitempty"`
+	Website         string     `schema:"website" json:"website,omitempty"`
+	FirstName       string     `schema:"first_name" json:"first_name,omitempty"`
+	LastName        string     `schema:"last_name" json:"last_name,omitempty"`
+	Address         Address    `schema:"address" json:"address,omitempty"`
+	ShippingAddress Address    `schema:"shipping_address" json:"shipping_address,omitempty"`
+	Permission      Permission `json:"permission"`
+	Password        string     `schema:"password" json:"-"`
+	Password2       string     `schema:"confirm-password" json:"-"`
+	HashedPassword  []byte     `json:"hashed_password,omitempty"`
 
 	//They clicked on the verification email link
 	Verified bool `json:"verified"`
@@ -64,7 +68,7 @@ type User struct {
 
 func GetUsers() ([]User, error) {
 	var users []User
-	return users, db.GetAll(Row{Buckets: [][]byte{[]byte("users")}}, func(key, val []byte) error {
+	return users, db.GetAll(Query{Buckets: [][]byte{[]byte("users")}}, func(key, val []byte) error {
 		var u User
 		if err := json.Unmarshal(val, &u); err != nil {
 			return err
@@ -76,12 +80,12 @@ func GetUsers() ([]User, error) {
 }
 
 func (u *User) Fetch() error {
-	return db.Get([]Row{{Key: []byte(u.Email), Buckets: [][]byte{[]byte("users")}}}, func(key, val []byte) error {
+	return db.Get([]Query{{Key: []byte(u.Email), Buckets: [][]byte{[]byte("users")}}}, func(key, val []byte) error {
 		return json.Unmarshal(val, &u)
 	})
 }
 
-func (u *User) Save(moreRows ...Row) error {
+func (u *User) Save(moreRows ...Query) error {
 	if len(u.HashedPassword) == 0 { //a new user
 		if err := u.savePassword(); err != nil {
 			return err
@@ -93,10 +97,8 @@ func (u *User) Save(moreRows ...Row) error {
 		return err
 	}
 
-	rows := []Row{{Key: []byte(u.Email), Val: d, Buckets: [][]byte{[]byte("users")}}}
-	for _, r := range moreRows {
-		rows = append(rows, r)
-	}
+	rows := []Query{{Key: []byte(u.Email), Val: d, Buckets: [][]byte{[]byte("users")}}}
+	rows = append(rows, moreRows...)
 
 	return db.Put(rows)
 }
@@ -123,7 +125,7 @@ func (u *User) savePassword() error {
 }
 
 func (u *User) Delete() error {
-	return db.Delete([]Row{{Buckets: [][]byte{[]byte("users")}, Key: []byte(u.Email)}})
+	return db.Delete([]Query{{Buckets: [][]byte{[]byte("users")}, Key: []byte(u.Email)}})
 }
 
 func (u *User) CheckPassword() (bool, error) {
@@ -147,7 +149,7 @@ func (u *User) hashPassword() error {
 	return err
 }
 
-func (u *User) GenerateToken() (string, Row, error) {
+func (u *User) GenerateToken() (string, Query, error) {
 	token := randStr(32)
 	t := Token{
 		Email:   u.Email,
@@ -155,7 +157,7 @@ func (u *User) GenerateToken() (string, Row, error) {
 	}
 
 	d, err := json.Marshal(t)
-	return token, NewRow(Key(token), Val(d), Buckets("verifications")), err
+	return token, NewQuery(Key(token), Val(d), Buckets("verifications")), err
 }
 
 func randStr(n int) string {
@@ -170,7 +172,7 @@ func VerifyWholesaler(token string) (User, error) {
 	var u User
 	var email string
 
-	q := []Row{NewRow(Key(token), Buckets("tokens"))}
+	q := []Query{NewQuery(Key(token), Buckets("verifications"))}
 	err := db.Get(q, func(key, val []byte) error {
 		var t Token
 		err := json.Unmarshal(val, &t)
@@ -187,7 +189,7 @@ func VerifyWholesaler(token string) (User, error) {
 		return u, err
 	}
 
-	err = db.Get([]Row{NewRow(Key(email), Buckets("users"))}, func(key, val []byte) error {
+	err = db.Get([]Query{NewQuery(Key(email), Buckets("users"))}, func(key, val []byte) error {
 		return json.Unmarshal(val, &u)
 	})
 	if err != nil {
@@ -221,7 +223,7 @@ func SendPasswordReset(email string) error {
 	}
 
 	d, _ := json.Marshal(t)
-	return db.Put([]Row{NewRow(Key(k), Val(d), Buckets("tokens"))})
+	return db.Put([]Query{NewQuery(Key(k), Val(d), Buckets("tokens"))})
 }
 
 func sendPasswordResetEmail(em, token string) error {
@@ -245,7 +247,7 @@ func GetUserFromResetToken(key string) (User, error) {
 	var u User
 	var t Token
 
-	q := []Row{NewRow(Key(key), Buckets("tokens"))}
+	q := []Query{NewQuery(Key(key), Buckets("tokens"))}
 	err := db.Get(q, func(k, v []byte) error {
 		return json.Unmarshal(v, &t)
 	})

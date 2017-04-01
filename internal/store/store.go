@@ -14,48 +14,48 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-type Row struct {
+type Query struct {
 	Key     []byte
 	Buckets [][]byte
 	Val     []byte
 }
 
-func NewRow(opts ...func(*Row)) Row {
-	r := &Row{}
+func NewQuery(opts ...func(*Query)) Query {
+	r := &Query{}
 	for _, o := range opts {
 		o(r)
 	}
 	return *r
 }
 
-func Key(k string) func(*Row) {
-	return func(r *Row) {
+func Key(k string) func(*Query) {
+	return func(r *Query) {
 		r.Key = []byte(k)
 	}
 }
 
-func Buckets(buckets ...string) func(*Row) {
-	return func(r *Row) {
+func Buckets(buckets ...string) func(*Query) {
+	return func(r *Query) {
 		for _, b := range buckets {
 			r.Buckets = append(r.Buckets, []byte(b))
 		}
 	}
 }
 
-func Val(v []byte) func(*Row) {
-	return func(r *Row) {
+func Val(v []byte) func(*Query) {
+	return func(r *Query) {
 		r.Val = v
 	}
 }
 
 type storer interface {
-	Put([]Row) error
-	Get([]Row, func(k, v []byte) error) error
-	GetAll(Row, func(k, v []byte) error) error
-	Delete([]Row) error
+	Put([]Query) error
+	Get([]Query, func(k, v []byte) error) error
+	GetAll(Query, func(k, v []byte) error) error
+	Delete([]Query) error
 	DeleteAll([]byte) error
-	AddBucket(Row) error
-	RenameBucket(Row, Row) error
+	AddBucket(Query) error
+	RenameBucket(Query, Query) error
 	GetBackup(w http.ResponseWriter) error
 }
 
@@ -84,7 +84,7 @@ func SetDB(d storer) func() {
 }
 
 func GetImage(bucket, title, size string) ([]byte, error) {
-	q := []Row{{Key: []byte(size), Buckets: [][]byte{[]byte("images"), []byte(bucket), []byte(title)}}}
+	q := []Query{{Key: []byte(size), Buckets: [][]byte{[]byte("images"), []byte(bucket), []byte(title)}}}
 	var img []byte
 	return img, db.Get(q, func(k, v []byte) error {
 		img = v

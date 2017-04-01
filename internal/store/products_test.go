@@ -61,7 +61,7 @@ var _ = Describe("products", func() {
 			buckets,
 			errs,
 		)
-		shopify.Init()
+		shopify.Init(cfg)
 		store.Init(cfg, store.SetDB(db))
 	})
 
@@ -171,6 +171,7 @@ var _ = Describe("products", func() {
 						nil,
 						nil,
 						nil,
+						nil,
 					}
 
 				})
@@ -178,9 +179,8 @@ var _ = Describe("products", func() {
 				It("succeeds", func() {
 					p2 := store.NewProduct(prod.Title, prod.Cat, "Anniversary", store.ProductDescription("Blah blah blah!"))
 					Expect(prod.Update(p2)).To(BeNil())
-					Expect(db.Rows).To(HaveLen(3))
+					Expect(db.Rows).To(HaveLen(4))
 
-					//query
 					r := db.Rows[0]
 					Expect(r.Buckets).To(HaveLen(3))
 					Expect(string(r.Buckets[0])).To(Equal("products"))

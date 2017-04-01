@@ -55,9 +55,8 @@ const (
 
 func init() {
 	if err := env.Parse(&cfg); err != nil {
-		log.Fatal(err)
+		log.Fatal("could not parse config", err)
 	}
-	fmt.Println("parse cfg", cfg.Email)
 	store.Init(cfg)
 	email.Init(cfg)
 }
@@ -98,9 +97,8 @@ func initServe() {
 	}
 
 	box = rice.MustFindBox("templates")
-	staticBox = rice.MustFindBox("static")
 	shopify.Init(cfg)
-	handlers.Init(cfg, staticBox)
+	handlers.Init(cfg)
 	templates.Init(box)
 }
 
@@ -124,13 +122,16 @@ func doServe() {
 	r.Handle("/login/password", getMiddleware(handlers.Anyone, handlers.DoResetPassword)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
+
 	r.Handle("/contact", getMiddleware(handlers.Anyone, handlers.Contact)).Methods("GET")
 	r.Handle("/contact", getMiddleware(handlers.Human, handlers.DoContact)).Methods("POST")
+
 	r.Handle("/wholesale", getMiddleware(handlers.Anyone, handlers.Wholesale)).Methods("GET")
 	r.Handle("/wholesale/invoice", getMiddleware(handlers.Wholesaler, handlers.Invoice)).Methods("GET", "POST")
 	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApplication)).Methods("GET")
 	r.Handle("/wholesale/application", getMiddleware(handlers.Anyone, handlers.WholesaleApply)).Methods("POST")
 	r.Handle("/wholesale/application/{token}", getMiddleware(handlers.Anyone, handlers.WholesaleVerify)).Methods("GET")
+	r.Handle("/wholesale/thanks", getMiddleware(handlers.Anyone, handlers.WholesaleThanks)).Methods("GET")
 
 	r.Handle("/cart", getMiddleware(handlers.Anyone, handlers.Cart)).Methods("GET")
 	r.Handle("/cart/lineitem/{category}/{subcategory}/{title}", getMiddleware(handlers.Anyone, handlers.LineItem)).Methods("GET")
@@ -165,7 +166,6 @@ func doServe() {
 	r.NotFoundHandler = http.HandlerFunc(handlers.NotFound)
 
 	//r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", handlers.HandleErr(handlers.ServeBox)))
 	r.PathPrefix("/images").Handler(handlers.HandleErr(handlers.Static()))
 	r.PathPrefix("/robots.txt").Handler(handlers.HandleErr(handlers.Static()))
 	r.PathPrefix("/favicon.ico").Handler(handlers.HandleErr(handlers.Static()))
@@ -213,7 +213,7 @@ func getTLS(srv *http.Server) func() error {
 		k := filepath.Join(cfg.TLSCerts, "key.pem")
 		cer, err := tls.LoadX509KeyPair(c, k)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("could not load tls certs", err)
 		}
 		srv.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cer}}
 	}

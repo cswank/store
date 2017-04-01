@@ -3,13 +3,10 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 
-	rice "github.com/GeertJohan/go.rice"
 	"github.com/cswank/store/internal/config"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
@@ -21,13 +18,11 @@ var (
 	lock            sync.Mutex
 	shoppingLinks   []link
 	cfg             config.Config
-	box             *rice.Box
 	ico             []byte
 )
 
-func Init(c config.Config, b *rice.Box) {
+func Init(c config.Config) {
 	cfg = c
-	box = b
 	shopify = shopifyAPI{
 		APIKey: cfg.ShopifyJSKey,
 		Domain: cfg.ShopifyDomain,
@@ -74,7 +69,7 @@ func getNavbarLinks(req *http.Request) []link {
 	l := []link{
 		{Name: "Home", Link: "/"},
 		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
-		{Name: "Wholesale", Link: "/wholesale"},
+		//{Name: "Wholesale", Link: "/wholesale"},
 		{Name: "Contact", Link: "/contact"},
 		{Name: "Cart", Link: "/cart"},
 	}
@@ -114,8 +109,11 @@ func getShoppingLinks() []link {
 	var l []link
 
 	for _, cat := range cats {
+		scl := getSubcatLinks(cat)
 		l = append(l, link{Category: true, Name: cat})
-		l = append(l, getSubcatLinks(cat)...)
+		if len(scl) > 0 {
+			l = append(l, scl...)
+		}
 	}
 
 	shoppingLinks = l
@@ -123,6 +121,7 @@ func getShoppingLinks() []link {
 }
 
 func getSubcatLinks(cat string) []link {
+
 	subcats, err := store.GetSubCategories(cat)
 	if err != nil {
 		lg.Println("error getting subcats")
@@ -132,6 +131,10 @@ func getSubcatLinks(cat string) []link {
 	l := make([]link, len(subcats))
 
 	for i, subcat := range subcats {
+		if subcat == "NOSUBCATEGORIES" {
+			return []link{}
+		}
+
 		l[i] = link{
 			Link: fmt.Sprintf("/shop/%s/%s", cat, subcat),
 			Name: subcat,
@@ -194,25 +197,3 @@ func handleInvalidLogin(w http.ResponseWriter) {
 // 	w.Write(ico)
 // 	return nil
 // }
-
-func ServeBox(w http.ResponseWriter, req *http.Request) error {
-	pth := req.URL.Path
-	if strings.HasPrefix(pth, ".") || strings.HasPrefix(pth, "/") {
-		return store.ErrNotFound
-	}
-
-	f, err := box.Open(pth)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(pth, ".css") {
-		w.Header().Set("Content-Type", "text/css")
-	}
-
-	w.Header().Set("Cache-Control", "max-age=86400")
-	io.Copy(w, f)
-	f.Close()
-
-	return nil
-}

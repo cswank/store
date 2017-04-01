@@ -2,6 +2,7 @@ package templates
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -27,7 +28,7 @@ func Init(box *rice.Box) {
 	for _, pth := range html {
 		s, err := box.String(pth)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(pth, err)
 		}
 		data[pth] = s
 	}
@@ -51,10 +52,12 @@ func Init(box *rice.Box) {
 		"reset-form.html":                 {files: []string{"reset-form.html"}},
 		"shop.html":                       {files: []string{"shop.html", "thumb.html"}},
 		"subcategory.html":                {files: []string{"subcategory.html", "thumb.html"}},
-		"wholesale/application-form.html": {files: []string{"wholesale/application-form.html"}},
+		"wholesale/application-form.html": {files: []string{"wholesale/application-form.html", "wholesale/application.js"}},
 		"wholesale/preview.html":          {files: []string{"wholesale/preview.html"}},
 		"wholesale/thanks.html":           {files: []string{"wholesale/thanks.html"}},
 		"wholesale/form.html":             {files: []string{"wholesale/form.html", "wholesale/thumb.html", "quantity.js"}},
+		"wholesale/invoice.html":          {files: []string{"wholesale/invoice.html"}},
+		"wholesale/invoice-sent.html":     {files: []string{"wholesale/invoice-sent.html"}},
 		"wholesale/pending.html":          {files: []string{"wholesale/pending.html"}},
 		"wholesale/welcome.html":          {files: []string{"wholesale/welcome.html"}},
 	}
@@ -83,12 +86,16 @@ func Init(box *rice.Box) {
 }
 
 func getHTML(box *rice.Box) []string {
+	fmt.Println("getHTML")
 	var html []string
 	box.Walk("/", func(pth string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
 		if strings.HasSuffix(pth, ".html") || strings.HasSuffix(pth, ".js") {
+			if box.IsEmbedded() {
+				pth = pth[1:] //workaround until https://github.com/GeertJohan/go.rice/issues/71 is fixed (which is probably never)
+			}
 			html = append(html, pth)
 		}
 		return nil

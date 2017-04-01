@@ -21,22 +21,42 @@
       <input type="text" placeholder="last name" name="last_name" required>   
       
       <label for="address">Address</label>
-      <input type="text" placeholder="address" name="address" required>
+      <input type="text" placeholder="address" name="Address.address" required>
       
       <label for="address2">Address 2</label>
-      <input type="text" placeholder="address 2" name="address2" required>
+      <input type="text" placeholder="address 2" name="Address.address2" required>
 
       <label for="zip">Zip</label>
-      <input type="text" placeholder="zip" name="zip" required>
+      <input type="text" placeholder="zip" name="Address.zip" required>
 
       <label for="city">City</label>
-      <input type="text" placeholder="city" name="city" required>
+      <input type="text" placeholder="city" name="Address.city" required>
 
       <label for="state">State</label>
-      <input type="text" placeholder="state" name="state" required>
+      <input type="text" placeholder="state" name="Address.state" required>
 
       <label for="country">Country</label>
-      <input type="text" placeholder="country" name="country" required>
+      <input type="text" placeholder="country" name="Address.country" required>
+
+      <span id="shipping_address">
+        <label for="address">Address</label>
+        <input type="text" placeholder="address" name="shipping_address.address" required>
+        
+        <label for="address2">Address 2</label>
+        <input type="text" placeholder="address 2" name="shipping_address.address2" required>
+
+        <label for="zip">Zip</label>
+        <input type="text" placeholder="zip" name="shipping_address.zip" required>
+
+        <label for="city">City</label>
+        <input type="text" placeholder="city" name="shipping_address.city" required>
+
+        <label for="state">State</label>
+        <input type="text" placeholder="state" name="shipping_address.state" required>
+
+        <label for="country">Country</label>
+        <input type="text" placeholder="country" name="shipping_address.country" required>
+      </span>
 
       <label for="password">Password</label>
       <input type="password" placeholder="password" name="password" required>
@@ -49,4 +69,8 @@
     </fieldset>
   </form>      
 </div>
+
+<script>
+  {{template "wholesale-application.js" .}}
+</script>
 {{end}}
