@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cswank/store/internal/email"
+	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
@@ -265,6 +266,12 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
+	u.DiscountCodeID, u.DiscountCode, err = shopify.NewDiscountCode(u.StoreName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("saving with row", row)
 	if err := u.Save(row); err != nil {
 		return err
 	}
@@ -299,7 +306,7 @@ func WholesaleVerify(w http.ResponseWriter, req *http.Request) error {
 	p := page{
 		Links:   getNavbarLinks(req),
 		Admin:   Admin(req),
-		Shopify: shopify,
+		Shopify: shopifyKey,
 		Name:    name,
 	}
 	var f func(io.Writer, string, interface{}) error

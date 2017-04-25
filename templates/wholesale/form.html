@@ -1,7 +1,7 @@
 {{define "content"}}
 <div class="text-center">
   <form action="/wholesale/invoice?preview=true" method="GET">
-    <button type="submit" class="pure-button pure-button-primary">Get Invoice</button>
+    <button type="submit" class="pure-button pure-button-primary">Add To Cart</button>
     {{range $category, $subcategories := .Products}}
     <div>
       <h2>{{$category}}</h2>
@@ -9,13 +9,13 @@
       <h3>{{$subcategory}}</h3>
       <div class="pure-g">
         {{range $product := $products}}
-        {{template "wholesale-thumb" $product}}
+        {{template "wholesale-thumb" dict "Category" $category "Subcategory" $subcategory "Product" $product}}
         {{end}}
       </div>
       {{end}}
     </div>
     {{end}}
-    <button type="submit" class="pure-button pure-button-primary">Get Invoice</button>
+    <button type="submit" class="pure-button pure-button-primary">Add To Cart</button>
   </form>
 </div>
 

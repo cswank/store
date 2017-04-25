@@ -23,12 +23,12 @@ var (
 
 func Init(c config.Config) {
 	cfg = c
-	shopify = shopifyAPI{
+	shopifyKey = shopifyAPI{
 		APIKey: cfg.ShopifyJSKey,
 		Domain: cfg.ShopifyDomain,
 	}
 
-	if shopify.APIKey == "" || shopify.Domain == "" {
+	if shopifyKey.APIKey == "" || shopifyKey.Domain == "" {
 		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")
 	}
 
@@ -69,7 +69,7 @@ func getNavbarLinks(req *http.Request) []link {
 	l := []link{
 		{Name: "Home", Link: "/"},
 		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
-		//{Name: "Wholesale", Link: "/wholesale"},
+		{Name: "Wholesale", Link: "/wholesale"},
 		{Name: "Contact", Link: "/contact"},
 		{Name: "Cart", Link: "/cart"},
 	}
@@ -181,7 +181,7 @@ func NotFound(w http.ResponseWriter, req *http.Request) {
 	p := page{
 		Links:   getNavbarLinks(req),
 		Admin:   Admin(req),
-		Shopify: shopify,
+		Shopify: shopifyKey,
 		Name:    name,
 	}
 	templates.Get("notfound.html").ExecuteTemplate(w, "base", p)

@@ -26,7 +26,7 @@ func Home(w http.ResponseWriter, req *http.Request) error {
 	p := page{
 		Links:   getNavbarLinks(req),
 		Admin:   Admin(req),
-		Shopify: shopify,
+		Shopify: shopifyKey,
 		Name:    name,
 	}
 	return templates.Get("index.html").ExecuteTemplate(w, "base", p)

@@ -1,5 +1,7 @@
 {{define "base.js"}}
 
+var quantities;
+
 function updateCartLink(n, animate) {
     var $element = $('#Cart');
     var text = "";
@@ -37,7 +39,7 @@ function doInitCart(cart, animate) {
     updateCartLink(n, animate);
 }
 
-function addToCart(title) {
+function addToCartWithId(title, id, category, subcategory, quantity) {
     var cart = JSON.parse(localStorage.getItem("shopping-cart"));
     if (cart == undefined) {
         cart = {};
@@ -56,14 +58,40 @@ function addToCart(title) {
     doAddToCart(cart, item, title, true);
 }
 
+function addToCart(title) {
+    addToCart(title, id, category, subcategory, quantity);
+}
+
 function doAddToCart(cart, item, title, animate) {
     cart[title] = item;
     localStorage.setItem("shopping-cart", JSON.stringify(cart));
     doInitCart(cart, animate);
 }
 
+function updateQuantity(n) {
+    quantity += n;
+    if (quantity < 1) {
+        quantity = 1;
+    }
+    $("#quantity").val(quantity);
+}
+
+function updateQuantities(id, n) {
+    if (!(id in quantities)) {
+        quantities[id] = 0
+    }
+    
+    quantities[id] += n;
+    if (quantities[id] < 1) {
+        quantities[id] = 1;
+    }
+    
+    $("#" + id).val(quantities[id]);
+}
+
 $(document).ready(function() {
     initCart();
+    quantities = {};
 });
 
 {{end}}

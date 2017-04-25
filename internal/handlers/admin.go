@@ -43,7 +43,7 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 			Name:    name,
 		},
 		Items:       categories,
@@ -101,7 +101,7 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 			Name:    name,
 		},
 		Items:        subcats,
@@ -212,7 +212,7 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 			Name:    name,
 		},
 		Items:        products,
@@ -251,7 +251,7 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 			Name:    name,
 		},
 		From:        from,

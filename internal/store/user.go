@@ -50,6 +50,8 @@ type User struct {
 	Email string `schema:"email" json:"email"`
 	//Wholesale stuff
 	StoreName       string     `schema:"store_name" json:"store_name,omitempty"`
+	DiscountCodeID  int        `schema:"discount_code_id" json:"discount_code_id,omitempty"`
+	DiscountCode    string     `schema:"discount_code" json:"discount_code,omitempty"`
 	Website         string     `schema:"website" json:"website,omitempty"`
 	FirstName       string     `schema:"first_name" json:"first_name,omitempty"`
 	LastName        string     `schema:"last_name" json:"last_name,omitempty"`
@@ -81,6 +83,7 @@ func GetUsers() ([]User, error) {
 
 func (u *User) Fetch() error {
 	return db.Get([]Query{{Key: []byte(u.Email), Buckets: [][]byte{[]byte("users")}}}, func(key, val []byte) error {
+		fmt.Println("fetch", string(val))
 		return json.Unmarshal(val, &u)
 	})
 }
@@ -185,6 +188,7 @@ func VerifyWholesaler(token string) (User, error) {
 		email = t.Email
 		return nil
 	})
+	fmt.Println("verify", token, q, err)
 	if err != nil {
 		return u, err
 	}

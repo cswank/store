@@ -14,11 +14,29 @@ import (
 var (
 	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
 	templates              map[string]tmpl
+
+	multiplexer = template.FuncMap{
+		"dict": func(values ...interface{}) (map[string]interface{}, error) {
+			if len(values)%2 != 0 {
+				return nil, errors.New("invalid dict call")
+			}
+			dict := make(map[string]interface{}, len(values)/2)
+			for i := 0; i < len(values); i += 2 {
+				key, ok := values[i].(string)
+				if !ok {
+					return nil, errors.New("dict keys must be strings")
+				}
+				dict[key] = values[i+1]
+			}
+			return dict, nil
+		},
+	}
 )
 
 type tmpl struct {
 	template *template.Template
 	files    []string
+	funcs    template.FuncMap
 	bare     bool
 }
 
@@ -55,7 +73,7 @@ func Init(box *rice.Box) {
 		"wholesale/application-form.html": {files: []string{"wholesale/application-form.html", "wholesale/application.js"}},
 		"wholesale/preview.html":          {files: []string{"wholesale/preview.html"}},
 		"wholesale/thanks.html":           {files: []string{"wholesale/thanks.html"}},
-		"wholesale/form.html":             {files: []string{"wholesale/form.html", "wholesale/thumb.html", "quantity.js"}},
+		"wholesale/form.html":             {files: []string{"wholesale/form.html", "wholesale/thumb.html", "quantity.js", "shop.js"}, funcs: multiplexer},
 		"wholesale/invoice.html":          {files: []string{"wholesale/invoice.html"}},
 		"wholesale/invoice-sent.html":     {files: []string{"wholesale/invoice-sent.html"}},
 		"wholesale/pending.html":          {files: []string{"wholesale/pending.html"}},
@@ -66,6 +84,9 @@ func Init(box *rice.Box) {
 
 	for key, val := range templates {
 		t := template.New(key)
+		if val.funcs != nil {
+			t = t.Funcs(val.funcs)
+		}
 		var err error
 		var items []string
 		if val.bare {

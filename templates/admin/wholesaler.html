@@ -24,22 +24,22 @@
         <input type="text" placeholder="last name" name="last_name" required value="{{.Wholesaler.LastName}}">
         
         <label for="address">Address</label>
-        <input type="text" placeholder="address" name="address" required value="{{.Wholesaler.Address}}">
+        <input type="text" placeholder="address" name="address" required value="{{.Wholesaler.Address.Address}}">
         
         <label for="address2">Address 2</label>
-        <input type="text" placeholder="address 2" name="address2" required value="{{.Wholesaler.Address2}}">
+        <input type="text" placeholder="address 2" name="address2" required value="{{.Wholesaler.Address.Address2}}">
 
         <label for="zip">Zip</label>
-        <input type="text" placeholder="zip" name="zip" required value="{{.Wholesaler.Zip}}">
+        <input type="text" placeholder="zip" name="zip" required value="{{.Wholesaler.Address.Zip}}">
 
         <label for="city">City</label>
-        <input type="text" placeholder="city" name="city" required value="{{.Wholesaler.City}}">
+        <input type="text" placeholder="city" name="city" required value="{{.Wholesaler.Address.City}}">
 
         <label for="state">State</label>
-        <input type="text" placeholder="state" name="state" required value="{{.Wholesaler.State}}">
+        <input type="text" placeholder="state" name="state" required value="{{.Wholesaler.Address.State}}">
 
         <label for="country">Country</label>
-        <input type="text" placeholder="country" name="country" required value="{{.Wholesaler.Country}}">
+        <input type="text" placeholder="country" name="country" required value="{{.Wholesaler.Address.Country}}">
         
         <button type="submit" class="pure-button pure-button-primary">Update</button>
       </fieldset>

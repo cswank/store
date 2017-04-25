@@ -18,7 +18,7 @@ type shopifyAPI struct {
 }
 
 var (
-	shopify shopifyAPI
+	shopifyKey shopifyAPI
 )
 
 type shopPage struct {
@@ -34,12 +34,12 @@ func Shop(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	p := shopPage{
-		Shopify:    shopify,
+		Shopify:    shopifyKey,
 		Categories: cats,
 		page: page{
 			Links:   getNavbarLinks(req),
 			Admin:   Admin(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 		},
 	}
 	return templates.Get("shop.html").ExecuteTemplate(w, "base", p)
@@ -57,7 +57,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links:   getNavbarLinks(req),
 			Admin:   Admin(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 			Name:    name,
 		},
 		Price:             cfg.DefaultPrice,
@@ -127,7 +127,7 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 			Name:    name,
 		},
 	}
@@ -196,7 +196,7 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 		page: page{
 			Admin:   Admin(req),
 			Links:   getNavbarLinks(req),
-			Shopify: shopify,
+			Shopify: shopifyKey,
 			Name:    name,
 		},
 		Products: getProducts(cat, subcat, prods),
@@ -246,7 +246,7 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links:       getNavbarLinks(req),
 			Admin:       Admin(req),
-			Shopify:     shopify,
+			Shopify:     shopifyKey,
 			Name:        name,
 			Stylesheets: []string{"/css/product.css"},
 		},

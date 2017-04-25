@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -81,15 +82,25 @@ func initServe() {
 	if *fake {
 		ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == "POST" {
-				var m map[string]shopify.Product
-				json.NewDecoder(r.Body).Decode(&m)
-				p := m["product"]
-				p.ID = rand.Int()
-				p.Variants = []shopify.Variant{
-					{ID: p.ID},
+				if strings.Contains(r.URL.Path, "products") {
+					var m map[string]shopify.Product
+					json.NewDecoder(r.Body).Decode(&m)
+					p := m["product"]
+					p.ID = rand.Int()
+					p.Variants = []shopify.Variant{
+						{ID: p.ID},
+					}
+					m["product"] = p
+					json.NewEncoder(w).Encode(m)
+				} else if strings.Contains(r.URL.Path, "discounts") {
+					var m map[string]shopify.DiscountCode
+					json.NewDecoder(r.Body).Decode(&m)
+					dc := m["discount"]
+					dc.ID = int(rand.Int63())
+					m["discount"] = dc
+					w.WriteHeader(http.StatusCreated)
+					json.NewEncoder(w).Encode(m)
 				}
-				m["product"] = p
-				json.NewEncoder(w).Encode(m)
 			}
 		}))
 		//cfg.Domains = []string{ts.URL}

@@ -37,6 +37,7 @@ var (
 	imagesURL     string
 	variantsURL   string
 	deleteURL     string
+	discountURL   string
 
 	cfg config.Config
 )
@@ -52,6 +53,7 @@ func Init(c config.Config) {
 	imagesURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "/admin/products/%s/images.json")
 	variantsURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/variants/%d.json")
 	deleteURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products/%s.json")
+	discountURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/discounts.json")
 }
 
 type Img struct {
