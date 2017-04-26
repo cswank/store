@@ -58,41 +58,13 @@ function addToCart(title) {
     doAddToCart(cart, item, title, true);
 }
 
-function updateQuantities(id, title, category, subcategory, quantity) {
-    var item = quantities[title];
-    if (item == undefined) {
-        item = {
-            id: id,
-            count: 0,
-            cat: category,
-            subcat: subcategory
-        };
+function updateQuantity(id, n) {
+    var quantity = parseInt($("#" + id).val());
+    quantity += n;
+    if (quantity < 1) {
+        quantity = 1;
     }
-
-    console.log("update quant", quantity, item);
-    item.count += quantity;
-
-    if (item.count < 1) {
-        item.count = 1;
-    }
-    
-    quantities[title] = item;
-    $("#" + id).val(item.count);
-}
-
-function addItemsToCart() {
-    var cart = JSON.parse(localStorage.getItem("shopping-cart"));
-    if (cart == null) {
-        cart = {};
-    }
-
-    console.log("cart:", cart);
-    for (var key in quantities) {  
-        cart[key] = quantities[key];
-    }
-    
-    localStorage.setItem("shopping-cart", JSON.stringify(cart));
-    doInitCart(cart, true);
+    $("#" + id).val(quantity);
 }
 
 function doAddToCart(cart, item, title, animate) {
@@ -102,7 +74,6 @@ function doAddToCart(cart, item, title, animate) {
 }
 
 $(document).ready(function() {
-    quantities = {};
     initCart();
 });
 
