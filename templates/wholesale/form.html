@@ -1,7 +1,7 @@
 {{define "content"}}
 <div class="text-center">
-  <form action="/wholesale/invoice?preview=true" method="GET">
-    <button type="submit" class="pure-button pure-button-primary">Add To Cart</button>
+  <div>
+    <button onClick="addItemsToCart()" class="pure-button pure-button-primary">Add To Cart</button>
     {{range $category, $subcategories := .Products}}
     <div>
       <h2>{{$category}}</h2>
@@ -15,8 +15,8 @@
       {{end}}
     </div>
     {{end}}
-    <button type="submit" class="pure-button pure-button-primary">Add To Cart</button>
-  </form>
+    <button onClick="addItemsToCart()" class="pure-button pure-button-primary">Add To Cart</button>
+  </div>
 </div>
 
 <script>

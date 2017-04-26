@@ -5,6 +5,14 @@ var subcategory = {{.Product.Subcat}};
 var id = {{.Product.ID}};
 var quantity = {{.Product.Quantity}};
 
+function updateQuantity(n) {
+    quantity += n;
+    if (quantity < 1) {
+        quantity = 1;
+    }
+    $("#quantity").val(quantity);
+}
+
 var modal = document.getElementById('product-modal');
 
 // Get the image and insert it inside the modal - use its "alt" text as a caption

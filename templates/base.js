@@ -39,7 +39,7 @@ function doInitCart(cart, animate) {
     updateCartLink(n, animate);
 }
 
-function addToCartWithId(title, id, category, subcategory, quantity) {
+function addToCart(title) {
     var cart = JSON.parse(localStorage.getItem("shopping-cart"));
     if (cart == undefined) {
         cart = {};
@@ -58,8 +58,41 @@ function addToCartWithId(title, id, category, subcategory, quantity) {
     doAddToCart(cart, item, title, true);
 }
 
-function addToCart(title) {
-    addToCart(title, id, category, subcategory, quantity);
+function updateQuantities(id, title, category, subcategory, quantity) {
+    var item = quantities[title];
+    if (item == undefined) {
+        item = {
+            id: id,
+            count: 0,
+            cat: category,
+            subcat: subcategory
+        };
+    }
+
+    console.log("update quant", quantity, item);
+    item.count += quantity;
+
+    if (item.count < 1) {
+        item.count = 1;
+    }
+    
+    quantities[title] = item;
+    $("#" + id).val(item.count);
+}
+
+function addItemsToCart() {
+    var cart = JSON.parse(localStorage.getItem("shopping-cart"));
+    if (cart == null) {
+        cart = {};
+    }
+
+    console.log("cart:", cart);
+    for (var key in quantities) {  
+        cart[key] = quantities[key];
+    }
+    
+    localStorage.setItem("shopping-cart", JSON.stringify(cart));
+    doInitCart(cart, true);
 }
 
 function doAddToCart(cart, item, title, animate) {
@@ -68,30 +101,9 @@ function doAddToCart(cart, item, title, animate) {
     doInitCart(cart, animate);
 }
 
-function updateQuantity(n) {
-    quantity += n;
-    if (quantity < 1) {
-        quantity = 1;
-    }
-    $("#quantity").val(quantity);
-}
-
-function updateQuantities(id, n) {
-    if (!(id in quantities)) {
-        quantities[id] = 0
-    }
-    
-    quantities[id] += n;
-    if (quantities[id] < 1) {
-        quantities[id] = 1;
-    }
-    
-    $("#" + id).val(quantities[id]);
-}
-
 $(document).ready(function() {
-    initCart();
     quantities = {};
+    initCart();
 });
 
 {{end}}
