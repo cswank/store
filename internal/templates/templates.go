@@ -2,7 +2,6 @@ package templates
 
 import (
 	"errors"
-	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -107,7 +106,6 @@ func Init(box *rice.Box) {
 }
 
 func getHTML(box *rice.Box) []string {
-	fmt.Println("getHTML")
 	var html []string
 	box.Walk("/", func(pth string, info os.FileInfo, err error) error {
 		if info.IsDir() {

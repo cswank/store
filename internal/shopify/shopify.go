@@ -50,7 +50,7 @@ func Init(c config.Config) {
 	}
 
 	productsURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products.json")
-	imagesURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "/admin/products/%s/images.json")
+	imagesURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products/%s/images.json")
 	variantsURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/variants/%d.json")
 	deleteURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/products/%s.json")
 	discountURL = fmt.Sprintf("%s/%s", cfg.ShopifyAPI, "admin/discounts.json")

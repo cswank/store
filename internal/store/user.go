@@ -83,7 +83,6 @@ func GetUsers() ([]User, error) {
 
 func (u *User) Fetch() error {
 	return db.Get([]Query{{Key: []byte(u.Email), Buckets: [][]byte{[]byte("users")}}}, func(key, val []byte) error {
-		fmt.Println("fetch", string(val))
 		return json.Unmarshal(val, &u)
 	})
 }
@@ -188,7 +187,7 @@ func VerifyWholesaler(token string) (User, error) {
 		email = t.Email
 		return nil
 	})
-	fmt.Println("verify", token, q, err)
+
 	if err != nil {
 		return u, err
 	}

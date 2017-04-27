@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
-
-	"golang.org/x/crypto/sha3"
+	"time"
 )
 
 /*
@@ -21,6 +21,12 @@ POST /admin/discounts.json
 }
 */
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 type DiscountCode struct {
 	ID           int    `json:"id"`
 	DiscountType string `json:"discount_type"`
@@ -34,7 +40,7 @@ func NewDiscountCode(storeName string) (int, string, error) {
 		"discount": DiscountCode{
 			DiscountType: "percentage",
 			Value:        "50.0",
-			Code:         getCode(storeName),
+			Code:         getCode(32),
 			Min:          "100.00",
 		},
 	}
@@ -44,6 +50,7 @@ func NewDiscountCode(storeName string) (int, string, error) {
 		return -1, "", err
 	}
 
+	fmt.Println("getting discount code", discountURL)
 	req, err := http.NewRequest("POST", discountURL, &buf)
 
 	if err != nil {
@@ -75,9 +82,10 @@ func NewDiscountCode(storeName string) (int, string, error) {
 	return dc.ID, dc.Code, nil
 }
 
-func getCode(name string) string {
-	buf := []byte("name")
-	h := make([]byte, 64)
-	sha3.ShakeSum256(h, buf)
-	return string(h)
+func getCode(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }

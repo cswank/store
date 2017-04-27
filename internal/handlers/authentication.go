@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -37,7 +36,6 @@ func getCookie(email string) *http.Cookie {
 	}
 
 	encoded, err := sc.Encode(authCookieName, val)
-	fmt.Println(encoded, authCookieName)
 	if err != nil {
 		log.Println("couldn't encode cookie", err)
 	}

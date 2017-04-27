@@ -48,10 +48,16 @@ func Shop(w http.ResponseWriter, req *http.Request) error {
 type cartPage struct {
 	page
 	Price             string
+	DiscountCode      string
 	UnderConstruction bool
 }
 
 func Cart(w http.ResponseWriter, req *http.Request) error {
+
+	dc := ""
+	if Wholesaler(req) {
+		dc = cfg.DiscountCode
+	}
 
 	p := cartPage{
 		page: page{
@@ -61,6 +67,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 			Name:    name,
 		},
 		Price:             getPrice(req),
+		DiscountCode:      dc,
 		UnderConstruction: cfg.UnderConstruction,
 	}
 	return templates.Get("cart.html").ExecuteTemplate(w, "base", p)

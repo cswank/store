@@ -1,11 +1,12 @@
 {{define "cart.js"}}
 
 var price = {{.Price}};
+var discountCode = {{.DiscountCode}}
 
 var items = JSON.parse(localStorage.getItem("shopping-cart"));
 
 var shopClient = ShopifyBuy.buildClient({
-    apiKey: '{{.Shopify.APIKey}}',
+    accessToken: '{{.Shopify.APIKey}}',
     domain: '{{.Shopify.Domain}}',
     appId: '6'
 });
@@ -112,8 +113,13 @@ function checkout() {
         localStorage.removeItem("shopping-cart");
         updateCartLink(0);
         cart.createLineItemsFromVariants(...variants).then(function(cart) {
+            var url = cart.checkoutUrl;
+            if (discountCode != "") {
+                url = url + "&discount=" + discountCode;
+            }
+            console.log("checkout url", url, discountCode);
+            window.open(url, '_blank');
             window.open("/", '_self');
-            window.open(cart.checkoutUrl, '_blank');
         })
     })
 }

@@ -424,9 +424,7 @@ func AdminWholesalerDelete(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	fmt.Println("deleting wholesaler", wholesaler)
 	if err := wholesaler.Delete(); err != nil {
-		fmt.Println("couldn't delete", err)
 		return err
 	}
 

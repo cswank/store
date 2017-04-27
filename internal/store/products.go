@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"image"
 	"image/png"
 	"io"
@@ -83,7 +82,6 @@ func GetProductTitles(cat, subcat string) ([]string, error) {
 	var products []string
 	q := NewQuery(Buckets("products", cat, subcat))
 	return products, db.GetAll(q, func(key, val []byte) error {
-		fmt.Println(string(val))
 		products = append(products, string(key))
 		return nil
 	})

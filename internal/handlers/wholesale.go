@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/cswank/store/internal/email"
-	"github.com/cswank/store/internal/shopify"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
@@ -266,12 +265,6 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	u.DiscountCodeID, u.DiscountCode, err = shopify.NewDiscountCode(u.StoreName)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("saving with row", row)
 	if err := u.Save(row); err != nil {
 		return err
 	}

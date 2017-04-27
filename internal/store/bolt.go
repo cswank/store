@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -158,9 +157,6 @@ func (b *Bolt) Get(rows []Query, f func(key, val []byte) error) error {
 	return b.db.View(func(tx *bolt.Tx) error {
 		for _, r := range rows {
 			bu, err := b.getBucket(tx, r.Buckets)
-			for _, b := range r.Buckets {
-				fmt.Println(string(b))
-			}
 			if err != nil {
 				return ErrNotFound
 			}
