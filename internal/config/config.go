@@ -4,6 +4,7 @@ type Config struct {
 	BlockKey          string   `env:"STORE_BLOCK_KEY" envDefault:"yellow submarine"`
 	DataDir           string   `env:"STORE_DATADIR" envDefault:"/var/log/store"`
 	DefaultPrice      string   `env:"STORE_DEFAULT_PRICE" envDefault:"0.00"`
+	WholesalePrice    string   `env:"STORE_WHOLESALE_PRICE" envDefault:"0.00"`
 	Domains           []string `env:"STORE_DOMAINS" envDefault:"127.0.0.1"`
 	Email             string   `env:"STORE_EMAIL" envDefault:""`
 	EmailPassword     string   `env:"STORE_EMAIL_PASSWORD" envDefault:""`

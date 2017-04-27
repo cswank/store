@@ -89,7 +89,7 @@ func GetProductTitles(cat, subcat string) ([]string, error) {
 	})
 }
 
-func GetProducts(cat, subcat string) ([]Product, error) {
+func GetProducts(cat, subcat string, opts ...func(*Product)) ([]Product, error) {
 	var products []Product
 	q := NewQuery(Buckets("products", cat, subcat))
 	return products, db.GetAll(q, func(key, val []byte) error {
@@ -99,6 +99,11 @@ func GetProducts(cat, subcat string) ([]Product, error) {
 			return err
 		}
 		p.Title = string(key)
+
+		for _, o := range opts {
+			o(&p)
+		}
+
 		products = append(products, p)
 		return nil
 	})
@@ -133,6 +138,12 @@ func NewProduct(title, cat, subcat string, opts ...func(*Product)) *Product {
 		o(p)
 	}
 	return p
+}
+
+func ProductPrice(price string) func(*Product) {
+	return func(p *Product) {
+		p.Price = price
+	}
 }
 
 func ProductDescription(d string) func(*Product) {

@@ -60,16 +60,25 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 			Shopify: shopifyKey,
 			Name:    name,
 		},
-		Price:             cfg.DefaultPrice,
+		Price:             getPrice(req),
 		UnderConstruction: cfg.UnderConstruction,
 	}
 	return templates.Get("cart.html").ExecuteTemplate(w, "base", p)
 }
 
+func getPrice(req *http.Request) string {
+	price := cfg.DefaultPrice
+	if Wholesaler(req) {
+		price = cfg.WholesalePrice
+	}
+	return price
+}
+
 func LineItem(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat)
+	price := getPrice(req)
+	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(price))
 	if err := p.Fetch(); err != nil {
 		return err
 	}
@@ -87,12 +96,12 @@ func LineItem(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	p.Quantity = int(q)
-	price, err := strconv.ParseFloat(cfg.DefaultPrice, 10)
+	pr, err := strconv.ParseFloat(price, 10)
 	if err != nil {
 		return err
 	}
 
-	t := float64(q) * price
+	t := float64(q) * pr
 	p.Total = fmt.Sprintf("%.02f", t)
 	return templates.Get("lineitem.html").ExecuteTemplate(w, "lineitem.html", p)
 }
@@ -116,7 +125,7 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	links := getLinks(fmt.Sprintf("/shop/%s", cat), subs)
-	products, err := getProductsFromLinks(cat, links)
+	products, err := getProductsFromLinks(cat, links, getPrice(req))
 	if err != nil {
 		return err
 	}
@@ -134,14 +143,14 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("category.html").ExecuteTemplate(w, "base", p)
 }
 
-func getProductsFromLinks(cat string, links []link) (map[string][]product, error) {
+func getProductsFromLinks(cat string, links []link, price string) (map[string][]product, error) {
 	m := map[string][]product{}
 	for _, l := range links {
 		prods, err := store.GetProducts(cat, l.Name)
 		if err != nil {
 			return nil, err
 		}
-		m[l.Name] = getProducts(cat, l.Name, prods)
+		m[l.Name] = getProducts(cat, l.Name, prods, price)
 	}
 	return m, nil
 }
@@ -159,14 +168,14 @@ type subCategoryPage struct {
 	Products []product
 }
 
-func getProducts(cat, subcat string, prods []store.Product) []product {
+func getProducts(cat, subcat string, prods []store.Product, price string) []product {
 	out := make([]product, len(prods))
 	for i, p := range prods {
 		out[i] = product{
 			Title: p.Title,
 			Image: fmt.Sprintf("/shop/images/products/%s/thumb.png", p.Title),
 			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, p.Title),
-			Price: cfg.DefaultPrice,
+			Price: price,
 			ID:    p.ID,
 		}
 	}
@@ -199,7 +208,7 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 			Shopify: shopifyKey,
 			Name:    name,
 		},
-		Products: getProducts(cat, subcat, prods),
+		Products: getProducts(cat, subcat, prods, getPrice(req)),
 	}
 	return templates.Get("subcategory.html").ExecuteTemplate(w, "base", p)
 }
@@ -223,7 +232,7 @@ type product struct {
 func GetProduct(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat)
+	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(getPrice(req)))
 	if err := p.Fetch(); err != nil {
 		return err
 	}
@@ -234,7 +243,7 @@ func GetProduct(w http.ResponseWriter, req *http.Request) error {
 func Product(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat)
+	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(getPrice(req)))
 
 	if err := p.Fetch(); err != nil {
 		return err
