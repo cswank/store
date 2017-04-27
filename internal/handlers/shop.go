@@ -224,6 +224,7 @@ type productPage struct {
 	page
 	Product     store.Product
 	Back        string
+	BackText    string
 	Subcategory string
 }
 
@@ -258,6 +259,15 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 
 	p.Quantity = 1
 
+	var back, backText string
+	if subcat == "NOSUBCATEGORIES" {
+		back = fmt.Sprintf("/shop/%s", cat)
+		backText = cat
+	} else {
+		back = fmt.Sprintf("/shop/%s/%s", cat, subcat)
+		backText = subcat
+	}
+
 	page := productPage{
 		page: page{
 			Links:       getNavbarLinks(req),
@@ -267,7 +277,8 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 			Stylesheets: []string{"/css/product.css"},
 		},
 		Product:     *p,
-		Back:        fmt.Sprintf("/shop/%s/%s", cat, subcat),
+		Back:        back,
+		BackText:    backText,
 		Subcategory: subcat,
 	}
 	return templates.Get("product.html").ExecuteTemplate(w, "base", page)

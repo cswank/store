@@ -6,7 +6,9 @@
     <div>
       <h2>{{$category}}</h2>
       {{range $subcategory, $products := $subcategories}}
+      {{if ne $subcategory "NOSUBCATEGORIES"}}
       <h3>{{$subcategory}}</h3>
+      {{end}}
       <div class="pure-g">
         {{range $product := $products}}
         {{template "wholesale-thumb" dict "Category" $category "Subcategory" $subcategory "Product" $product}}
