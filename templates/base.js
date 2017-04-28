@@ -54,6 +54,10 @@ function addToCart(title) {
             subcat: subcategory
         };
     }
+
+    var quantity = parseInt($("#" + item.id).val());
+    console.log("quantity", quantity);
+    
     item.count = quantity;
     doAddToCart(cart, item, title, true);
 }

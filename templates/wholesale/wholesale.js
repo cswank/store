@@ -1,29 +1,19 @@
 {{define "wholesale.js"}}
 
-var cart;
-
-function updateQuantities(id, title, category, subcategory, quantity) {
-    var item = cart[title];
-    if (item == undefined) {
-        item = {
-            id: id,
-            count: 0,
-            cat: category,
-            subcat: subcategory
-        };
-    }
-
-    item.count += quantity;
-
-    if (item.count < 1) {
-        item.count = 1;
-    }
-    
-    cart[title] = item;
-    $("#" + id).val(item.count);
-}
+var items = {{.Items}};
 
 function addItemsToCart() {
+    $(".quantity").each(function() {
+        var id = $(this).attr('id');
+        var quantity = $(this).val();
+        var item = items[id];
+        console.log("id", id, quantity, item);
+        item.count = parseInt(quantity);
+        if (item.count > 0) {
+            cart[item.title] = item;
+        }
+    })
+    
     localStorage.setItem("shopping-cart", JSON.stringify(cart));
     doInitCart(cart, true);
 }

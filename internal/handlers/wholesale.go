@@ -40,6 +40,7 @@ func Wholesale(w http.ResponseWriter, req *http.Request) error {
 type wholesalePage struct {
 	page
 	Products map[string]map[string][]product
+	Items    map[string]product
 }
 
 func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
@@ -48,7 +49,7 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	prods, err := getWholesaleProducts(cats, getPrice(req))
+	prods, items, err := getWholesaleProducts(cats, getPrice(req))
 	if err != nil {
 		return err
 	}
@@ -59,6 +60,7 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 			Name:  cfg.Name,
 		},
 		Products: prods,
+		Items:    items,
 	}
 
 	return templates.Get("wholesale/form.html").ExecuteTemplate(w, "base", p)
@@ -206,24 +208,29 @@ func WholesaleApplication(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("wholesale/application-form.html").ExecuteTemplate(w, "base", p)
 }
 
-func getWholesaleProducts(cats []string, price string) (map[string]map[string][]product, error) {
+func getWholesaleProducts(cats []string, price string) (map[string]map[string][]product, map[string]product, error) {
 	m := map[string]map[string][]product{}
+	m2 := map[string]product{}
 	for _, cat := range cats {
 		subcats, err := store.GetSubCategories(cat)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		a := map[string][]product{}
 		for _, subcat := range subcats {
 			prods, err := store.GetProducts(cat, subcat)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			a[subcat] = getProducts(cat, subcat, prods, price)
+			pp := getProducts(cat, subcat, prods, price)
+			a[subcat] = pp
+			for _, p := range pp {
+				m2[p.ID] = p
+			}
 		}
 		m[cat] = a
 	}
-	return m, nil
+	return m, m2, nil
 }
 
 func WholesaleThanks(w http.ResponseWriter, req *http.Request) error {

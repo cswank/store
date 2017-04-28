@@ -179,11 +179,13 @@ func getProducts(cat, subcat string, prods []store.Product, price string) []prod
 	out := make([]product, len(prods))
 	for i, p := range prods {
 		out[i] = product{
-			Title: p.Title,
-			Image: fmt.Sprintf("/shop/images/products/%s/thumb.png", p.Title),
-			Link:  fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, p.Title),
-			Price: price,
-			ID:    p.ID,
+			Title:  p.Title,
+			Image:  fmt.Sprintf("/shop/images/products/%s/thumb.png", p.Title),
+			Link:   fmt.Sprintf("/shop/%s/%s/%s", cat, subcat, p.Title),
+			Price:  price,
+			ID:     p.ID,
+			Cat:    cat,
+			Subcat: subcat,
 		}
 	}
 	return out
@@ -229,12 +231,14 @@ type productPage struct {
 }
 
 type product struct {
-	ID        string
-	Title     string
-	Image     string
-	Link      string
-	ProductID string
-	Price     string
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Image     string `json:"image"`
+	Link      string `json:"link"`
+	ProductID string `json:"product_id"`
+	Price     string `json:"price"`
+	Cat       string `json:"cat"`
+	Subcat    string `json:"subcat"`
 }
 
 func GetProduct(w http.ResponseWriter, req *http.Request) error {
@@ -256,8 +260,6 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 	if err := p.Fetch(); err != nil {
 		return err
 	}
-
-	p.Quantity = 1
 
 	var back, backText string
 	if subcat == "NOSUBCATEGORIES" {
