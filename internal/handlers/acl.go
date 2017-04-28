@@ -50,6 +50,11 @@ func Admin(req *http.Request) bool {
 
 func Wholesaler(req *http.Request) bool {
 	user := getUser(req)
+	return user != nil && user.Permission >= store.Wholesaler && user.Confirmed && user.Verified
+}
+
+func NewWholesaler(req *http.Request) bool {
+	user := getUser(req)
 	return user != nil && user.Permission >= store.Wholesaler
 }
 

@@ -43,8 +43,8 @@ func sendEmail(m Msg) error {
 	return smtp.SendMail(
 		"smtp.gmail.com:587",
 		smtp.PlainAuth("", cfg.Email, cfg.EmailPassword, "smtp.gmail.com"),
-		m.Email,
-		[]string{cfg.Email}, []byte(msg),
+		cfg.Email,
+		[]string{m.Email}, []byte(msg),
 	)
 }
 

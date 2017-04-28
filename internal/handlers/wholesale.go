@@ -28,13 +28,15 @@ func Purchase(w http.ResponseWriter, req *http.Request) error {
 }
 
 func Wholesale(w http.ResponseWriter, req *http.Request) error {
-	if !Wholesaler(req) {
-		w.Header().Set("Location", "/login?from=/wholesale")
-		w.WriteHeader(http.StatusFound)
-		return nil
+	if Wholesaler(req) {
+		return getWholesaleForm(w, req)
+	} else if NewWholesaler(req) {
+		return getWholesaleProcessing(w, req)
 	}
 
-	return getWholesaleForm(w, req)
+	w.Header().Set("Location", "/login?from=/wholesale")
+	w.WriteHeader(http.StatusFound)
+	return nil
 }
 
 type wholesalePage struct {
@@ -64,6 +66,20 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	return templates.Get("wholesale/form.html").ExecuteTemplate(w, "base", p)
+}
+
+//the wholesaler has not clicked on the verify link in the email
+//that was sent, or the admin has not clicked the confirm button
+func getWholesaleProcessing(w http.ResponseWriter, req *http.Request) error {
+	p := page{
+		Links:   getNavbarLinks(req),
+		Admin:   Admin(req),
+		Shopify: shopifyKey,
+		Name:    name,
+		Message: "Your wholesale application is still being processed.  You will receive an additional email once your application is approved and yYou will then be able to purchase items at wholesale prices",
+	}
+
+	return templates.Get("wholesale/pending.html").ExecuteTemplate(w, "base", p)
 }
 
 func Invoice(w http.ResponseWriter, req *http.Request) error {

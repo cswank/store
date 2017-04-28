@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
 	"github.com/gorilla/mux"
@@ -470,6 +471,28 @@ func AdminWholesalerConfirm(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func welcomeWholesaler(w store.User) error {
-	return nil
+func welcomeWholesaler(u store.User) error {
+	msg := email.Msg{
+		Email:   u.Email,
+		Subject: fmt.Sprintf("Your wholesale application at %s is complete", cfg.Domains[0]),
+		Body:    getWholesaleProcessingComplete(u),
+	}
+
+	return email.Send(msg)
+}
+
+func getWholesaleProcessingComplete(u store.User) string {
+	tmpl := `Hello %s,
+Your wholesale application has been approved by %s.  Please
+click on
+
+https://%s/wholesale
+
+to log in and begin purchasing items at wholesale prices.
+
+Thanks!
+
+%s`
+
+	return fmt.Sprintf(tmpl, u.FirstName, cfg.Domains[0], cfg.Domains[0])
 }
