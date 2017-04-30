@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
-	templates              map[string]tmpl
+	templates map[string]tmpl
 
 	multiplexer = template.FuncMap{
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {
