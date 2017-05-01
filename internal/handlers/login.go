@@ -54,7 +54,11 @@ func DoLogin(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	http.SetCookie(w, getCookie(u.Email))
-	w.Header().Set("Location", "/")
+	if isAdmin(&u) {
+		w.Header().Set("Location", "/admin")
+	} else {
+		w.Header().Set("Location", "/wholesale")
+	}
 	w.WriteHeader(http.StatusFound)
 	return nil
 }

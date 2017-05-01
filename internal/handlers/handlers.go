@@ -69,7 +69,7 @@ func getNavbarLinks(req *http.Request) []link {
 	l := []link{
 		{Name: "Home", Link: "/"},
 		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
-		{Name: "Wholesale", Link: "/wholesale"},
+		//{Name: "Wholesale", Link: "/wholesale"},
 		{Name: "Contact", Link: "/contact"},
 		{Name: "Cart", Link: "/cart"},
 	}

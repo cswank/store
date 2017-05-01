@@ -45,6 +45,10 @@ func And(acls ...ACL) ACL {
 
 func Admin(req *http.Request) bool {
 	user := getUser(req)
+	return isAdmin(user)
+}
+
+func isAdmin(user *store.User) bool {
 	return user != nil && user.Permission == store.Admin
 }
 
