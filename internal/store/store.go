@@ -18,6 +18,7 @@ type Query struct {
 	Key     []byte
 	Buckets [][]byte
 	Val     []byte
+	Action  func([]byte) error
 }
 
 func NewQuery(opts ...func(*Query)) Query {

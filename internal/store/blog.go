@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"image/png"
@@ -51,7 +52,7 @@ type BlogKey struct {
 
 func Blogs() ([]BlogKey, error) {
 	var blogs []BlogKey
-	return blogs, db.GetAll(Query{Buckets: [][]byte{[]byte("blogs")}}, func(key, _ []byte) error {
+	err := db.GetAll(Query{Buckets: [][]byte{[]byte("blogs")}}, func(key, _ []byte) error {
 		k := string(key)
 		i := strings.Index(k, ":")
 		if i > -1 {
@@ -60,6 +61,11 @@ func Blogs() ([]BlogKey, error) {
 		}
 		return nil
 	})
+
+	if err == ErrNotFound {
+		return blogs, nil
+	}
+	return blogs, err
 }
 
 func (b *Blog) Key() string {
@@ -75,9 +81,25 @@ func (b *Blog) Fetch() error {
 func (b *Blog) Update(b2 Blog, img io.Reader) error {
 	b.Body = b2.Body
 	if b.Title != b2.Title {
-		//delete old key
-		//write new key
-		//delete old image key
+
+		q := []Query{
+			NewQuery(Key(b.Key()), Buckets("blogs")),
+		}
+
+		if img == nil {
+			// get old image data and delete it from db
+			db.Get([]Query{NewQuery(Key(b.Key()), Buckets("images", "blogs"))}, func(_, val []byte) error {
+				img = bytes.NewBuffer(val)
+				return nil
+			})
+			q = append(q, NewQuery(Key(b.Key()), Buckets("images", "blogs")))
+		}
+
+		if err := db.Delete(q); err != nil {
+			return err
+		}
+
+		b.Title = b2.Title
 	}
 
 	return b.doSave(img)
@@ -137,5 +159,8 @@ func addBlogImage(r io.Reader, blog string, q []Query) ([]Query, error) {
 }
 
 func (b *Blog) Delete() error {
-	return db.Delete([]Query{{Buckets: [][]byte{[]byte("blogs")}, Key: []byte(b.Key())}})
+	return db.Delete([]Query{
+		NewQuery(Buckets("blogs"), Key(b.Key())),
+		NewQuery(Buckets("images", "blogs"), Key(b.Key())),
+	})
 }

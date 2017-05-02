@@ -4,6 +4,9 @@
   </div>
   <div class="pure-u-3-5">
     <ul>
+      <li>
+        <a href="/admin/blogs/new">New Blog</a>
+      </li>
       {{range .Blogs}}
       <li>
         <a href="/admin/blogs/{{.ID}}">{{.Title}} {{.Date}}</a>

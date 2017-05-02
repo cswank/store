@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
@@ -14,6 +16,7 @@ import (
 type blogPage struct {
 	page
 	Blog  store.Blog
+	Body  template.HTML
 	ID    string
 	Blogs []store.BlogKey
 }
@@ -43,6 +46,7 @@ func Blog(w http.ResponseWriter, req *http.Request) error {
 		return blogs[i].ID > blogs[j].ID
 	})
 
+	body := strings.Replace(b.Body, "\n", "\n<br/>", -1)
 	p := blogPage{
 		page: page{
 			Links: getNavbarLinks(req),
@@ -51,6 +55,7 @@ func Blog(w http.ResponseWriter, req *http.Request) error {
 		Blog:  b,
 		ID:    b.Key(),
 		Blogs: blogs,
+		Body:  template.HTML(body),
 	}
 
 	return templates.Get("blogs/blogs.html").ExecuteTemplate(w, "base", p)
@@ -60,6 +65,7 @@ type blogFormPage struct {
 	page
 	Action string
 	Blog   store.Blog
+	URI    string
 }
 
 func BlogForm(w http.ResponseWriter, req *http.Request) error {
@@ -84,9 +90,10 @@ func BlogForm(w http.ResponseWriter, req *http.Request) error {
 		},
 		Action: action,
 		Blog:   b,
+		URI:    fmt.Sprintf("/admin/blogs/%s", b.Key()),
 	}
 
-	return templates.Get("blogs/form.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/blog-form.html").ExecuteTemplate(w, "base", p)
 }
 
 func BlogImage(w http.ResponseWriter, req *http.Request) error {
@@ -105,6 +112,7 @@ func BlogImage(w http.ResponseWriter, req *http.Request) error {
 
 func ManageBlogs(w http.ResponseWriter, req *http.Request) error {
 	blogs, err := store.Blogs()
+	fmt.Println("blogs", blogs, err)
 	if err != nil {
 		return err
 	}
@@ -122,6 +130,22 @@ func ManageBlogs(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	return templates.Get("admin/blogs.html").ExecuteTemplate(w, "base", p)
+}
+
+func DeleteBlog(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+	b, err := store.GetBlog(vars["blog"])
+	if err != nil {
+		return err
+	}
+
+	if err := b.Delete(); err != nil {
+		return err
+	}
+
+	w.Header().Set("Location", "/admin/blogs")
+	w.WriteHeader(http.StatusFound)
+	return nil
 }
 
 func UpdateBlog(w http.ResponseWriter, req *http.Request) error {
@@ -151,7 +175,7 @@ func UpdateBlog(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	w.Header().Set("Location", fmt.Sprintf("/blogs/%s", b.Key()))
+	w.Header().Set("Location", "/admin/blogs")
 	w.WriteHeader(http.StatusFound)
 	return nil
 }
@@ -175,5 +199,7 @@ func CreateBlog(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
+	w.Header().Set("Location", "/admin/blogs")
+	w.WriteHeader(http.StatusFound)
 	return b.Save(ff)
 }
