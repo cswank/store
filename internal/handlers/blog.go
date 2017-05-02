@@ -21,7 +21,7 @@ type blogPage struct {
 func Blog(w http.ResponseWriter, req *http.Request) error {
 	vars := mux.Vars(req)
 
-	var b *store.Blog
+	var b store.Blog
 	var err error
 
 	k, ok := vars["blog"]
@@ -48,7 +48,7 @@ func Blog(w http.ResponseWriter, req *http.Request) error {
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
 		},
-		Blog:  *b,
+		Blog:  b,
 		ID:    b.Key(),
 		Blogs: blogs,
 	}
@@ -70,6 +70,11 @@ func BlogForm(w http.ResponseWriter, req *http.Request) error {
 		action = "/admin/blogs"
 	} else {
 		action = fmt.Sprintf("/admin/blogs/%s", vars["blog"])
+		var err error
+		b, err = store.GetBlog(vars["blog"])
+		if err != nil {
+			return err
+		}
 	}
 
 	p := blogFormPage{
@@ -98,13 +103,65 @@ func BlogImage(w http.ResponseWriter, req *http.Request) error {
 
 }
 
+func ManageBlogs(w http.ResponseWriter, req *http.Request) error {
+	blogs, err := store.Blogs()
+	if err != nil {
+		return err
+	}
+
+	sort.Slice(blogs, func(i, j int) bool {
+		return blogs[i].ID > blogs[j].ID
+	})
+
+	p := blogPage{
+		page: page{
+			Links: getNavbarLinks(req),
+			Name:  cfg.Name,
+		},
+		Blogs: blogs,
+	}
+
+	return templates.Get("admin/blogs.html").ExecuteTemplate(w, "base", p)
+}
+
+func UpdateBlog(w http.ResponseWriter, req *http.Request) error {
+	vars := mux.Vars(req)
+
+	b, err := store.GetBlog(vars["blog"])
+
+	if err := req.ParseMultipartForm(32 << 20); err != nil {
+		return err
+	}
+
+	ff, _, err := req.FormFile("image")
+	if err != nil && err != http.ErrMissingFile {
+		return err
+	} else if err == nil {
+		defer ff.Close()
+	}
+
+	var b2 store.Blog
+	dec := schema.NewDecoder()
+	dec.IgnoreUnknownKeys(true)
+	if err := dec.Decode(&b2, req.PostForm); err != nil {
+		return err
+	}
+
+	if err := b.Update(b2, ff); err != nil {
+		return err
+	}
+
+	w.Header().Set("Location", fmt.Sprintf("/blogs/%s", b.Key()))
+	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
 func CreateBlog(w http.ResponseWriter, req *http.Request) error {
 	if err := req.ParseMultipartForm(32 << 20); err != nil {
 		return err
 	}
 
 	ff, _, err := req.FormFile("image")
-	fmt.Println("blog image", ff)
 	if err != nil && err != http.ErrMissingFile {
 		return err
 	} else if err == nil {

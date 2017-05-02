@@ -50,10 +50,11 @@ func Init(box *rice.Box) {
 	}
 
 	templates = map[string]tmpl{
-		"admin/product.html":              {files: []string{"admin/product.html", "admin/links.html", "admin/product.js", "background-images.html"}},
-		"admin/wholesalers.html":          {files: []string{"admin/wholesalers.html"}},
-		"admin/wholesaler.html":           {files: []string{"admin/wholesaler.html"}},
 		"admin/admin.html":                {files: []string{"admin/admin.html", "admin/links.html", "background-images.html", "admin/admin.js"}},
+		"admin/blogs.html":                {files: []string{"admin/blogs.html"}},
+		"admin/product.html":              {files: []string{"admin/product.html", "admin/links.html", "admin/product.js", "background-images.html"}},
+		"admin/wholesaler.html":           {files: []string{"admin/wholesaler.html"}},
+		"admin/wholesalers.html":          {files: []string{"admin/wholesalers.html"}},
 		"blogs/blogs.html":                {files: []string{"blogs/blogs.html"}},
 		"blogs/form.html":                 {files: []string{"blogs/form.html"}},
 		"cart.html":                       {files: []string{"cart.html", "cart.js"}},
@@ -66,17 +67,17 @@ func Init(box *rice.Box) {
 		"logout.html":                     {files: []string{"logout.html", "confirm.js"}},
 		"notfound.html":                   {files: []string{"notfound.html"}},
 		"product.html":                    {files: []string{"product.html", "product.js"}},
-		"reset.html":                      {files: []string{"reset.html"}},
 		"reset-form.html":                 {files: []string{"reset-form.html"}},
+		"reset.html":                      {files: []string{"reset.html"}},
 		"shop.html":                       {files: []string{"shop.html", "thumb.html"}},
 		"subcategory.html":                {files: []string{"subcategory.html", "thumb.html"}},
 		"wholesale/application-form.html": {files: []string{"wholesale/application-form.html", "wholesale/application.js"}},
+		"wholesale/form.html":             {files: []string{"wholesale/form.html", "wholesale/thumb.html", "wholesale/wholesale.js"}, funcs: multiplexer},
+		"wholesale/invoice-sent.html":     {files: []string{"wholesale/invoice-sent.html"}},
+		"wholesale/invoice.html":          {files: []string{"wholesale/invoice.html"}},
+		"wholesale/pending.html":          {files: []string{"wholesale/pending.html"}},
 		"wholesale/preview.html":          {files: []string{"wholesale/preview.html"}},
 		"wholesale/thanks.html":           {files: []string{"wholesale/thanks.html"}},
-		"wholesale/form.html":             {files: []string{"wholesale/form.html", "wholesale/thumb.html", "wholesale/wholesale.js"}, funcs: multiplexer},
-		"wholesale/invoice.html":          {files: []string{"wholesale/invoice.html"}},
-		"wholesale/invoice-sent.html":     {files: []string{"wholesale/invoice-sent.html"}},
-		"wholesale/pending.html":          {files: []string{"wholesale/pending.html"}},
 		"wholesale/welcome.html":          {files: []string{"wholesale/welcome.html"}},
 	}
 
