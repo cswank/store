@@ -1,0 +1,22 @@
+{{define "content"}}
+<div class="pure-g">
+  <div class="pure-u-1-5">
+    <ul>
+      {{range .Blogs}}
+      <li>
+        <a href="/blog/{{.ID}}">{{.Title}}</a>
+      </li>
+      {{end}}
+    </ul>
+  </div>
+  <div class="pure-u-3-5">
+    <h3>{{.Blog.Title}}</h3>
+    <div id="blog">
+      <img src="/images/blogs/{{.ID}}" width="50%", class="wrap"/>
+      <p>{{.Blog.Body}}</p>
+    </div>
+  </div>
+  <div class="pure-u-1-5">
+  </div>
+</div>
+{{end}}

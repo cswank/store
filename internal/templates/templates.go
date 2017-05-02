@@ -54,6 +54,8 @@ func Init(box *rice.Box) {
 		"admin/wholesalers.html":          {files: []string{"admin/wholesalers.html"}},
 		"admin/wholesaler.html":           {files: []string{"admin/wholesaler.html"}},
 		"admin/admin.html":                {files: []string{"admin/admin.html", "admin/links.html", "background-images.html", "admin/admin.js"}},
+		"blogs/blogs.html":                {files: []string{"blogs/blogs.html"}},
+		"blogs/form.html":                 {files: []string{"blogs/form.html"}},
 		"cart.html":                       {files: []string{"cart.html", "cart.js"}},
 		"category.html":                   {files: []string{"category.html", "thumb.html"}},
 		"confirm.html":                    {files: []string{"confirm.html", "confirm.js"}},
