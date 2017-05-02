@@ -1,6 +1,6 @@
 {{define "content"}}
 <div class="text-center">
-  <form method="POST" action="/admin/blogs" enctype="multipart/form-data">
+  <form id="blog-form" method="POST" action="{{.Action}}" enctype="multipart/form-data">
     <fieldset>
       <input type="text" name="title" value="{{.Blog.Title}}" placeholder="title" required/><br/>
       <label for="body">
@@ -10,7 +10,12 @@
         <input type="file" name="image" placeholder="Image"/><br/>
       </label>
       <button type="submit" class="pure-button pure-button-primary">Save</button>
+      <button type="submit" class="pure-button pure-button-primary" onClick="confirm()">Delete</button>
     </fieldset>
   </form>
+
+  <script>
+    {{ template "blog.js" .}}
+  </script>
 </div>
 {{end}}

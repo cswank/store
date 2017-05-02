@@ -161,8 +161,11 @@ func doServe() {
 
 	r.Handle("/admin", getMiddleware(handlers.Admin, handlers.AdminPage)).Methods("GET")
 
+	r.Handle("/admin/blogs", getMiddleware(handlers.Admin, handlers.ManageBlogs)).Methods("GET")
 	r.Handle("/admin/blogs", getMiddleware(handlers.Admin, handlers.CreateBlog)).Methods("POST")
 	r.Handle("/admin/blogs/{blog}", getMiddleware(handlers.Admin, handlers.BlogForm)).Methods("GET")
+	r.Handle("/admin/blogs/{blog}", getMiddleware(handlers.Admin, handlers.UpdateBlog)).Methods("POST")
+	r.Handle("/admin/blogs/{blog}", getMiddleware(handlers.Admin, handlers.DeleteBlog)).Methods("DELETE")
 	r.Handle("/admin/wholesalers", getMiddleware(handlers.Admin, handlers.AdminWholesalers)).Methods("GET")
 	r.Handle("/admin/wholesalers/{wholesaler}", getMiddleware(handlers.Admin, handlers.AdminWholesaler)).Methods("GET")
 	r.Handle("/admin/wholesalers/{wholesaler}", getMiddleware(handlers.Admin, handlers.AdminWholesalerUpdate)).Methods("POST")
