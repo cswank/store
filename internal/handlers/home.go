@@ -18,18 +18,27 @@ type page struct {
 	Head    template.HTML
 }
 
+type homePage struct {
+	page
+	Home template.HTML
+}
+
 var (
 	name = os.Getenv("STORE_NAME")
 )
 
 func Home(w http.ResponseWriter, req *http.Request) error {
-	p := page{
-		Links:   getNavbarLinks(req),
-		Admin:   Admin(req),
-		Shopify: shopifyKey,
-		Name:    name,
-		Head:    template.HTML(head),
+	p := homePage{
+		page: page{
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(req),
+			Shopify: shopifyKey,
+			Name:    name,
+			Head:    head,
+		},
+		Home: home,
 	}
+
 	return templates.Get("index.html").ExecuteTemplate(w, "base", p)
 }
 

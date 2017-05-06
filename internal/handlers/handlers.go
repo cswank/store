@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,7 +21,7 @@ var (
 	shoppingLinks   []link
 	cfg             config.Config
 	ico             []byte
-	head            string
+	head, home      template.HTML
 )
 
 func Init(c config.Config) {
@@ -34,9 +35,13 @@ func Init(c config.Config) {
 	if err != nil {
 		log.Fatal("could not read ", cfg.Head)
 	}
+	head = template.HTML(string(d))
 
-	head = string(d)
-	fmt.Println("head", head)
+	d, err = ioutil.ReadFile(cfg.Home)
+	if err != nil {
+		log.Fatal("could not read ", cfg.Home)
+	}
+	home = template.HTML(string(d))
 
 	if shopifyKey.APIKey == "" || shopifyKey.Domain == "" {
 		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")

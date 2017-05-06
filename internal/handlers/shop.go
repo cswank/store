@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"path"
 	"strconv"
@@ -41,7 +40,7 @@ func Shop(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Admin:   Admin(req),
 			Shopify: shopifyKey,
-			Head:    template.HTML(head),
+			Head:    head,
 		},
 	}
 	return templates.Get("shop.html").ExecuteTemplate(w, "base", p)
@@ -67,7 +66,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 			Admin:   Admin(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    template.HTML(head),
+			Head:    head,
 		},
 		Price:             getPrice(req),
 		DiscountCode:      dc,
@@ -148,7 +147,7 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    template.HTML(head),
+			Head:    head,
 		},
 	}
 	return templates.Get("category.html").ExecuteTemplate(w, "base", p)
@@ -220,7 +219,7 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    template.HTML(head),
+			Head:    head,
 		},
 		Products: getProducts(cat, subcat, prods, getPrice(req)),
 	}
@@ -281,7 +280,7 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 			Admin:   Admin(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    template.HTML(head),
+			Head:    head,
 		},
 		Product:     *p,
 		Back:        back,

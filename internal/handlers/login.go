@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"github.com/cswank/store/internal/store"
@@ -26,7 +25,7 @@ func Login(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 		Captcha:        true,
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,
@@ -69,7 +68,7 @@ func Logout(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 	}
 	return templates.Get("logout.html").ExecuteTemplate(w, "base", p)
@@ -93,7 +92,7 @@ func ResetPage(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 		Message:        req.URL.Query().Get("message"),
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,
@@ -129,7 +128,7 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 		Message:        req.URL.Query().Get("message"),
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,

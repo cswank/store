@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -61,7 +60,7 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 		Products: prods,
 		Items:    items,
@@ -144,7 +143,7 @@ func sendInvoice(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 		Customer: u,
 	}
@@ -172,7 +171,7 @@ func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 		Products: products,
 		Price:    cfg.DefaultPrice,
@@ -218,7 +217,7 @@ func WholesaleApplication(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  template.HTML(head),
+			Head:  head,
 		},
 		ShowMessage:    params.Get("success") != "",
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,

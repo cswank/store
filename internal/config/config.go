@@ -30,4 +30,5 @@ type Config struct {
 	InvoiceStylesheet string `env:"STORE_INVOICE_STYLESHEET" envDefault:"https://127.0.0.1:8080/css/invoice.css"`
 
 	Head string `env:"STORE_HEAD" envDefault:"head.html"`
+	Home string `env:"STORE_HOME" envDefault:"home.html"`
 }
