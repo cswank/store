@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
@@ -19,6 +20,7 @@ var (
 	shoppingLinks   []link
 	cfg             config.Config
 	ico             []byte
+	head            string
 )
 
 func Init(c config.Config) {
@@ -27,6 +29,14 @@ func Init(c config.Config) {
 		APIKey: cfg.ShopifyJSKey,
 		Domain: cfg.ShopifyDomain,
 	}
+
+	d, err := ioutil.ReadFile(cfg.Head)
+	if err != nil {
+		log.Fatal("could not read ", cfg.Head)
+	}
+
+	head = string(d)
+	fmt.Println("head", head)
 
 	if shopifyKey.APIKey == "" || shopifyKey.Domain == "" {
 		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")

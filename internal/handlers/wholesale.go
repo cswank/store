@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -60,6 +61,7 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
+			Head:  template.HTML(head),
 		},
 		Products: prods,
 		Items:    items,
@@ -142,6 +144,7 @@ func sendInvoice(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
+			Head:  template.HTML(head),
 		},
 		Customer: u,
 	}
@@ -169,6 +172,7 @@ func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
+			Head:  template.HTML(head),
 		},
 		Products: products,
 		Price:    cfg.DefaultPrice,
@@ -212,9 +216,9 @@ func WholesaleApplication(w http.ResponseWriter, req *http.Request) error {
 	params := req.URL.Query()
 	p := formPage{
 		page: page{
-			Links:   getNavbarLinks(req),
-			Name:    cfg.Name,
-			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+			Links: getNavbarLinks(req),
+			Name:  cfg.Name,
+			Head:  template.HTML(head),
 		},
 		ShowMessage:    params.Get("success") != "",
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,

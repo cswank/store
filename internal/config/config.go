@@ -28,4 +28,6 @@ type Config struct {
 	ShopifyJSKey  string `env:"SHOPIFY_JS_KEY" envDefault:"yellow submarine"`
 
 	InvoiceStylesheet string `env:"STORE_INVOICE_STYLESHEET" envDefault:"https://127.0.0.1:8080/css/invoice.css"`
+
+	Head string `env:"STORE_HEAD" envDefault:"head.html"`
 }

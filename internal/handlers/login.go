@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/cswank/store/internal/store"
@@ -23,9 +24,9 @@ type loginPage struct {
 func Login(w http.ResponseWriter, req *http.Request) error {
 	p := loginPage{
 		page: page{
-			Links:   getNavbarLinks(req),
-			Admin:   Admin(req),
-			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+			Links: getNavbarLinks(req),
+			Admin: Admin(req),
+			Head:  template.HTML(head),
 		},
 		Captcha:        true,
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,
@@ -68,6 +69,7 @@ func Logout(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
+			Head:  template.HTML(head),
 		},
 	}
 	return templates.Get("logout.html").ExecuteTemplate(w, "base", p)
@@ -89,9 +91,9 @@ func DoLogout(w http.ResponseWriter, req *http.Request) error {
 func ResetPage(w http.ResponseWriter, req *http.Request) error {
 	p := loginPage{
 		page: page{
-			Links:   getNavbarLinks(req),
-			Admin:   Admin(req),
-			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+			Links: getNavbarLinks(req),
+			Admin: Admin(req),
+			Head:  template.HTML(head),
 		},
 		Message:        req.URL.Query().Get("message"),
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,
@@ -125,9 +127,9 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) error {
 
 	p := loginPage{
 		page: page{
-			Links:   getNavbarLinks(req),
-			Admin:   Admin(req),
-			Scripts: []string{"https://www.google.com/recaptcha/api.js"},
+			Links: getNavbarLinks(req),
+			Admin: Admin(req),
+			Head:  template.HTML(head),
 		},
 		Message:        req.URL.Query().Get("message"),
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,

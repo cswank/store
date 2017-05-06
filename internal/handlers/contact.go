@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"html/template"
 	"net/http"
 
 	"github.com/cswank/store/internal/email"
@@ -27,12 +28,12 @@ func Contact(w http.ResponseWriter, req *http.Request) error {
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
 			Name:  name,
+			Head:  template.HTML(head),
 		},
 	}
 
 	if captcha {
 		p.Captcha = true
-		p.Scripts = []string{"https://www.google.com/recaptcha/api.js"}
 		p.CaptchaSiteKey = cfg.RecaptchaSiteKey
 	}
 

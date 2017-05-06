@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
 
@@ -46,6 +47,7 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
+			Head:    template.HTML(head),
 		},
 		Items:       categories,
 		URI:         "/admin/categories",
@@ -104,6 +106,7 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
+			Head:    template.HTML(head),
 		},
 		Items:        subcats,
 		From:         from,
@@ -215,6 +218,7 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
+			Head:    template.HTML(head),
 		},
 		Items:        products,
 		From:         from,
@@ -254,6 +258,7 @@ func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
+			Head:    template.HTML(head),
 		},
 		From:        from,
 		URI:         from,
@@ -364,6 +369,7 @@ func AdminWholesalers(w http.ResponseWriter, req *http.Request) error {
 			Admin: Admin(req),
 			Links: getNavbarLinks(req),
 			Name:  name,
+			Head:  template.HTML(head),
 		},
 		Wholesalers: wholesalers,
 	}
@@ -387,6 +393,7 @@ func AdminWholesaler(w http.ResponseWriter, req *http.Request) error {
 			Admin: Admin(req),
 			Links: getNavbarLinks(req),
 			Name:  name,
+			Head:  template.HTML(head),
 		},
 		Wholesaler: wholesaler,
 	}

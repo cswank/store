@@ -8,7 +8,7 @@
       </div>
       <div>
         <i class="incrementer fa fa-minus" aria-hidden="true" onClick="updateQuantity('{{.Product.ID}}', -1)"></i>
-        <input type="nmber" class="quantity" id="{{.Product.ID}}" value="0"/>
+        <input type="text" class="quantity" id="{{.Product.ID}}" value="1"/>
         <i class="incrementer fa fa-plus" aria-hidden="true" onClick="updateQuantity('{{.Product.ID}}', 1)"></i>
       </div>
       <button onClick="addToCart({{.Product.Title}})" class="pure-button pure-button-primary">Add To Cart</button>

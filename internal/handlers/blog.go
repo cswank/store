@@ -51,6 +51,7 @@ func Blog(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
+			Head:  template.HTML(head),
 		},
 		Blog:  b,
 		ID:    b.Key(),
@@ -87,6 +88,7 @@ func BlogForm(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
+			Head:  template.HTML(head),
 		},
 		Action: action,
 		Blog:   b,
@@ -125,6 +127,7 @@ func ManageBlogs(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
+			Head:  template.HTML(head),
 		},
 		Blogs: blogs,
 	}

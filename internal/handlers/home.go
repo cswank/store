@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 
@@ -9,13 +10,12 @@ import (
 )
 
 type page struct {
-	Shopify     shopifyAPI
-	Admin       bool
-	Links       []link
-	Scripts     []string
-	Stylesheets []string
-	Name        string
-	Message     string
+	Shopify shopifyAPI
+	Admin   bool
+	Links   []link
+	Name    string
+	Message string
+	Head    template.HTML
 }
 
 var (
@@ -28,6 +28,7 @@ func Home(w http.ResponseWriter, req *http.Request) error {
 		Admin:   Admin(req),
 		Shopify: shopifyKey,
 		Name:    name,
+		Head:    template.HTML(head),
 	}
 	return templates.Get("index.html").ExecuteTemplate(w, "base", p)
 }
