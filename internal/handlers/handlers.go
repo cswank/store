@@ -21,7 +21,9 @@ var (
 	shoppingLinks   []link
 	cfg             config.Config
 	ico             []byte
-	head, home      template.HTML
+
+	//holds external html that is injected into the app
+	html map[string]template.HTML
 )
 
 func Init(c config.Config) {
@@ -31,17 +33,20 @@ func Init(c config.Config) {
 		Domain: cfg.ShopifyDomain,
 	}
 
-	d, err := ioutil.ReadFile(cfg.Head)
-	if err != nil {
-		log.Fatal("could not read ", cfg.Head)
+	htmlLookup := map[string]string{
+		"about": cfg.About,
+		"head":  cfg.Head,
+		"home":  cfg.Home,
 	}
-	head = template.HTML(string(d))
 
-	d, err = ioutil.ReadFile(cfg.Home)
-	if err != nil {
-		log.Fatal("could not read ", cfg.Home)
+	html = make(map[string]template.HTML)
+	for name, pth := range htmlLookup {
+		d, err := ioutil.ReadFile(pth)
+		if err != nil {
+			log.Fatal("could not read ", name, pth)
+		}
+		html[name] = template.HTML(string(d))
 	}
-	home = template.HTML(string(d))
 
 	if shopifyKey.APIKey == "" || shopifyKey.Domain == "" {
 		log.Fatal("you must set SHOPIFY_DOMAIN and SHOPIFY_JS_KEY")
@@ -84,6 +89,7 @@ func getNavbarLinks(req *http.Request) []link {
 		{Name: "Home", Link: "/"},
 		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
 		{Name: "Blog", Link: "/blog"},
+		{Name: "About Me", Link: "/about"},
 		//{Name: "Wholesale", Link: "/wholesale"},
 		{Name: "Contact", Link: "/contact"},
 		{Name: "Cart", Link: "/cart"},

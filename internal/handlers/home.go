@@ -34,9 +34,9 @@ func Home(w http.ResponseWriter, req *http.Request) error {
 			Admin:   Admin(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    head,
+			Head:    html["head"],
 		},
-		Home: home,
+		Home: html["home"],
 	}
 
 	return templates.Get("index.html").ExecuteTemplate(w, "base", p)

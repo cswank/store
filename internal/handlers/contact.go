@@ -27,7 +27,7 @@ func Contact(w http.ResponseWriter, req *http.Request) error {
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
 			Name:  name,
-			Head:  head,
+			Head:  html["head"],
 		},
 	}
 

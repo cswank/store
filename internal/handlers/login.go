@@ -25,7 +25,7 @@ func Login(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  head,
+			Head:  html["head"],
 		},
 		Captcha:        true,
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,
@@ -68,7 +68,7 @@ func Logout(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  head,
+			Head:  html["head"],
 		},
 	}
 	return templates.Get("logout.html").ExecuteTemplate(w, "base", p)
@@ -92,7 +92,7 @@ func ResetPage(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  head,
+			Head:  html["head"],
 		},
 		Message:        req.URL.Query().Get("message"),
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,
@@ -128,7 +128,7 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Admin: Admin(req),
-			Head:  head,
+			Head:  html["head"],
 		},
 		Message:        req.URL.Query().Get("message"),
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,

@@ -60,7 +60,7 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  head,
+			Head:  html["head"],
 		},
 		Products: prods,
 		Items:    items,
@@ -143,7 +143,7 @@ func sendInvoice(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  head,
+			Head:  html["head"],
 		},
 		Customer: u,
 	}
@@ -171,7 +171,7 @@ func previewInvoice(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  head,
+			Head:  html["head"],
 		},
 		Products: products,
 		Price:    cfg.DefaultPrice,
@@ -217,7 +217,7 @@ func WholesaleApplication(w http.ResponseWriter, req *http.Request) error {
 		page: page{
 			Links: getNavbarLinks(req),
 			Name:  cfg.Name,
-			Head:  head,
+			Head:  html["head"],
 		},
 		ShowMessage:    params.Get("success") != "",
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,

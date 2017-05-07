@@ -40,7 +40,7 @@ func Shop(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Admin:   Admin(req),
 			Shopify: shopifyKey,
-			Head:    head,
+			Head:    html["head"],
 		},
 	}
 	return templates.Get("shop.html").ExecuteTemplate(w, "base", p)
@@ -66,7 +66,7 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 			Admin:   Admin(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    head,
+			Head:    html["head"],
 		},
 		Price:             getPrice(req),
 		DiscountCode:      dc,
@@ -147,7 +147,7 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    head,
+			Head:    html["head"],
 		},
 	}
 	return templates.Get("category.html").ExecuteTemplate(w, "base", p)
@@ -219,7 +219,7 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 			Links:   getNavbarLinks(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    head,
+			Head:    html["head"],
 		},
 		Products: getProducts(cat, subcat, prods, getPrice(req)),
 	}
@@ -280,7 +280,7 @@ func Product(w http.ResponseWriter, req *http.Request) error {
 			Admin:   Admin(req),
 			Shopify: shopifyKey,
 			Name:    name,
-			Head:    head,
+			Head:    html["head"],
 		},
 		Product:     *p,
 		Back:        back,

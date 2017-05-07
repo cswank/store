@@ -151,6 +151,8 @@ func doServe() {
 	r.Handle("/blog/{blog}", getMiddleware(handlers.Anyone, handlers.Blog)).Methods("GET")
 	r.Handle("/images/blogs/{blog}", getMiddleware(handlers.Anyone, handlers.BlogImage)).Methods("GET")
 
+	r.Handle("/about", getMiddleware(handlers.Anyone, handlers.About)).Methods("GET")
+
 	r.Handle("/shop", getMiddleware(handlers.Anyone, handlers.Shop)).Methods("GET")
 	r.Handle("/shop/{category}", getMiddleware(handlers.Anyone, handlers.Category)).Methods("GET")
 	r.Handle("/shop/{category}/{subcategory}", getMiddleware(handlers.Anyone, handlers.SubCategory)).Methods("GET")
