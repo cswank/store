@@ -1,7 +1,26 @@
 {{define "content"}}
 <div class="pure-g">
-  {{range $product := .Products}}
-  {{template "thumb" $product}}
-  {{end}}
+  <div class="pure-u-1-5">
+    <ul class="shopping-links">
+      {{range $cat := .Shopping}}
+      {{if $cat.Category}}
+      <li>
+        <a href="/shop/{{$cat.Name}}" >{{$cat.Name}}</a>
+      </li>
+      {{else}}
+      <li>
+        <a href="{{$cat.Link}}" class="subcat-link">{{$cat.Name}}</a>
+      </li>
+      {{end}}
+      {{end}}
+    </ul>
+  </div>
+  <div class="pure-u-4-5">
+    <div class="pure-g">
+      {{range $product := .Products}}
+      {{template "thumb" $product}}
+      {{end}}
+    </div>
+  </div>
 </div>
 {{end}}

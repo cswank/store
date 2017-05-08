@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/cswank/store/internal/config"
@@ -121,48 +123,17 @@ func getShoppingLinks() []link {
 		return shoppingLinks
 	}
 
-	cats, err := store.GetCategories()
+	f, err := os.Open(cfg.ShoppingMenu)
 	if err != nil {
-		lg.Println("error getting cats")
-		return nil
+		log.Fatal("could not open shopping menu", cfg.ShoppingMenu, err)
+	}
+	defer f.Close()
+
+	if err := json.NewDecoder(f).Decode(&shoppingLinks); err != nil {
+		log.Fatal("could not decode shopping menu", err)
 	}
 
-	var l []link
-
-	for _, cat := range cats {
-		scl := getSubcatLinks(cat)
-		l = append(l, link{Category: true, Name: cat})
-		if len(scl) > 0 {
-			l = append(l, scl...)
-		}
-	}
-
-	shoppingLinks = l
 	return shoppingLinks
-}
-
-func getSubcatLinks(cat string) []link {
-
-	subcats, err := store.GetSubCategories(cat)
-	if err != nil {
-		lg.Println("error getting subcats")
-		return nil
-	}
-
-	l := make([]link, len(subcats))
-
-	for i, subcat := range subcats {
-		if subcat == "NOSUBCATEGORIES" {
-			return []link{}
-		}
-
-		l[i] = link{
-			Link: fmt.Sprintf("/shop/%s/%s", cat, subcat),
-			Name: subcat,
-		}
-	}
-
-	return l
 }
 
 func Static() HandlerFunc {

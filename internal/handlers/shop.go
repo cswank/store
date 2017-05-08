@@ -176,6 +176,7 @@ func getLinks(href string, names []string) []link {
 type subCategoryPage struct {
 	page
 	Products []product
+	Shopping []link
 }
 
 func getProducts(cat, subcat string, prods []store.Product, price string) []product {
@@ -222,6 +223,7 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 			Head:    html["head"],
 		},
 		Products: getProducts(cat, subcat, prods, getPrice(req)),
+		Shopping: getShoppingLinks(),
 	}
 	return templates.Get("subcategory.html").ExecuteTemplate(w, "base", p)
 }
