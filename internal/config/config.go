@@ -33,4 +33,8 @@ type Config struct {
 	Head  string `env:"STORE_HEAD" envDefault:"head.html"`
 	Home  string `env:"STORE_HOME" envDefault:"home.html"`
 	About string `env:"STORE_ABOUT" envDefault:"about.html"`
+
+	WebhookID          string `env:"STORE_WEBHOOK_ID" envDefault:""`
+	WebhookIPWhitelist string `env:"STORE_WEBHOOK_IP_WHITELIST" envDefault:""`
+	WebhookScript      string `env:"STORE_WEBHOOK_SCRIPT" envDefault:""`
 }

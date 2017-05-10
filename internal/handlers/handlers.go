@@ -91,7 +91,7 @@ func getNavbarLinks(req *http.Request) []link {
 		{Name: "Home", Link: "/"},
 		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
 		{Name: "Blog", Link: "/blog"},
-		{Name: "About Me", Link: "/about"},
+		{Name: "About", Link: "/about"},
 		//{Name: "Wholesale", Link: "/wholesale"},
 		{Name: "Contact", Link: "/contact"},
 		{Name: "Cart", Link: "/cart"},

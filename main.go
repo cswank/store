@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"time"
@@ -123,7 +125,16 @@ func getImageMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler 
 
 func doServe() {
 	initServe()
+
+	stopChan := make(chan os.Signal)
+	signal.Notify(stopChan, os.Interrupt)
+
 	r := mux.NewRouter().StrictSlash(true)
+
+	if cfg.WebhookID != "" && cfg.WebhookScript != "" && cfg.WebhookIPWhitelist != "" {
+		r.Handle("/webhooks/{id}", getMiddleware(handlers.Anyone, handlers.GetWebhooks(stopChan))).Methods("POST")
+	}
+
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Anyone, handlers.Login)).Methods("GET")
 	r.Handle("/login", getMiddleware(handlers.Human, handlers.DoLogin)).Methods("POST")
@@ -217,7 +228,15 @@ func doServe() {
 	}
 
 	log.Printf("listening on %s (tls: %v)\n", addr, cfg.TLS)
-	log.Println(serve())
+	go func() {
+		log.Println(serve())
+	}()
+
+	<-stopChan // wait for SIGINT
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	srv.Shutdown(ctx)
+	log.Println("Server gracefully stopped")
 }
 
 func getTLS(srv *http.Server) func() error {
