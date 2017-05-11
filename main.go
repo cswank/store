@@ -132,7 +132,7 @@ func doServe() {
 	r := mux.NewRouter().StrictSlash(true)
 
 	if cfg.WebhookID != "" && cfg.WebhookScript != "" && cfg.WebhookIPWhitelist != "" {
-		r.Handle("/webhooks/{id}", getMiddleware(handlers.Anyone, handlers.GetWebhooks(stopChan))).Methods("POST")
+		r.Handle("/webhooks/{id}", getMiddleware(handlers.IPWhitelist, handlers.GetWebhooks(stopChan))).Methods("POST")
 	}
 
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
@@ -200,7 +200,6 @@ func doServe() {
 
 	r.NotFoundHandler = http.HandlerFunc(handlers.NotFound)
 
-	//r.Handle("/favicon.ico", getMiddleware(handlers.Anyone, handlers.Favicon))
 	r.PathPrefix("/images").Handler(handlers.HandleErr(handlers.Static()))
 	r.PathPrefix("/robots.txt").Handler(handlers.HandleErr(handlers.Static()))
 	r.PathPrefix("/favicon.ico").Handler(handlers.HandleErr(handlers.Static()))
@@ -236,7 +235,7 @@ func doServe() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	srv.Shutdown(ctx)
-	log.Println("Server gracefully stopped")
+	log.Println("shutting down")
 }
 
 func getTLS(srv *http.Server) func() error {
