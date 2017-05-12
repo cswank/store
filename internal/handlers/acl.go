@@ -44,44 +44,6 @@ func And(acls ...ACL) ACL {
 	}
 }
 
-// CheckIPWhitelist makes sure the provided remote address (of the form IP:port) falls within the provided IP range
-// (in CIDR form or a single IP address).
-func IPWhitelist(req *http.Request) bool {
-	// Extract IP address from remote address.
-	ip := req.RemoteAddr
-
-	if strings.LastIndex(ip, ":") != -1 {
-		ip = ip[0:strings.LastIndex(ip, ":")]
-	}
-
-	ip = strings.TrimSpace(ip)
-
-	// IPv6 addresses will likely be surrounded by [], so don't forget to remove those.
-	if strings.HasPrefix(ip, "[") && strings.HasSuffix(ip, "]") {
-		ip = ip[1 : len(ip)-1]
-	}
-
-	parsedIP := net.ParseIP(strings.TrimSpace(ip))
-
-	if parsedIP == nil {
-		return false
-	}
-
-	// Extract IP range in CIDR form.  If a single IP address is provided, turn it into CIDR form.
-	ipRange := cfg.WebhookIPWhitelist
-	if strings.Index(ipRange, "/") == -1 {
-		ipRange = ipRange + "/32"
-	}
-
-	_, cidr, err := net.ParseCIDR(ipRange)
-
-	if err != nil {
-		return false
-	}
-
-	return cidr.Contains(parsedIP)
-}
-
 func Admin(req *http.Request) bool {
 	user := getUser(req)
 	return isAdmin(user)
@@ -121,6 +83,44 @@ func Perm(f ACL) alice.Constructor {
 			h.ServeHTTP(w, req)
 		})
 	}
+}
+
+// CheckIPWhitelist makes sure the provided remote address (of the form IP:port) falls within the provided IP range
+// (in CIDR form or a single IP address).
+func IPWhitelist(req *http.Request) bool {
+	// Extract IP address from remote address.
+	ip := req.RemoteAddr
+
+	if strings.LastIndex(ip, ":") != -1 {
+		ip = ip[0:strings.LastIndex(ip, ":")]
+	}
+
+	ip = strings.TrimSpace(ip)
+
+	// IPv6 addresses will likely be surrounded by [], so don't forget to remove those.
+	if strings.HasPrefix(ip, "[") && strings.HasSuffix(ip, "]") {
+		ip = ip[1 : len(ip)-1]
+	}
+
+	parsedIP := net.ParseIP(strings.TrimSpace(ip))
+
+	if parsedIP == nil {
+		return false
+	}
+
+	// Extract IP range in CIDR form.  If a single IP address is provided, turn it into CIDR form.
+	ipRange := cfg.WebhookIPWhitelist
+	if strings.Index(ipRange, "/") == -1 {
+		ipRange = ipRange + "/32"
+	}
+
+	_, cidr, err := net.ParseCIDR(ipRange)
+
+	if err != nil {
+		return false
+	}
+
+	return cidr.Contains(parsedIP)
 }
 
 func Human(req *http.Request) bool {

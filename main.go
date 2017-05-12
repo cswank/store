@@ -126,13 +126,12 @@ func getImageMiddleware(perm handlers.ACL, f handlers.HandlerFunc) http.Handler 
 func doServe() {
 	initServe()
 
-	stopChan := make(chan os.Signal)
-	signal.Notify(stopChan, os.Interrupt)
+	restartChan := make(chan bool)
 
 	r := mux.NewRouter().StrictSlash(true)
 
 	if cfg.WebhookID != "" && cfg.WebhookScript != "" && cfg.WebhookIPWhitelist != "" {
-		r.Handle("/webhooks/{id}", getMiddleware(handlers.IPWhitelist, handlers.GetWebhooks(stopChan))).Methods("POST")
+		r.Handle("/webhooks/{id}", getMiddleware(handlers.IPWhitelist, handlers.GetWebhooks(restartChan))).Methods("POST")
 	}
 
 	r.Handle("/", getMiddleware(handlers.Anyone, handlers.Home)).Methods("GET")
@@ -231,11 +230,26 @@ func doServe() {
 		log.Println(serve())
 	}()
 
-	<-stopChan // wait for SIGINT
+	stopChan := make(chan os.Signal)
+	signal.Notify(stopChan, os.Interrupt)
+
+	var restart bool
+	select {
+	case <-stopChan:
+	case restart = <-restartChan:
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	srv.Shutdown(ctx)
-	log.Println("shutting down")
+
+	if !restart {
+		log.Println("shutting down")
+		return
+	}
+
+	log.Println("restarting")
+	doServe()
 }
 
 func getTLS(srv *http.Server) func() error {
