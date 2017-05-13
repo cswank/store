@@ -1,6 +1,6 @@
 {{define "content"}}
 <div class="pure-g">
-  <div class="pure-u-1-5" id="products">
+  <div class="pure-u-1-5">
     <ul class="shopping-links">
       {{range $cat := .Shopping}}
       {{if $cat.Category}}
@@ -15,7 +15,7 @@
       {{end}}
     </ul>
   </div>
-  <div class="pure-u-4-5">
+  <div class="pure-u-4-5" id="products">
     <div class="pure-g">
       {{range $product := .Products}}
       {{template "thumb" $product}}
