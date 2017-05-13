@@ -1,15 +1,16 @@
 {{define "content"}}
 <div class="pure-g">
-  <div class="pure-u-1-5">
-    <ul class="shopping-links">
+  <div class="pure-u-1-5" id="shopping-links">
+    <ul class="shopping-list">
+      {{$subcat := .Subcat}}
       {{range $cat := .Shopping}}
       {{if $cat.Category}}
       <li>
-        <a href="/shop/{{$cat.Name}}" >{{$cat.Name}}</a>
+        <a class="shopping-category" >{{$cat.Name}}</a>
       </li>
       {{else}}
       <li>
-        <a href="{{$cat.Link}}" class="subcat-link">{{$cat.Name}}</a>
+        <a href="{{$cat.Link}}" class="subcat-link {{active $subcat $cat.Name}}">{{$cat.Name}}</a>
       </li>
       {{end}}
       {{end}}

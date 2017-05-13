@@ -175,6 +175,7 @@ func getLinks(href string, names []string) []link {
 
 type subCategoryPage struct {
 	page
+	Subcat   string
 	Products []product
 	Shopping []link
 }
@@ -222,6 +223,7 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 			Name:    name,
 			Head:    html["head"],
 		},
+		Subcat:   subcat,
 		Products: getProducts(cat, subcat, prods, getPrice(req)),
 		Shopping: getShoppingLinks(),
 	}

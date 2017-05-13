@@ -14,6 +14,12 @@ var (
 	templates map[string]tmpl
 
 	multiplexer = template.FuncMap{
+		"active": func(item, page string) string {
+			if item == page {
+				return "active-link"
+			}
+			return "inactive-link"
+		},
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {
 			if len(values)%2 != 0 {
 				return nil, errors.New("invalid dict call")
@@ -71,7 +77,7 @@ func Init(box *rice.Box) {
 		"reset-form.html":                 {files: []string{"reset-form.html"}},
 		"reset.html":                      {files: []string{"reset.html"}},
 		"shop.html":                       {files: []string{"shop.html", "thumb.html"}},
-		"subcategory.html":                {files: []string{"subcategory.html", "thumb.html"}},
+		"subcategory.html":                {files: []string{"subcategory.html", "thumb.html"}, funcs: multiplexer},
 		"wholesale/application-form.html": {files: []string{"wholesale/application-form.html", "wholesale/application.js"}},
 		"wholesale/form.html":             {files: []string{"wholesale/form.html", "wholesale/thumb.html", "wholesale/wholesale.js"}, funcs: multiplexer},
 		"wholesale/invoice-sent.html":     {files: []string{"wholesale/invoice-sent.html"}},
