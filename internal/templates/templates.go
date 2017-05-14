@@ -2,6 +2,7 @@ package templates
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -19,6 +20,10 @@ var (
 				return "active-link"
 			}
 			return "inactive-link"
+		},
+		"printDate": func(date string) string {
+			parts := strings.Split(date, "-")
+			return fmt.Sprintf("%s/%s/%s", parts[1], parts[2], parts[0])
 		},
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {
 			if len(values)%2 != 0 {
@@ -62,7 +67,7 @@ func Init(box *rice.Box) {
 		"admin/product.html":              {files: []string{"admin/product.html", "admin/links.html", "admin/product.js", "background-images.html"}},
 		"admin/wholesaler.html":           {files: []string{"admin/wholesaler.html"}},
 		"admin/wholesalers.html":          {files: []string{"admin/wholesalers.html"}},
-		"blogs/blogs.html":                {files: []string{"blogs/blogs.html"}},
+		"blogs/blogs.html":                {files: []string{"blogs/blogs.html"}, funcs: multiplexer},
 		"admin/blog-form.html":            {files: []string{"admin/blog-form.html", "admin/blog.js"}},
 		"cart.html":                       {files: []string{"cart.html", "cart.js"}},
 		"category.html":                   {files: []string{"category.html", "thumb.html"}},
