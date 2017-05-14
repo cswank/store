@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image/png"
 	"io"
+	"sort"
 	"strings"
 	"time"
 )
@@ -19,21 +20,17 @@ type Blog struct {
 }
 
 func CurrentBlog() (Blog, error) {
-	var key string
-	err := db.Get([]Query{NewQuery(Key("current"), Buckets("blogs"))}, func(_, val []byte) error {
-		key = string(val)
-		return nil
-	})
+	blogs, err := Blogs()
 
 	if err != nil {
 		return Blog{}, err
 	}
 
-	if key == "" {
+	if len(blogs) == 0 {
 		return Blog{}, nil
 	}
 
-	return GetBlog(key)
+	return GetBlog(blogs[0].ID)
 
 }
 
@@ -65,6 +62,11 @@ func Blogs() ([]BlogKey, error) {
 	if err == ErrNotFound {
 		return blogs, nil
 	}
+
+	sort.Slice(blogs, func(i, j int) bool {
+		return blogs[i].ID > blogs[j].ID
+	})
+
 	return blogs, err
 }
 
@@ -119,7 +121,6 @@ func (b *Blog) doSave(img io.Reader) error {
 
 	q := []Query{
 		NewQuery(Key(b.Key()), Val(d), Buckets("blogs")),
-		NewQuery(Key("current"), Val([]byte(b.Key())), Buckets("blogs")),
 	}
 
 	if img != nil {

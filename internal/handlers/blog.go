@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"net/http"
 	"reflect"
-	"sort"
 	"strings"
 	"time"
 
@@ -44,10 +43,6 @@ func Blog(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	sort.Slice(blogs, func(i, j int) bool {
-		return blogs[i].ID > blogs[j].ID
-	})
-
 	body := strings.Replace(b.Body, "\n", "\n<br/>", -1)
 	p := blogPage{
 		page: page{
@@ -77,6 +72,7 @@ func BlogForm(w http.ResponseWriter, req *http.Request) error {
 	var b store.Blog
 	if vars["blog"] == "new" {
 		action = "/admin/blogs"
+		b.Date = time.Now()
 	} else {
 		action = fmt.Sprintf("/admin/blogs/%s", vars["blog"])
 		var err error
@@ -120,10 +116,6 @@ func ManageBlogs(w http.ResponseWriter, req *http.Request) error {
 	if err != nil {
 		return err
 	}
-
-	sort.Slice(blogs, func(i, j int) bool {
-		return blogs[i].ID > blogs[j].ID
-	})
 
 	p := blogPage{
 		page: page{
@@ -204,6 +196,10 @@ func CreateBlog(w http.ResponseWriter, req *http.Request) error {
 	var b store.Blog
 	dec := schema.NewDecoder()
 	dec.IgnoreUnknownKeys(true)
+	dec.RegisterConverter(time.Time{}, func(value string) reflect.Value {
+		s, _ := time.Parse("01/02/2006", value)
+		return reflect.ValueOf(s)
+	})
 	if err := dec.Decode(&b, req.PostForm); err != nil {
 		return err
 	}
