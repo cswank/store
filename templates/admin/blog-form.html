@@ -3,6 +3,7 @@
   <form id="blog-form" method="POST" action="{{.Action}}" enctype="multipart/form-data">
     <fieldset>
       <input type="text" name="title" value="{{.Blog.Title}}" placeholder="title" required/><br/>
+      <input type="date" name="date" value="{{getDate .Blog.Date}}" placeholder="date" required/><br/>
       <label for="body">
         <textarea name="body" rows="8" cols="50">{{.Blog.Body}}</textarea>
       </label></br>

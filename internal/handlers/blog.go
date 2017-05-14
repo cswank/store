@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
@@ -170,6 +172,10 @@ func UpdateBlog(w http.ResponseWriter, req *http.Request) error {
 	var b2 store.Blog
 	dec := schema.NewDecoder()
 	dec.IgnoreUnknownKeys(true)
+	dec.RegisterConverter(time.Time{}, func(value string) reflect.Value {
+		s, _ := time.Parse("01/02/2006", value)
+		return reflect.ValueOf(s)
+	})
 	if err := dec.Decode(&b2, req.PostForm); err != nil {
 		return err
 	}

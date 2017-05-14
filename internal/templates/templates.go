@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/GeertJohan/go.rice"
 )
@@ -24,6 +25,9 @@ var (
 		"printDate": func(date string) string {
 			parts := strings.Split(date, "-")
 			return fmt.Sprintf("%s/%s/%s", parts[1], parts[2], parts[0])
+		},
+		"getDate": func(ts time.Time) string {
+			return ts.Format("01/02/2006")
 		},
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {
 			if len(values)%2 != 0 {
@@ -68,7 +72,7 @@ func Init(box *rice.Box) {
 		"admin/wholesaler.html":           {files: []string{"admin/wholesaler.html"}},
 		"admin/wholesalers.html":          {files: []string{"admin/wholesalers.html"}},
 		"blogs/blogs.html":                {files: []string{"blogs/blogs.html"}, funcs: multiplexer},
-		"admin/blog-form.html":            {files: []string{"admin/blog-form.html", "admin/blog.js"}},
+		"admin/blog-form.html":            {files: []string{"admin/blog-form.html", "admin/blog.js"}, funcs: multiplexer},
 		"cart.html":                       {files: []string{"cart.html", "cart.js"}},
 		"category.html":                   {files: []string{"category.html", "thumb.html"}},
 		"confirm.html":                    {files: []string{"confirm.html", "confirm.js"}},

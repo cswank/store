@@ -80,7 +80,7 @@ func (b *Blog) Fetch() error {
 
 func (b *Blog) Update(b2 Blog, img io.Reader) error {
 	b.Body = b2.Body
-	if b.Title != b2.Title {
+	if b.Title != b2.Title || b.Date != b2.Date {
 
 		q := []Query{
 			NewQuery(Key(b.Key()), Buckets("blogs")),
@@ -100,6 +100,7 @@ func (b *Blog) Update(b2 Blog, img io.Reader) error {
 		}
 
 		b.Title = b2.Title
+		b.Date = b2.Date
 	}
 
 	return b.doSave(img)
