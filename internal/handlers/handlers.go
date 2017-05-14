@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/cswank/store/internal/config"
@@ -78,65 +76,6 @@ func Init(c config.Config) {
 
 type HandlerFunc func(http.ResponseWriter, *http.Request) error
 
-type link struct {
-	Category bool
-	Name     string
-	Link     string
-	HasLink  bool
-	Style    string
-	Children []link
-}
-
-func getNavbarLinks(req *http.Request) []link {
-	l := []link{
-		{Name: "Home", Link: "/"},
-		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
-		{Name: "Blog", Link: "/blog"},
-		{Name: "About", Link: "/about"},
-		//{Name: "Wholesale", Link: "/wholesale"},
-		{Name: "Contact", Link: "/contact"},
-		{Name: "Cart", Link: "/cart"},
-	}
-
-	if Admin(req) {
-		l = append(l, link{Name: "Admin", Link: "/admin"})
-	}
-
-	if Read(req) {
-		l = append(l, link{Name: "Logout", Link: "/logout", Style: "float:right"})
-	}
-
-	return l
-}
-
-func makeNavbarLinks() {
-	lock.Lock()
-	shoppingLinks = nil
-	lock.Unlock()
-	getShoppingLinks()
-}
-
-func getShoppingLinks() []link {
-	lock.Lock()
-	defer lock.Unlock()
-
-	if shoppingLinks != nil {
-		return shoppingLinks
-	}
-
-	f, err := os.Open(cfg.ShoppingMenu)
-	if err != nil {
-		log.Fatal("could not open shopping menu", cfg.ShoppingMenu, err)
-	}
-	defer f.Close()
-
-	if err := json.NewDecoder(f).Decode(&shoppingLinks); err != nil {
-		log.Fatal("could not decode shopping menu", err)
-	}
-
-	return shoppingLinks
-}
-
 func Static() HandlerFunc {
 	srv := http.FileServer(http.Dir("."))
 	return func(w http.ResponseWriter, req *http.Request) error {
@@ -176,6 +115,7 @@ func NotFound(w http.ResponseWriter, req *http.Request) {
 		Admin:   Admin(req),
 		Shopify: shopifyKey,
 		Name:    name,
+		Head:    html["head"],
 	}
 	templates.Get("notfound.html").ExecuteTemplate(w, "base", p)
 }
