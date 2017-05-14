@@ -46,6 +46,9 @@ var (
 	categories = kingpin.Command("categories", "save, edit and delete categories")
 	edit       = categories.Command("edit", "edit categories and subcategories")
 
+	blogs = kingpin.Command("blogs", "save, edit and delete blogs")
+	_     = blogs.Command("edit", "edit a blog")
+
 	box       *rice.Box
 	staticBox *rice.Box
 
@@ -77,6 +80,8 @@ func main() {
 		utils.EditUser()
 	case "categories edit":
 		utils.EditCategory()
+	case "blogs edit":
+		utils.EditBlog()
 	}
 }
 
