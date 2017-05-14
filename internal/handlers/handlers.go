@@ -82,6 +82,7 @@ type link struct {
 	Category bool
 	Name     string
 	Link     string
+	HasLink  bool
 	Style    string
 	Children []link
 }

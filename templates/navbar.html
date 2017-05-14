@@ -29,7 +29,11 @@
               {{range $child := $link.Children}}
               {{if $child.Category}}
               <li class="pure-menu-item menu-category">
+                {{if $child.HasLink}}
                 <a href="/shop/{{$child.Name}}">{{$child.Name}}</a>
+                {{else}}
+                <a>{{$child.Name}}</a>
+                {{end}}
               </li>
               {{else}}
               <li class="pure-menu-item">

@@ -6,7 +6,11 @@
       {{range $cat := .Shopping}}
       {{if $cat.Category}}
       <li>
+        {{if $cat.HasLink}}
+        <a href="/shop/{{$cat.Name}}" class="shopping-category" >{{$cat.Name}}</a>
+        {{else}}
         <a class="shopping-category" >{{$cat.Name}}</a>
+        {{end}}
       </li>
       {{else}}
       <li>
