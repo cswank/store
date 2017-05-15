@@ -8,7 +8,13 @@ import (
 	"io"
 	"sort"
 	"strings"
+	"sync"
 	"time"
+)
+
+var (
+	currentBlog *Blog
+	blogLock    sync.Mutex
 )
 
 type Blog struct {
@@ -20,6 +26,13 @@ type Blog struct {
 }
 
 func CurrentBlog() (Blog, error) {
+	blogLock.Lock()
+	defer blogLock.Unlock()
+
+	if currentBlog != nil {
+		return *currentBlog, nil
+	}
+
 	blogs, err := Blogs()
 
 	if err != nil {
@@ -30,8 +43,9 @@ func CurrentBlog() (Blog, error) {
 		return Blog{}, nil
 	}
 
-	return GetBlog(blogs[0].ID)
-
+	blog, err := GetBlog(blogs[0].ID)
+	currentBlog = &blog
+	return *currentBlog, err
 }
 
 func GetBlog(key string) (Blog, error) {
