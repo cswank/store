@@ -1,0 +1,49 @@
+{{define "content"}}
+
+<div id="admin-page">
+  {{template "admin-links.html" .}}
+
+  {{$uri := .URI}}
+  {{range .Items}}
+  <li>
+    <a href="{{$uri}}/{{.}}">{{.}}</a>
+  </li>
+  {{end}}
+</ul>
+
+<form action="{{.URI}}?from={{.From}}" method="POST" enctype="multipart/form-data">
+  <fieldset>
+    <input type="text" name="Name" placeholder="{{.Placeholder}}" required/><br/>
+    <button type="submit" class="pure-button pure-button-primary">Save</button>
+  </fieldset>
+</form>
+
+<form action="{{.Resource}}" method="POST" >
+  <fieldset>
+    <legend>Rename {{.ResourceName}}</legend>
+    <input type="text" name="Name" placeholder="New Name" required/><br/>
+    <button type="submit" class="pure-button pure-button-primary">Save</button>
+  </fieldset>
+</form>
+<form action="{{.Resource}}" method="POST" id="category-delete-form">
+  <fieldset>
+    <legend>Delete {{.ResourceName}}</legend>
+    <button type="submit" class="pure-button pure-button-primary" onClick="confirmCategory()">Delete</button>
+  </fieldset>
+</form>
+
+<form action="/admin/categories/{{.ResourceName}}/price" method="POST" >
+  <fieldset>
+    <legend>Price</legend>
+    <input type="text" name="Price" placeholder="price" value="{{.Price.Price}}" required/><br/>
+	<input type="text" name="WholesalePrice" placeholder="wholesale price" value="{{.Price.WholesalePrice}}" required/><br/>
+    <button type="submit" class="pure-button pure-button-primary">Save</button>
+  </fieldset>
+</form>
+
+</div>
+<script>
+  {{ template "admin.js" .}}
+</script>
+
+{{end}}

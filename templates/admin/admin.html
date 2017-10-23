@@ -14,38 +14,8 @@
 <form action="{{.URI}}?from={{.From}}" method="POST" enctype="multipart/form-data">
   <fieldset>
     <input type="text" name="Name" placeholder="{{.Placeholder}}" required/><br/>
-    {{if .IsProduct}}
-    <label for="Description">
-      <textarea name="Description" rows="8" cols="50"></textarea>
-    </label></br>
-    <label for="Image">Image
-      <input type="file" name="Image" placeholder="Image"/><br/>
-    </label>
-    {{end}}
-    <button type="submit" class="pure-button pure-button-primary">Save</button>
-  </fieldset>
-</form>
-
-{{if ne .Resource ""}}
-<form action="{{.Resource}}" method="POST" >
-  <fieldset>
-    <legend>Rename {{.ResourceName}}</legend>
-    <input type="text" name="Name" placeholder="New Name" required/><br/>
-    <button type="submit" class="pure-button pure-button-primary">Save</button>
-  </fieldset>
-</form>
-<form action="{{.Resource}}" method="POST" id="category-delete-form">
-  <fieldset>
-    <legend>Delete {{.ResourceName}}</legend>
-    <button type="submit" class="pure-button pure-button-primary" onClick="confirmCategory()">Delete</button>
-  </fieldset>
-</form>
-{{else}}
-
-<form action="/admin/site/images/home" method="POST" enctype="multipart/form-data">
-  <fieldset>
-    <legend>Home Page Image</legend>
-    <input type="file" name="Image" placeholder="Home Image" required/><br/>
+	<input type="text" name="Price" placeholder="price" required/><br/>
+	<input type="text" name="WholesalePrice" placeholder="wholesale price" required/><br/>
     <button type="submit" class="pure-button pure-button-primary">Save</button>
   </fieldset>
 </form>
@@ -58,8 +28,6 @@
   <a href="/admin/blogs">Manage Blogs</a>
   <br/>
 </div>
-
-{{end}}
 
 </div>
 <script>

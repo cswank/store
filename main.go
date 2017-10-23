@@ -144,8 +144,8 @@ func doServe() {
 	r.Handle("/login", getMiddleware(handlers.Human, handlers.DoLogin)).Methods("POST")
 	r.Handle("/login/reset", getMiddleware(handlers.Anyone, handlers.ResetPage)).Methods("GET")
 	r.Handle("/login/reset", getMiddleware(handlers.Human, handlers.SendReset)).Methods("POST")
-	r.Handle("/login/reset/{token}", getMiddleware(handlers.Anyone, handlers.ResetPassword)).Methods("GET")
-	r.Handle("/login/password", getMiddleware(handlers.Anyone, handlers.DoResetPassword)).Methods("POST")
+	r.Handle("/login/do-reset", getMiddleware(handlers.Anyone, handlers.ResetPassword)).Methods("GET")
+	r.Handle("/login/do-reset", getMiddleware(handlers.Anyone, handlers.DoResetPassword)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
 
@@ -261,7 +261,7 @@ func getTLS(srv *http.Server) func() error {
 	if cfg.TLSCerts == "" {
 		log.Fatal("you must set STORE_CERTS path when using tls")
 	}
-	fmt.Println("use lets encrypt", cfg.LetsEncrypt)
+
 	if cfg.LetsEncrypt {
 		m := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,

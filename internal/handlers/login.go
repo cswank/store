@@ -3,10 +3,11 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
+	"github.com/cswank/store/internal/email"
 	"github.com/cswank/store/internal/store"
 	"github.com/cswank/store/internal/templates"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 )
 
@@ -18,6 +19,8 @@ type loginPage struct {
 	Error          string
 	Message        string
 	Token          string
+	Email          string
+	Action         string
 }
 
 func Login(w http.ResponseWriter, req *http.Request) error {
@@ -105,7 +108,14 @@ func SendReset(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	if err := store.SendPasswordReset(req.FormValue("email")); err != nil {
+	em := req.FormValue("email")
+
+	token, err := store.SavePasswordReset(em)
+	if err != nil {
+		return err
+	}
+
+	if err := sendPasswordResetEmail(em, token); err != nil {
 		return err
 	}
 
@@ -115,14 +125,45 @@ func SendReset(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
+func sendPasswordResetEmail(em, token string) error {
+	d := cfg.Domains[0]
+	if cfg.Port != 443 && cfg.Port != 80 {
+		d = fmt.Sprintf("%s:%d", d, cfg.Port)
+	}
+	u, _ := url.Parse(fmt.Sprintf("https://%s/login/do-reset", d))
+	params := url.Values{
+		"token":    {token},
+		"username": {em},
+	}
+	u.RawQuery = params.Encode()
+
+	body := `Dear %s,
+Please click on the following link to reset your %s password.
+
+%s
+
+Sincerely,
+%s
+`
+	m := email.Msg{
+		Email:   em,
+		Subject: fmt.Sprintf("%s password reset request", cfg.Name),
+		Body:    fmt.Sprintf(body, em, cfg.Domains[0], u, cfg.Domains[0]),
+	}
+
+	return email.Send(m)
+}
+
 func ResetPassword(w http.ResponseWriter, req *http.Request) error {
-	vars := mux.Vars(req)
-	t := vars["token"]
+	t := req.URL.Query().Get("token")
+	if t == "" {
+		return store.ErrNotFound
+	}
 
-	//TODO
-	// if !store.ValidToken(t) {
-
-	// }
+	u, err := store.GetUserFromResetToken(t, false)
+	if err != nil {
+		return err
+	}
 
 	p := loginPage{
 		page: page{
@@ -133,21 +174,27 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) error {
 		Message:        req.URL.Query().Get("message"),
 		CaptchaSiteKey: cfg.RecaptchaSiteKey,
 		Token:          t,
+		Email:          u.Email,
+		Action:         fmt.Sprintf("/login/do-reset?username=%s&token=%s", u.Email, t),
 	}
 
 	return templates.Get("reset-form.html").ExecuteTemplate(w, "base", p)
 }
 
 func DoResetPassword(w http.ResponseWriter, req *http.Request) error {
+	t := req.URL.Query().Get("token")
+	if t == "" {
+		return store.ErrNotFound
+	}
+
 	if err := req.ParseForm(); err != nil {
 		return err
 	}
 
-	t := req.FormValue("token")
 	pw := req.FormValue("password")
 	pw2 := req.FormValue("confirm-password")
 
-	u, err := store.GetUserFromResetToken(t)
+	u, err := store.GetUserFromResetToken(t, true)
 	if err != nil {
 		return err
 	}

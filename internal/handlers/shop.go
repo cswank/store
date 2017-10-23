@@ -68,25 +68,29 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 			Name:    name,
 			Head:    html["head"],
 		},
-		Price:             getPrice(req),
 		DiscountCode:      dc,
 		UnderConstruction: cfg.UnderConstruction,
 	}
 	return templates.Get("cart.html").ExecuteTemplate(w, "base", p)
 }
 
-func getPrice(req *http.Request) string {
-	price := cfg.DefaultPrice
+func getPrice(req *http.Request, price store.Price) string {
 	if Wholesaler(req) {
-		price = cfg.WholesalePrice
+		return price.WholesalePrice
+
 	}
-	return price
+	return price.Price
 }
 
 func LineItem(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	price := getPrice(req)
+	x, err := store.GetPrice(cat)
+	if err != nil {
+		return err
+	}
+
+	price := getPrice(req, x)
 	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(price))
 	if err := p.Fetch(); err != nil {
 		return err
@@ -134,7 +138,13 @@ func Category(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	links := getLinks(fmt.Sprintf("/shop/%s", cat), subs)
-	products, err := getProductsFromLinks(cat, links, getPrice(req))
+
+	price, err := store.GetPrice(cat)
+	if err != nil {
+		return err
+	}
+
+	products, err := getProductsFromLinks(cat, links, getPrice(req, price))
 	if err != nil {
 		return err
 	}
@@ -215,6 +225,11 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 		return err
 	}
 
+	price, err := store.GetPrice(cat)
+	if err != nil {
+		return err
+	}
+
 	p := subCategoryPage{
 		page: page{
 			Admin:   Admin(req),
@@ -224,7 +239,7 @@ func showSubcategory(cat, subcat string, w http.ResponseWriter, req *http.Reques
 			Head:    html["head"],
 		},
 		Subcat:   subcat,
-		Products: getProducts(cat, subcat, prods, getPrice(req)),
+		Products: getProducts(cat, subcat, prods, getPrice(req, price)),
 		Shopping: getShoppingLinks(),
 	}
 	return templates.Get("subcategory.html").ExecuteTemplate(w, "base", p)
@@ -252,7 +267,12 @@ type product struct {
 func GetProduct(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(getPrice(req)))
+	price, err := store.GetPrice(cat)
+	if err != nil {
+		return err
+	}
+
+	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(getPrice(req, price)))
 	if err := p.Fetch(); err != nil {
 		return err
 	}
@@ -263,7 +283,12 @@ func GetProduct(w http.ResponseWriter, req *http.Request) error {
 func Product(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, vars := getVars(req)
 
-	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(getPrice(req)))
+	price, err := store.GetPrice(cat)
+	if err != nil {
+		return err
+	}
+
+	p := store.NewProduct(vars["title"], cat, subcat, store.ProductPrice(getPrice(req, price)))
 
 	if err := p.Fetch(); err != nil {
 		return err

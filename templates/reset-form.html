@@ -4,21 +4,17 @@
 <div class="center text-center">{{.Message}}</div>
 {{else}}
 <div class="form-holder">
-  <form class="pure-form pure-form-stacked" action="/login/password" method="POST">
+  <form class="pure-form pure-form-stacked" action="{{.Action}}" method="POST">
     <fieldset>
-      <legend>Password Reset</legend>
-      <input type="hidden" name="token" value="{{.Token}}">
+      <legend>Password Reset for {{.Email}}</legend>
       <label for="password">Password</label>
-      <input type="password" placeholder="password" name="password" required>
-
-      <label for="confirm-password">Confirm Password</label>
-      <input type="password" placeholder="confirm password" name="confirm-password" required>
+      <input type="password" placeholder="password" name="password" required autocomplete="new-password">
       
-      <div class="g-recaptcha" data-sitekey="{{.CaptchaSiteKey}}"></div>
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" placeholder="confirm password" name="confirm-password" required autocomplete="new-password">
       <button type="submit" class="pure-button pure-button-primary">Submit</button>
     </fieldset>
   </form>
 </div>
 {{end}}
 {{end}}
-

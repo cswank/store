@@ -8,8 +8,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/cswank/store/internal/email"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -208,11 +206,11 @@ func VerifyWholesaler(token string) (User, error) {
 	return u, u.Save()
 }
 
-func SendPasswordReset(email string) error {
+func SavePasswordReset(email string) (string, error) {
 	u := User{Email: email}
 	if err := u.Fetch(); err != nil {
 		log.Printf("couldn't fetch user for password reset, email: %s, err: %v\n", email, err)
-		return nil
+		return "", nil
 	}
 
 	k := randStr(64)
@@ -221,32 +219,11 @@ func SendPasswordReset(email string) error {
 		Expires: time.Now().Add(24 * time.Hour),
 	}
 
-	if err := sendPasswordResetEmail(email, k); err != nil {
-		return err
-	}
-
 	d, _ := json.Marshal(t)
-	return db.Put([]Query{NewQuery(Key(k), Val(d), Buckets("tokens"))})
+	return k, db.Put([]Query{NewQuery(Key(k), Val(d), Buckets("tokens"))})
 }
 
-func sendPasswordResetEmail(em, token string) error {
-	pwBody := `Dear %s,
-Please click on the following link to reset your %s password.
-
-https://%s/login/reset/%s
-
-%s
-`
-	m := email.Msg{
-		Email:   em,
-		Subject: fmt.Sprintf("%s password reset request", cfg.Name),
-		Body:    fmt.Sprintf(pwBody, em, cfg.Domains[0], cfg.Domains[0], token, cfg.Domains[0]),
-	}
-
-	return email.Send(m)
-}
-
-func GetUserFromResetToken(key string) (User, error) {
+func GetUserFromResetToken(key string, expire bool) (User, error) {
 	var u User
 	var t Token
 
@@ -261,6 +238,12 @@ func GetUserFromResetToken(key string) (User, error) {
 
 	if time.Now().Sub(t.Expires) > 0 {
 		return u, fmt.Errorf("expired token for %s", t.Email)
+	}
+
+	if expire {
+		if err := db.Delete(q); err != nil {
+			return u, err
+		}
 	}
 
 	u.Email = t.Email

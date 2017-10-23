@@ -80,7 +80,6 @@ func Blogs() ([]BlogKey, error) {
 	sort.Slice(blogs, func(i, j int) bool {
 		return blogs[i].ID > blogs[j].ID
 	})
-
 	return blogs, err
 }
 
@@ -124,6 +123,9 @@ func (b *Blog) Update(b2 Blog, img io.Reader) error {
 
 func (b *Blog) Save(img io.Reader) error {
 	b.Date = time.Now()
+	blogLock.Lock()
+	currentBlog = nil
+	blogLock.Unlock()
 	return b.doSave(img)
 }
 
@@ -175,8 +177,15 @@ func addBlogImage(r io.Reader, blog string, q []Query) ([]Query, error) {
 }
 
 func (b *Blog) Delete() error {
-	return db.Delete([]Query{
+	err := db.Delete([]Query{
 		NewQuery(Buckets("blogs"), Key(b.Key())),
 		NewQuery(Buckets("images", "blogs"), Key(b.Key())),
 	})
+	if err != nil {
+		return err
+	}
+	blogLock.Lock()
+	currentBlog = nil
+	blogLock.Unlock()
+	return nil
 }

@@ -51,7 +51,7 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	prods, items, err := getWholesaleProducts(cats, getPrice(req))
+	prods, items, err := getWholesaleProducts(cats)
 	if err != nil {
 		return err
 	}
@@ -227,10 +227,16 @@ func WholesaleApplication(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("wholesale/application-form.html").ExecuteTemplate(w, "base", p)
 }
 
-func getWholesaleProducts(cats []string, price string) (map[string]map[string][]product, map[string]product, error) {
+func getWholesaleProducts(cats []string) (map[string]map[string][]product, map[string]product, error) {
 	m := map[string]map[string][]product{}
 	m2 := map[string]product{}
 	for _, cat := range cats {
+
+		price, err := store.GetPrice(cat)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		subcats, err := store.GetSubCategories(cat)
 		if err != nil {
 			return nil, nil, err
@@ -241,7 +247,7 @@ func getWholesaleProducts(cats []string, price string) (map[string]map[string][]
 			if err != nil {
 				return nil, nil, err
 			}
-			pp := getProducts(cat, subcat, prods, price)
+			pp := getProducts(cat, subcat, prods, price.WholesalePrice)
 			a[subcat] = pp
 			for _, p := range pp {
 				m2[p.ID] = p

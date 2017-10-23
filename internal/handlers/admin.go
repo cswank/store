@@ -21,6 +21,7 @@ type adminPage struct {
 	Placeholder      string
 	From             string
 	IsProduct        bool
+	IsCategory       bool
 	Product          *store.Product
 	ProductID        string
 	ProductTitle     string
@@ -28,6 +29,7 @@ type adminPage struct {
 	Items            []string
 	AdminLinks       []link
 	Subcategories    []string
+	Price            store.Price
 }
 
 func BackupDB(w http.ResponseWriter, req *http.Request) error {
@@ -53,8 +55,15 @@ func AdminPage(w http.ResponseWriter, req *http.Request) error {
 		From:        "/admin",
 		Placeholder: "new category",
 		AdminLinks:  []link{{Name: "Categories", Link: "/admin"}},
+		IsCategory:  true,
 	}
 	return templates.Get("admin/admin.html").ExecuteTemplate(w, "base", p)
+}
+
+type category struct {
+	Name           string `schema:"Name"`
+	Price          string `schema:"Price"`
+	WholesalePrice string `schema:"WholesalePrice"`
 }
 
 func AddCategory(w http.ResponseWriter, req *http.Request) error {
@@ -64,17 +73,23 @@ func AddCategory(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	name := req.FormValue("Name")
-	if strings.Contains(name, "/") {
+	var c category
+	dec := schema.NewDecoder()
+	dec.IgnoreUnknownKeys(true)
+	if err := dec.Decode(&c, req.PostForm); err != nil {
+		return err
+	}
+
+	if strings.Contains(c.Name, "/") {
 		return fmt.Errorf("illegal character (/)")
 	}
 
 	if cat == "" {
-		if err := store.AddCategory(name); err != nil {
+		if err := store.AddCategory(c.Name, c.Price, c.WholesalePrice); err != nil {
 			return err
 		}
 	} else {
-		if err := store.AddSubcategory(cat, name); err != nil {
+		if err := store.AddSubcategory(cat, c.Name); err != nil {
 			return err
 		}
 		makeNavbarLinks()
@@ -92,6 +107,11 @@ func AddCategory(w http.ResponseWriter, req *http.Request) error {
 
 func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 	cat, _, _ := getVars(req)
+
+	price, err := store.GetPrice(cat)
+	if err != nil {
+		return err
+	}
 
 	subcats, err := store.GetSubCategories(cat)
 	if err != nil {
@@ -117,8 +137,9 @@ func AdminCategoryPage(w http.ResponseWriter, req *http.Request) error {
 			{Name: "Categories", Link: "/admin"},
 			{Name: cat, Link: from},
 		},
+		Price: price,
 	}
-	return templates.Get("admin/admin.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/category.html").ExecuteTemplate(w, "base", p)
 }
 
 func RenameCategory(w http.ResponseWriter, req *http.Request) error {
@@ -233,7 +254,7 @@ func AdminAddProductPage(w http.ResponseWriter, req *http.Request) error {
 		IsProduct: true,
 	}
 
-	return templates.Get("admin/admin.html").ExecuteTemplate(w, "base", p)
+	return templates.Get("admin/subcategory.html").ExecuteTemplate(w, "base", p)
 }
 
 func AdminProductPage(w http.ResponseWriter, req *http.Request) error {
