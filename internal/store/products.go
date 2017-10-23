@@ -28,9 +28,43 @@ var (
 	ErrExists = errors.New("product already exists")
 )
 
-func AddCategory(name string) error {
+type Price struct {
+	Price          string `json:"price"`
+	WholesalePrice string `json:"wholesale_price"`
+}
+
+func GetPrice(name string) (Price, error) {
+	q := []Query{NewQuery(Buckets("products", name), Key("_price_"))}
+	var p Price
+	return p, db.Get(q, func(key, val []byte) error {
+		return json.Unmarshal(val, &p)
+	})
+}
+
+func SetPrice(name string, price Price) error {
+	d, err := json.Marshal(price)
+	if err != nil {
+		return err
+	}
+
+	q := []Query{NewQuery(Buckets("products", name), Key("_price_"), Val(d))}
+	return db.Put(q)
+}
+
+func AddCategory(name, p, w string) error {
 	row := NewQuery(Buckets("products"), Key(name))
-	return db.AddBucket(row)
+	if err := db.AddBucket(row); err != nil {
+		return err
+	}
+
+	d, err := json.Marshal(Price{Price: p, WholesalePrice: w})
+	if err != nil {
+		return err
+	}
+
+	return db.Put([]Query{
+		NewQuery(Buckets("products", name), Key("_price_"), Val(d)),
+	})
 }
 
 func RenameCategory(old, name string) error {
@@ -73,7 +107,10 @@ func GetSubCategories(cat string) ([]string, error) {
 	var cats []string
 	q := NewQuery(Buckets("products", cat))
 	return cats, db.GetAll(q, func(key, val []byte) error {
-		cats = append(cats, string(key))
+		cat := string(key)
+		if cat != "_price_" {
+			cats = append(cats, cat)
+		}
 		return nil
 	})
 }

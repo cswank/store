@@ -67,6 +67,8 @@ func Init(box *rice.Box) {
 	templates = map[string]tmpl{
 		"about.html":                      {files: []string{"about.html"}},
 		"admin/admin.html":                {files: []string{"admin/admin.html", "admin/links.html", "background-images.html", "admin/admin.js"}},
+		"admin/category.html":             {files: []string{"admin/category.html", "admin/links.html", "background-images.html", "admin/admin.js"}},
+		"admin/subcategory.html":          {files: []string{"admin/subcategory.html", "admin/links.html", "background-images.html", "admin/admin.js"}},
 		"admin/blogs.html":                {files: []string{"admin/blogs.html"}},
 		"admin/product.html":              {files: []string{"admin/product.html", "admin/links.html", "admin/product.js", "background-images.html"}},
 		"admin/wholesaler.html":           {files: []string{"admin/wholesaler.html"}},

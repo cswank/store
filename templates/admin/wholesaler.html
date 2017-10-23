@@ -1,10 +1,12 @@
 {{define "content"}}
-<div class="center">
-  <div class="left">
-    <h2>{{.Wholesaler.StoreName}}</h2>
-    <div>
+<div>
+  <div class="center">
+	<h2>{{.Wholesaler.StoreName}}</h2>
+	<div>
       <a href="/admin/wholesalers">Back</a>
-    </div>
+	</div>
+  </div>
+  <div class="form-holder">
     <form class="pure-form pure-form-stacked" action="/admin/wholesalers/{{.Wholesaler.Email}}" method="POST">
       <fieldset>
         <legend>Wholesaler</legend>

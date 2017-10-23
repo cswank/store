@@ -144,8 +144,8 @@ func doServe() {
 	r.Handle("/login", getMiddleware(handlers.Human, handlers.DoLogin)).Methods("POST")
 	r.Handle("/login/reset", getMiddleware(handlers.Anyone, handlers.ResetPage)).Methods("GET")
 	r.Handle("/login/reset", getMiddleware(handlers.Human, handlers.SendReset)).Methods("POST")
-	r.Handle("/login/reset/{token}", getMiddleware(handlers.Anyone, handlers.ResetPassword)).Methods("GET")
-	r.Handle("/login/password", getMiddleware(handlers.Anyone, handlers.DoResetPassword)).Methods("POST")
+	r.Handle("/login/do-reset", getMiddleware(handlers.Anyone, handlers.ResetPassword)).Methods("GET")
+	r.Handle("/login/do-reset", getMiddleware(handlers.Anyone, handlers.DoResetPassword)).Methods("POST")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.Logout)).Methods("GET")
 	r.Handle("/logout", getMiddleware(handlers.Anyone, handlers.DoLogout)).Methods("POST")
 
@@ -194,6 +194,7 @@ func doServe() {
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.AdminCategoryPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.RenameCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.DeleteCategory)).Methods("DELETE")
+	r.Handle("/admin/categories/{category}/price", getMiddleware(handlers.Admin, handlers.UpdatePrice)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.AdminAddProductPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.RenameSubcategory)).Methods("POST")
@@ -261,7 +262,7 @@ func getTLS(srv *http.Server) func() error {
 	if cfg.TLSCerts == "" {
 		log.Fatal("you must set STORE_CERTS path when using tls")
 	}
-	fmt.Println("use lets encrypt", cfg.LetsEncrypt)
+
 	if cfg.LetsEncrypt {
 		m := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,

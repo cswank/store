@@ -33,7 +33,6 @@ func Wholesale(w http.ResponseWriter, req *http.Request) error {
 	} else if NewWholesaler(req) {
 		return getWholesaleProcessing(w, req)
 	}
-
 	w.Header().Set("Location", "/login?from=/wholesale")
 	w.WriteHeader(http.StatusFound)
 	return nil
@@ -51,7 +50,7 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	prods, items, err := getWholesaleProducts(cats, getPrice(req))
+	prods, items, err := getWholesaleProducts(cats)
 	if err != nil {
 		return err
 	}
@@ -74,12 +73,10 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 func getWholesaleProcessing(w http.ResponseWriter, req *http.Request) error {
 	p := page{
 		Links:   getNavbarLinks(req),
-		Admin:   Admin(req),
-		Shopify: shopifyKey,
-		Name:    name,
+		Name:    cfg.Name,
+		Head:    html["head"],
 		Message: "Your wholesale application is still being processed.  You will receive an additional email once your application is approved and you will then be able to purchase items at wholesale prices",
 	}
-
 	return templates.Get("wholesale/pending.html").ExecuteTemplate(w, "base", p)
 }
 
@@ -227,10 +224,16 @@ func WholesaleApplication(w http.ResponseWriter, req *http.Request) error {
 	return templates.Get("wholesale/application-form.html").ExecuteTemplate(w, "base", p)
 }
 
-func getWholesaleProducts(cats []string, price string) (map[string]map[string][]product, map[string]product, error) {
+func getWholesaleProducts(cats []string) (map[string]map[string][]product, map[string]product, error) {
 	m := map[string]map[string][]product{}
 	m2 := map[string]product{}
 	for _, cat := range cats {
+
+		price, err := store.GetPrice(cat)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		subcats, err := store.GetSubCategories(cat)
 		if err != nil {
 			return nil, nil, err
@@ -241,7 +244,7 @@ func getWholesaleProducts(cats []string, price string) (map[string]map[string][]
 			if err != nil {
 				return nil, nil, err
 			}
-			pp := getProducts(cat, subcat, prods, price)
+			pp := getProducts(cat, subcat, prods, price.WholesalePrice)
 			a[subcat] = pp
 			for _, p := range pp {
 				m2[p.ID] = p
@@ -253,9 +256,12 @@ func getWholesaleProducts(cats []string, price string) (map[string]map[string][]
 }
 
 func WholesaleThanks(w http.ResponseWriter, req *http.Request) error {
+	msg := fmt.Sprintf("Your email address is confirmed.  As soon as the site administrator approves your account you will be able to log into %s and make purchases at wholesale prices", cfg.Domains[0])
 	p := page{
-		Links: getNavbarLinks(req),
-		Name:  cfg.Name,
+		Links:   getNavbarLinks(req),
+		Name:    cfg.Name,
+		Head:    html["head"],
+		Message: msg,
 	}
 
 	return templates.Get("wholesale/thanks.html").ExecuteTemplate(w, "base", p)
@@ -285,6 +291,20 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 		Email:   u.Email,
 		Subject: fmt.Sprintf("Thank you for applying to %s", cfg.Domains[0]),
 		Body:    getWholesaleVerificationBody(u, token),
+	}
+
+	if err := email.Send(msg); err != nil {
+		return err
+	}
+
+	msg = email.Msg{
+		Email:   cfg.Email,
+		Subject: fmt.Sprintf("New wholesaler application for %s", cfg.Domains[0]),
+		Body: fmt.Sprintf(
+			"%s has applied as a wholesaler.  Click on %s to approve the application.",
+			u.Email,
+			fmt.Sprintf("https://%s/admin/wholesalers/%s", cfg.Domains[0], u.Email),
+		),
 	}
 
 	if err := email.Send(msg); err != nil {
@@ -326,6 +346,7 @@ func WholesaleVerify(w http.ResponseWriter, req *http.Request) error {
 		Links:   getNavbarLinks(req),
 		Admin:   Admin(req),
 		Shopify: shopifyKey,
+		Head:    html["head"],
 		Name:    name,
 	}
 	var f func(io.Writer, string, interface{}) error
