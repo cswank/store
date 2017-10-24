@@ -194,6 +194,7 @@ func doServe() {
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.AdminCategoryPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.RenameCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}", getMiddleware(handlers.Admin, handlers.DeleteCategory)).Methods("DELETE")
+	r.Handle("/admin/categories/{category}/price", getMiddleware(handlers.Admin, handlers.UpdatePrice)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories", getMiddleware(handlers.Admin, handlers.AddCategory)).Methods("POST")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.AdminAddProductPage)).Methods("GET")
 	r.Handle("/admin/categories/{category}/subcategories/{subcategory}", getMiddleware(handlers.Admin, handlers.RenameSubcategory)).Methods("POST")

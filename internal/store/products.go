@@ -41,6 +41,16 @@ func GetPrice(name string) (Price, error) {
 	})
 }
 
+func SetPrice(name string, price Price) error {
+	d, err := json.Marshal(price)
+	if err != nil {
+		return err
+	}
+
+	q := []Query{NewQuery(Buckets("products", name), Key("_price_"), Val(d))}
+	return db.Put(q)
+}
+
 func AddCategory(name, p, w string) error {
 	row := NewQuery(Buckets("products"), Key(name))
 	if err := db.AddBucket(row); err != nil {

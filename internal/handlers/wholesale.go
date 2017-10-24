@@ -33,7 +33,6 @@ func Wholesale(w http.ResponseWriter, req *http.Request) error {
 	} else if NewWholesaler(req) {
 		return getWholesaleProcessing(w, req)
 	}
-
 	w.Header().Set("Location", "/login?from=/wholesale")
 	w.WriteHeader(http.StatusFound)
 	return nil
@@ -74,12 +73,9 @@ func getWholesaleForm(w http.ResponseWriter, req *http.Request) error {
 func getWholesaleProcessing(w http.ResponseWriter, req *http.Request) error {
 	p := page{
 		Links:   getNavbarLinks(req),
-		Admin:   Admin(req),
-		Shopify: shopifyKey,
-		Name:    name,
+		Name:    cfg.Name,
 		Message: "Your wholesale application is still being processed.  You will receive an additional email once your application is approved and you will then be able to purchase items at wholesale prices",
 	}
-
 	return templates.Get("wholesale/pending.html").ExecuteTemplate(w, "base", p)
 }
 

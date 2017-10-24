@@ -176,6 +176,30 @@ func DeleteCategory(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
+func UpdatePrice(w http.ResponseWriter, req *http.Request) error {
+	cat, _, _ := getVars(req)
+
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
+	var p store.Price
+	dec := schema.NewDecoder()
+	dec.IgnoreUnknownKeys(true)
+	if err := dec.Decode(&p, req.PostForm); err != nil {
+		return err
+	}
+
+	if err := store.SetPrice(cat, p); err != nil {
+		return err
+	}
+
+	l := fmt.Sprintf("/admin/categories/%s", cat)
+	w.Header().Set("Location", l)
+	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
 func RenameSubcategory(w http.ResponseWriter, req *http.Request) error {
 	cat, subcat, _ := getVars(req)
 
