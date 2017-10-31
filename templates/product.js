@@ -3,6 +3,7 @@
 var category = {{.Product.Cat}};
 var subcategory = {{.Product.Subcat}};
 var id = {{.Product.ID}};
+var price = {{.Product.Price}};
 
 function updateQuantity(n) {
     quantity += n;

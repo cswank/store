@@ -36,9 +36,18 @@ type Price struct {
 func GetPrice(name string) (Price, error) {
 	q := []Query{NewQuery(Buckets("products", name), Key("_price_"))}
 	var p Price
-	return p, db.Get(q, func(key, val []byte) error {
+	err := db.Get(q, func(key, val []byte) error {
 		return json.Unmarshal(val, &p)
 	})
+	if err == ErrNotFound {
+		p = Price{
+			Price:          cfg.DefaultPrice,
+			WholesalePrice: cfg.WholesalePrice,
+		}
+		err = nil
+	}
+
+	return p, err
 }
 
 func SetPrice(name string, price Price) error {

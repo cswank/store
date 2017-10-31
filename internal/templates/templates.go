@@ -87,7 +87,7 @@ func Init(box *rice.Box) {
 		"product.html":                    {files: []string{"product.html", "product.js"}},
 		"reset-form.html":                 {files: []string{"reset-form.html"}},
 		"reset.html":                      {files: []string{"reset.html"}},
-		"shop.html":                       {files: []string{"shop.html", "thumb.html"}},
+		"shop.html":                       {files: []string{"shop.html", "thumb.html"}, funcs: multiplexer},
 		"subcategory.html":                {files: []string{"subcategory.html", "thumb.html"}, funcs: multiplexer},
 		"wholesale/application-form.html": {files: []string{"wholesale/application-form.html", "wholesale/application.js"}},
 		"wholesale/form.html":             {files: []string{"wholesale/form.html", "wholesale/thumb.html", "wholesale/wholesale.js"}, funcs: multiplexer},

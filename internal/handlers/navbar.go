@@ -22,7 +22,7 @@ type link struct {
 func getNavbarLinks(req *http.Request) []link {
 	l := []link{
 		{Name: "Home", Link: "/"},
-		{Name: "Shop", Link: "/", Children: getShoppingLinks()},
+		{Name: "Shop", Link: "/shop", Children: getShoppingLinks()},
 		//{Name: "Blog", Link: "/blog"},
 		//{Name: "About", Link: "/about"},
 		{Name: "Wholesale", Link: "/wholesale"},
@@ -91,7 +91,7 @@ func getDBShoppingLinks() []link {
 
 	for _, cat := range cats {
 		scl := getSubcatLinks(cat)
-		l = append(l, link{Category: true, Name: cat})
+		l = append(l, link{Category: true, Name: cat, Link: fmt.Sprintf("/shop/%s", cat), HasLink: true})
 		if len(scl) > 0 {
 			l = append(l, scl...)
 		}

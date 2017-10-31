@@ -21,31 +21,6 @@ var (
 	shopifyKey shopifyAPI
 )
 
-type shopPage struct {
-	page
-	Shopify    shopifyAPI
-	Categories []string
-}
-
-func Shop(w http.ResponseWriter, req *http.Request) error {
-	cats, err := store.GetCategories()
-	if err != nil {
-		return err
-	}
-
-	p := shopPage{
-		Shopify:    shopifyKey,
-		Categories: cats,
-		page: page{
-			Links:   getNavbarLinks(req),
-			Admin:   Admin(req),
-			Shopify: shopifyKey,
-			Head:    html["head"],
-		},
-	}
-	return templates.Get("shop.html").ExecuteTemplate(w, "base", p)
-}
-
 type cartPage struct {
 	page
 	Price             string
@@ -77,7 +52,6 @@ func Cart(w http.ResponseWriter, req *http.Request) error {
 func getPrice(req *http.Request, price store.Price) string {
 	if Wholesaler(req) {
 		return price.WholesalePrice
-
 	}
 	return price.Price
 }
@@ -117,6 +91,24 @@ func LineItem(w http.ResponseWriter, req *http.Request) error {
 	t := float64(q) * pr
 	p.Total = fmt.Sprintf("%.02f", t)
 	return templates.Get("lineitem.html").ExecuteTemplate(w, "lineitem.html", p)
+}
+
+type shopPage struct {
+	page
+	Shopping []link
+}
+
+func Shop(w http.ResponseWriter, req *http.Request) error {
+	p := shopPage{
+		Shopping: getShoppingLinks(),
+		page: page{
+			Links:   getNavbarLinks(req),
+			Admin:   Admin(req),
+			Shopify: shopifyKey,
+			Head:    html["head"],
+		},
+	}
+	return templates.Get("shop.html").ExecuteTemplate(w, "base", p)
 }
 
 type categoryPage struct {

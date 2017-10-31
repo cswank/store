@@ -49,6 +49,7 @@ function addToCart(title) {
     if (item == undefined) {
         item = {
             id: id,
+			price: price,
             count: quantity,
             cat: category,
             subcat: subcategory
@@ -56,8 +57,6 @@ function addToCart(title) {
     }
 
     var quantity = parseInt($("#" + item.id).val());
-    console.log("quantity", quantity);
-    
     item.count = quantity;
     doAddToCart(cart, item, title, true);
 }

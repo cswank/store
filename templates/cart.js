@@ -1,8 +1,6 @@
 {{define "cart.js"}}
 
-var price = {{.Price}};
-var discountCode = {{.DiscountCode}}
-
+var discountCode = {{.DiscountCode}};
 var items = JSON.parse(localStorage.getItem("shopping-cart"));
 
 var shopClient = ShopifyBuy.buildClient({
@@ -57,6 +55,7 @@ function showCart(i) {
 
 function update(title, n) {
     item = items[title];
+	console.log("update", item);
     item.count += n;
     if (item.count < 0) {
         item.count = 0;
@@ -67,7 +66,8 @@ function update(title, n) {
     $(sel).val(item.count);
 
     sel = "#" + item.id + "-total";
-    var itemPrice = item.count * price;
+	//var price = parseFloat(item.price);
+    var itemPrice = item.count * item.price;
     $(sel).text("$" + itemPrice.toFixed(2));
     return false;
 }
@@ -76,7 +76,7 @@ function updateTotal(items) {
     var total = 0.0;
     for (var title in items) {
         var item = items[title];
-        total += item.count * price;
+        total += item.count * item.price;
     }
     $("#grand-total").text("$" + total.toFixed(2));
 }

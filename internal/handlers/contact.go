@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/cswank/store/internal/email"
@@ -59,6 +60,9 @@ func DoContact(w http.ResponseWriter, req *http.Request) error {
 	if err := dec.Decode(&m, req.PostForm); err != nil {
 		return err
 	}
+
+	m.Body = fmt.Sprintf("New message from %s for %s:\n\n%s", m.From, cfg.Domains[0], m.Body)
+	m.To = cfg.Email
 
 	if err := email.Send(m); err != nil {
 		return err

@@ -146,7 +146,8 @@ Sincerely,
 %s
 `
 	m := email.Msg{
-		Email:   em,
+		To:      em,
+		From:    cfg.Email,
 		Subject: fmt.Sprintf("%s password reset request", cfg.Name),
 		Body:    fmt.Sprintf(body, em, cfg.Domains[0], u, cfg.Domains[0]),
 	}

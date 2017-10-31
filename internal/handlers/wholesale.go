@@ -127,7 +127,8 @@ func sendInvoice(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	msg := email.Msg{
-		Email:   u.Email,
+		To:      u.Email,
+		From:    cfg.Email,
 		Subject: fmt.Sprintf("Invoice #%d from %s", i.Number, cfg.Domains[0]),
 		Body:    buf.String(),
 	}
@@ -288,7 +289,8 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	msg := email.Msg{
-		Email:   u.Email,
+		To:      u.Email,
+		From:    cfg.Email,
 		Subject: fmt.Sprintf("Thank you for applying to %s", cfg.Domains[0]),
 		Body:    getWholesaleVerificationBody(u, token),
 	}
@@ -298,7 +300,8 @@ func WholesaleApply(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	msg = email.Msg{
-		Email:   cfg.Email,
+		To:      cfg.Email,
+		From:    cfg.Email,
 		Subject: fmt.Sprintf("New wholesaler application for %s", cfg.Domains[0]),
 		Body: fmt.Sprintf(
 			"%s has applied as a wholesaler.  Click on %s to approve the application.",

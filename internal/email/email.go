@@ -22,7 +22,8 @@ Subject: %s
 
 type Msg struct {
 	Name    string `schema:"name"`
-	Email   string `schema:"email"`
+	From    string `schema:"from"`
+	To      string `schema:"to"`
 	Subject string `schema:"subject"`
 	Body    string `schema:"body"`
 }
@@ -37,19 +38,19 @@ func Init(c config.Config) {
 	}
 }
 
-func sendEmail(m Msg) error {
-	msg := fmt.Sprintf(mailTemplate, cfg.Email, m.Email, m.Subject, m.Body)
+func sendEmail(msg Msg) error {
+	text := fmt.Sprintf(mailTemplate, msg.From, msg.To, msg.Subject, msg.Body)
 
 	return smtp.SendMail(
 		"smtp.gmail.com:587",
 		smtp.PlainAuth("", cfg.Email, cfg.EmailPassword, "smtp.gmail.com"),
 		cfg.Email,
-		[]string{m.Email}, []byte(msg),
+		[]string{msg.To}, []byte(text),
 	)
 }
 
 func sendFake(msg Msg) error {
-	text := fmt.Sprintf(mailTemplate, cfg.Email, msg.Email, msg.Subject, msg.Body)
+	text := fmt.Sprintf(mailTemplate, msg.From, msg.To, msg.Subject, msg.Body)
 
 	f, err := os.Create("/tmp/mail.txt")
 	if err != nil {

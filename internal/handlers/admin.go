@@ -524,7 +524,8 @@ func AdminWholesalerConfirm(w http.ResponseWriter, req *http.Request) error {
 
 func welcomeWholesaler(u store.User) error {
 	msg := email.Msg{
-		Email:   u.Email,
+		To:      u.Email,
+		From:    cfg.Email,
 		Subject: fmt.Sprintf("Your wholesale application at %s.", cfg.Domains[0]),
 		Body:    getWholesaleProcessingComplete(u),
 	}
